@@ -11,7 +11,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Top_Student (input basys_clock, input [7:0] sw, output [7:0]JB);
-    
+module Top_Student (input basys_clock, btnU, btnC, btnD, input [7:0] sw, output [7:0]JB);
+
+    basic_task_b unitb(basys_clock, btnU, btnC, btnD, JB);
 
 endmodule

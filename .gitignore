@@ -1,0 +1,108 @@
+# FPGA Design Project .gitignore
+
+# Xilinx Vivado/ISE specific
+*.cache/
+*.runs/
+*.hw/
+*.sim/
+*.Xil/
+*.ip_user_files/
+*.jou
+*.log
+*.str
+*.xpr.user
+webtalk*
+*.debug
+*_stub.v
+*_stub.vhdl
+*.mif
+*.dcp
+
+# Intel Quartus specific
+/db/
+/incremental_db/
+/output_files/
+*.rpt
+*.summary
+*.qws
+*.qdf
+*.sof
+*.pof
+*.jic
+*.pin
+*.done
+*.smsg
+
+# Lattice Diamond/Radiant
+/impl*/
+*.dir/
+*.ngd
+*.ncd
+*.pcf
+*.pad
+*.twr
+*.bgn
+*.bit
+
+# Simulation output
+/vsim.wlf
+/transcript
+/work/
+/modelsim.ini
+*.wlf
+*.vcd
+*.fsdb
+
+# Build artifacts
+/syn/
+/impl/
+/out/
+/work/
+/build/
+
+# Temp files
+*.bak
+*~
+*.swp
+*.tmp
+*.temp
+
+# OS specific files
+## Windows
+Thumbs.db
+desktop.ini
+
+## MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+## Linux
+.directory
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.sublime-*
+*.swp
+*.swo
+
+# License files that may contain sensitive info
+*.lic
+
+# Never ignore these (include even if matched above)
+!*.vhd
+!*.v
+!*.sv
+!*.vh
+!*.svh
+!*.xdc
+!*.sdc
+!*.tcl
+!*.qsf
+!*.qpf
+!*.pdc
+!*.ipx
+!*.md
+!*.txt
+!README*

@@ -55,7 +55,7 @@ module circle_module(
     
     // 1KHz clock for debouncing
     wire clk_1k;
-    flexible_clock_divider(.main_clock(basys_clock), .ticks(49999), .output_clock(clk_1k));
+    flexible_clock_divider clk_1k_gen(.main_clock(basys_clock), .ticks(49999), .output_clock(clk_1k));
     
     // Debouncing variables
     reg [7:0]debounce_U;
@@ -70,8 +70,12 @@ module circle_module(
     reg [11:0]diameter;
     wire [11:0]radius;
     wire [11:0]inner_radius;
+    wire [15:0]r_squared;
+    wire [15:0]ir_squared;
     assign radius = diameter / 2;
     assign inner_radius = radius - 5/2;
+    assign r_squared = radius * radius;
+    assign ir_squared = inner_radius * inner_radius;
     
     // Colour parameters
     parameter [15:0]RED = 16'b11111_000000_00000;
@@ -80,8 +84,11 @@ module circle_module(
     // Variables to hold pixel coordinates
     wire [6:0]x;
     wire [6:0]y;
-    wire [6:0]circle_x;
-    wire [6:0]circle_y;
+    wire signed [6:0]circle_x;
+    wire signed [6:0]circle_y;
+    wire [15:0]x_squared;
+    wire [15:0]y_squared;
+
     
     // Initialize variables
     initial begin
@@ -93,6 +100,7 @@ module circle_module(
         prev_C = 1'b0;
         prev_U = 1'b0;
         prev_D = 1'b0;
+        oled_data = 16'b0;
     end
     
     // Obtain pixel coordinates 96x64
@@ -100,6 +108,8 @@ module circle_module(
     assign y = pixel_index / 96;
     assign circle_x = x - 47;
     assign circle_y = y - 31;
+    assign x_squared = circle_x * circle_x;
+    assign y_squared = circle_y * circle_y;
     
     // Loop to update colour to render
     always @ (posedge basys_clock)
@@ -108,7 +118,7 @@ module circle_module(
         if ((y == 2 && x > 1 && x < 94) || (x == 2 && y > 1 && y < 62) || (y == 61 && x > 1 && x < 94) || (x == 93 && y > 1 && y < 62)) begin
             oled_data <= RED;
         end
-        else if ((circle_x * circle_x + circle_y * circle_y) <= (radius * radius) && (circle_x * circle_x + circle_y * circle_y) >= (inner_radius * inner_radius)) begin
+        else if (((x_squared + y_squared) <= r_squared) && ((x_squared + y_squared) >= ir_squared)) begin
             oled_data <= GREEN;
         end
         else begin
@@ -167,12 +177,12 @@ module circle_module(
             debounce_C <= 200;
         end
 
-        if (btnU && !prev_U && debounce_U == 0 && state <= 9 && state >= 1) begin
+        if (btnU && !prev_U && debounce_U == 0 && state < 9 && state >= 1) begin
             state <= state + 1;
             debounce_U <= 200;
         end
 
-        if (btnD && !prev_D && debounce_D == 0 && state <= 9 && state >= 1) begin
+        if (btnD && !prev_D && debounce_D == 0 && state <= 9 && state > 1) begin
             state <= state - 1;
             debounce_D <= 200;
         end

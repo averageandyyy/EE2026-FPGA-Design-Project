@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output reg [5:0]led);
+module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output [5:0]led);
     wire clock_25MHz;
     
     flexible_clock_divider update_clock (.main_clock(basys_clock), .ticks(1), .output_clock(clock_25MHz));
@@ -28,11 +28,15 @@ module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output reg [
     wire clock_1kHz;
     flexible_clock_divider clock_unit_2 (.main_clock(basys_clock), .ticks(3333332), .output_clock(clock_1kHz));
     
-    
+    //For resetting
+    reg prev_btn;
+    reg start = 0;
+    reg end_flag = 0;
+    reg reset_flag = 0;
         
     wire frame_begin, sending_pixels, sample_pixel;
     wire [12:0] pixel_index;
-    reg [15:0] pixel_data = 16'b00000_111111_00000;
+    reg [15:0] pixel_data;
     
     Oled_Display display_unit(
         .clk(clock_6p25MHz), 
@@ -85,29 +89,37 @@ module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output reg [
     reg phase5 = 0;
     reg [7:0]desired_x5 = (max_x *3/4 + box_width/2);   
     
-    always @ (posedge clock_25MHz) begin
+    //assign led[0] = end_flag;
+    assign led[1] = phase1;
+    assign led[2] = phase2;
+    assign led[3] = phase3;
+    assign led[4] = phase4;
+    assign led[5] = phase5;    
     
-        //Initialise the entire OLED
-        pixel_data <= black;
-        //Initialise the first square
-        if( 
-            (  (pos_x >= (max_x-box_width)) && (pos_x < max_x)  )         &
-            (  (pos_y >= 0)          && (pos_y < box_width)  )
-        ) begin
-            pixel_data <= orange;
-            led[0] <= 1;
+    always @ (posedge clock_25MHz) begin       
+        
+        //No start           
+            
+            //Initialise the entire OLED
+            pixel_data <= black;
+            //Initialise the first square
+            if( 
+                (  (pos_x >= (max_x-box_width)) && (pos_x < max_x)  )         &&
+                (  (pos_y >= 0)          && (pos_y < box_width)  )
+            ) begin
+                pixel_data <= orange;
+           
         end
         
         //If center pushbutton is pressed
-        if (start) begin
+        
             //Phase 0
             if( 
-                (  (pos_x >= (max_x-box_width)) && (pos_x < max_x)  )         &
+                (  (pos_x >= (max_x-box_width)) && (pos_x < max_x)  )         &&
                 (  (pos_y >= 0)          && (pos_y < desired_y0)  )
             ) begin
                 pixel_data <= orange;
-                led[0] <= 1;
-            end
+            
         end
         
         //Phase 1
@@ -115,8 +127,7 @@ module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output reg [
             (  (pos_x >= desired_x1) && (pos_x < (max_x-box_width))  ) && 
             (  (pos_y >= (max_y-box_width) ) && (pos_y < max_y)  )
         ) begin
-            pixel_data <= orange;
-            led[1] <= 1;            
+            pixel_data <= orange;       
         end 
         
         //Phase 2
@@ -124,8 +135,7 @@ module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output reg [
             (  (pos_x >= (max_x/2 - box_width/2)) && (pos_x < (max_x/2 - box_width/2) + box_width)  ) && 
             (  (pos_y >= desired_y2) && (pos_y < max_y-box_width)  )
         ) begin
-            pixel_data <= orange;
-            led[2] <= 1;            
+            pixel_data <= orange;       
         end 
         
         //Phase 3
@@ -133,8 +143,7 @@ module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output reg [
             (  (pos_x >= (max_x/2 - box_width/2 + box_width) ) && (pos_x < (desired_x3))  ) && 
             (  (pos_y >= (max_y/2 - box_width/2)) && (pos_y < ((max_y/2 - box_width/2))+box_width)  )
         ) begin
-            pixel_data <= orange;
-            led[2] <= 1;            
+            pixel_data <= orange;        
         end 
         
         //Phase 4
@@ -142,8 +151,7 @@ module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output reg [
             (  (pos_x >= (max_x *3/4 + box_width/2 - box_width)) && (pos_x < (max_x *3/4 + box_width/2))  ) && 
             (  (pos_y >= (desired_y4)) && (pos_y < (max_y/2 - box_width/2))  )
         ) begin
-            pixel_data <= orange;
-            led[2] <= 1;            
+            pixel_data <= orange;         
         end 
         
         //Phase 5
@@ -151,120 +159,106 @@ module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output reg [
             (  (pos_x >= (max_x *3/4 + box_width/2)) && (pos_x < (desired_x5))  ) && 
             (  (pos_y >= 0) && (pos_y < box_width)  )
         ) begin
-            pixel_data <= orange;
-            led[2] <= 1;            
+            pixel_data <= orange;      
         end 
+        
+        
         
     end
 
     
     always @ (posedge clock_45px_persecond)
     begin
-        if (start)
-        begin
-            if (desired_y0 < max_y)
-            begin
+        if (start) begin
+            if (desired_y0 < max_y) begin
                 desired_y0 <= desired_y0 + 1;
-                led[3] <= 1;
             end
-            else 
-            begin
+            else begin
                 phase1 <= 1;
             end 
-        end
-        else begin
-            //phase1 <= 0;
-            //phase2 <= 0;
-        end
-        
+        end  
+        else 
+        phase1 <= 0;      
 
-        if (phase1)
-        begin
-            if (desired_x1 > (max_x/2 - box_width/2) )
-            begin 
-                led[4] <= 1;
+        if (phase1) begin
+            if (desired_x1 > (max_x/2 - box_width/2) ) begin 
                 desired_x1 <= desired_x1 - 1;
             end
-            else 
-            begin
+            else begin
                 phase2 <= 1;
             end 
         end 
- 
+        else
+        phase2 <= 0;
     end
     
-    always @ (posedge clock_15px_persecond)
-    begin
-        if (phase2)
-        begin
-            if (desired_y2 > (max_y/2 - box_width/2) )
-            begin 
-                led[5] <= 1;
+    always @ (posedge clock_15px_persecond) begin
+        if (phase2) begin
+            if (desired_y2 > (max_y/2 - box_width/2) ) begin 
                 desired_y2 <= desired_y2 - 1;
             end
-            else 
-            begin
+            else begin
                 phase3 <= 1;
             end 
         end 
         
-        if (phase3)
-        begin
-            if (desired_x3 < (max_x *3/4 + box_width/2) )
-            begin 
-                //led[5] <= 1;
+        if (phase3) begin
+            if (desired_x3 < (max_x *3/4 + box_width/2) ) begin 
                 desired_x3 <= desired_x3 + 1;
             end
-            else 
-            begin
+            else begin
                 phase4 <= 1;
             end 
         end 
         
-        if (phase4)
-        begin
-            if (desired_y4 > 0)
-            begin 
-                //led[5] <= 1;
+        if (phase4) begin
+            if (desired_y4 > 0) begin 
                 desired_y4 <= desired_y4 - 1;
             end
-            else 
-            begin
+            else begin
                 phase5 <= 1;
             end 
         end 
         
-        if (phase5)
-        begin
-            if (desired_x5 < max_x-box_width)
-            begin 
-                //led[5] <= 1;
+        if (phase5) begin
+            if (desired_x5 < max_x-box_width) begin
                 desired_x5 <= desired_x5 + 1;
             end
-            else 
-            begin
-                //start <= 0;
-                //phase3 <= 0;
-               // phase4 <= 0;
-               // phase5 <= 0;
-                
+            else if (desired_x5 < max_x-box_width) begin
+                end_flag <= 1;
             end 
         end 
     end
     
-    reg prev_btn;
-    reg start = 0;
-    reg reset = 0;
+    
     always @ (posedge clock_1kHz) begin
-        if (prev_btn & ~btnC) begin            
-//            if (reset == 1) begin
-//                //start <= 0;
-//            end
-//            else begin
+        if (prev_btn && !btnC) begin            
+            if (end_flag) begin
+                start <= 0;
+                reset_flag <= 1;
+                
+                
+            
+//                //Reset initial boundaries
+//                desired_x1 <= max_x-box_width;
+//                desired_y2 <= max_y-box_width;
+//                desired_x3 <= (max_x/2 - box_width/2) + box_width;
+//                desired_y4 <= max_y/2 - box_width/2;
+//                desired_x5 <= (max_x *3/4 + box_width/2);  
+                
+                //end_flag <= 0;
+                
+            end
+            else begin
                 start <= 1;
-            //end
+                //end_flag <= 0;
+            end
         end
-
+        
+//        if (end_flag) begin
+//            
+//        end
+        
         
 //        if (desired_x5 == max_x-box_width) begin
 //            reset <= 1;

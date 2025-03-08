@@ -73,7 +73,5 @@ module Top_Student (
     // Logic for integration to control which subtask to render
     wire isCircle = 1;
     assign oled_data = isCircle ? circle_oled : 0;
-    
-    assign oled_data = collision_oled;    
 
 endmodule

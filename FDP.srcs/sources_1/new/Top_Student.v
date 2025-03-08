@@ -64,15 +64,7 @@ module Top_Student (
         .oled_data(collision_oled)
     );
 
-    wire [15:0]circle_oled;
-    circle_module circle(
-    .basys_clock(basys_clock),
-    .pixel_index(pixel_index),
-    .oled_data(circle_oled),
-    .btnC(btnC),
-    .btnU(btnU),
-    .btnD(btnD)
-    );
+    
     
     wire [15:0]team_oled_data;
     team_oled team(
@@ -80,9 +72,7 @@ module Top_Student (
         .oled_data(team_oled_data)
     );
     
-    // Logic for integration to control which subtask to render
-    // wire isCircle = 1;
-    assign oled_data = team_oled_data;
+    
     
     // Task A variables, 9 = rightmost, blink at 10Hz aka no blink
     // switches 0 1 2 4 8 9 and 12 form the password
@@ -93,6 +83,20 @@ module Top_Student (
     flexible_clock_divider clk_10Hz_gen(.main_clock(basys_clock), .ticks(4999999), .output_clock(clk_10Hz));
     wire [15:0]ALights;
     get_blinking_lights(.input_clock(clk_10Hz), .leds(ALights), .password(APassword), .exclude(12));
+    wire [15:0]circle_oled;
+    circle_module circle(
+    .basys_clock(basys_clock),
+    .pixel_index(pixel_index),
+    .oled_data(circle_oled),
+    .btnC(btnC),
+    .btnU(btnU),
+    .btnD(btnD),
+    .hasPassword(hasAPassword)
+    );
     
     assign led = hasAPassword ? ALights : sw;
+    
+    // Logic for integration to control which subtask to render
+    // wire isCircle = 1;
+    assign oled_data = hasAPassword ? circle_oled : team_oled_data;
 endmodule

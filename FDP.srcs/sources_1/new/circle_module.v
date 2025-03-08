@@ -50,7 +50,8 @@ module circle_module(
     output reg [15:0]oled_data,
     input btnC,
     input btnU,
-    input btnD
+    input btnD,
+    input hasPassword
     );
     
     // 1KHz clock for debouncing
@@ -153,6 +154,9 @@ module circle_module(
         else if (state == 8) begin
             diameter <= 45;
         end
+        else if (state == 0) begin
+            diameter <= 0;
+        end
         else if (state == 9) begin
             diameter <= 50;
         end
@@ -161,34 +165,39 @@ module circle_module(
     // Loop to update state
     always @ (posedge clk_1k)
     begin
-        if (debounce_C > 0) begin
-            debounce_C <= debounce_C - 1;
+        if (hasPassword) begin
+            if (debounce_C > 0) begin
+                debounce_C <= debounce_C - 1;
+            end
+            if (debounce_U > 0) begin
+                debounce_U <= debounce_U - 1;
+            end
+            if (debounce_D > 0) begin
+                debounce_D <= debounce_D - 1;
+            end
+    
+            // Transition from state 0 to 5;
+            if (btnC && !prev_C && debounce_C == 0 && state == 0) begin
+                state <= 5;
+                debounce_C <= 200;
+            end
+    
+            if (btnU && !prev_U && debounce_U == 0 && state < 9 && state >= 1) begin
+                state <= state + 1;
+                debounce_U <= 200;
+            end
+    
+            if (btnD && !prev_D && debounce_D == 0 && state <= 9 && state > 1) begin
+                state <= state - 1;
+                debounce_D <= 200;
+            end
+    
+            prev_C <= btnC;
+            prev_U <= btnU;
+            prev_D <= btnD;
         end
-        if (debounce_U > 0) begin
-            debounce_U <= debounce_U - 1;
+        else begin
+            state <= 0;
         end
-        if (debounce_D > 0) begin
-            debounce_D <= debounce_D - 1;
-        end
-
-        // Transition from state 0 to 5;
-        if (btnC && !prev_C && debounce_C == 0 && state == 0) begin
-            state <= 5;
-            debounce_C <= 200;
-        end
-
-        if (btnU && !prev_U && debounce_U == 0 && state < 9 && state >= 1) begin
-            state <= state + 1;
-            debounce_U <= 200;
-        end
-
-        if (btnD && !prev_D && debounce_D == 0 && state <= 9 && state > 1) begin
-            state <= state - 1;
-            debounce_D <= 200;
-        end
-
-        prev_C <= btnC;
-        prev_U <= btnU;
-        prev_D <= btnD;
     end
 endmodule

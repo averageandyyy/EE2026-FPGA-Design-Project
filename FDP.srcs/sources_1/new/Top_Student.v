@@ -94,11 +94,23 @@ module Top_Student (
     .hasPassword(hasAPassword)
     );
     
-    assign led = hasAPassword ? ALights : sw;
+    // Task B variables, 3 = rightmost, blink at 4Hz.
+    // Switches 0, 1, 2, 3, 8 and 13 form the password
+    parameter [15:0] BPassword = 16'b0010_0001_0000_1111;
+    wire hasBPassword;
+    assign hasBPassword = (sw == BPassword);
+    wire clk_4Hz;
+    flexible_clock_divider clk_4Hz_gen(.main_clock(basys_clock), .ticks(12499999), .output_clock(clk_4Hz));
+    wire [15:0] BLights;
+    get_blinking_lights(.input_clock(clk_4Hz), .leds(BLights), .password(BPassword), .exclude(13));
+    wire [15:0] B_oled;
+    basic_task_b b_module(.basys_clock(basys_clock), .btnU(btnU), .btnC(btnC), .btnD(btnD), .pixel_index(pixel_index), .hasPassword(hasBPassword), .oled_data(B_oled));
+    
+    assign led = hasAPassword ? ALights : (hasBPassword ? BLights : sw);
     
     // Logic for integration to control which subtask to render
     // wire isCircle = 1;
-    assign oled_data = hasAPassword ? circle_oled : team_oled_data;
+    assign oled_data = hasAPassword ? circle_oled : (hasBPassword? B_oled : team_oled_data);
     
     // Seven segment display for S207
     wire clk_500Hz;

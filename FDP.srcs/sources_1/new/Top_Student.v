@@ -59,6 +59,20 @@ module Top_Student (
         .pixel_index(pixel_index),
         .oled_data(collision_oled)
     );
+
+    wire [15:0]circle_oled;
+    circle_module circle(
+    .basys_clock(basys_clock),
+    .pixel_index(pixel_index),
+    .oled_data(circle_oled),
+    .btnC(btnC),
+    .btnU(btnU),
+    .btnD(btnD)
+    );
+    
+    // Logic for integration to control which subtask to render
+    wire isCircle = 1;
+    assign oled_data = isCircle ? circle_oled : 0;
     
     assign oled_data = collision_oled;    
 

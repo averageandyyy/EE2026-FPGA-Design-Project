@@ -27,7 +27,8 @@ module collision_module(
     input btnL,
     input btnR,
     input [12:0]pixel_index,
-    output reg[15:0]oled_data
+    output reg[15:0]oled_data,
+    input hasPassword
     );
     
     // Obtain pixel coordinates
@@ -50,6 +51,8 @@ module collision_module(
     
     // Loop to update color based on pixel position
     always @ (posedge basys_clock) begin
+    
+    if (hasPassword) begin
         if (x <= 95 && x >= 66 && y >= 0 && y <= 29) begin
             oled_data <= RED;
         end
@@ -59,12 +62,17 @@ module collision_module(
         else begin 
             oled_data <= 16'b0;
         end
+        end
+    else begin
+        oled_data <= 0;
+    end
     end
     
     
     reg [1:0] direction;
     // Loop to update direction of movement, 00 = left, 01 = right, 10 = up, 11 = down
     always @ (posedge clk1kHz) begin
+    if (hasPassword) begin
         if (btnR) begin
             direction <= 2'b01;
         end
@@ -77,6 +85,9 @@ module collision_module(
         else if (btnD) begin
             direction <= 2'b11;    
         end
+    end
+    
+    else direction <= 2'b11;
     end
     
     // Variables to check for screen collision
@@ -98,6 +109,7 @@ module collision_module(
     wire clk_30Hz;
     flexible_clock_divider unit_1 (basys_clock, 1666666, clk_30Hz);
     always @ (posedge clk_30Hz) begin
+    if (hasPassword) begin
         if (direction == 2'b00 && can_move_left) begin
             curr_x <= curr_x - 1;
         end
@@ -126,8 +138,13 @@ module collision_module(
 //        //end
 //        else if (direction == 2'b11 && (curr_y < 53))
 //            curr_y <= curr_y + 1; //able to move down
-            
+    end     
+    else begin  
+        curr_x = 0;
+        curr_y = 54;
+    end   
     end
+   
     
     initial begin
         oled_data = 16'b0;

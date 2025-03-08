@@ -53,16 +53,7 @@ module Top_Student (
     .vccen(JB[6]),
     .pmoden(JB[7]));
     
-    wire [15:0]collision_oled;
-    collision_module collision(
-        .basys_clock(basys_clock),
-        .btnU(btnU),
-        .btnD(btnD),
-        .btnL(btnL),
-        .btnR(btnR),
-        .pixel_index(pixel_index),
-        .oled_data(collision_oled)
-    );
+    
 
     
     
@@ -106,11 +97,34 @@ module Top_Student (
     wire [15:0] B_oled;
     basic_task_b b_module(.basys_clock(basys_clock), .btnU(btnU), .btnC(btnC), .btnD(btnD), .pixel_index(pixel_index), .hasPassword(hasBPassword), .oled_data(B_oled));
     
-    assign led = hasAPassword ? ALights : (hasBPassword ? BLights : sw);
+    
+    //Task D variables, blink at 6Hz
+    //switches 0, 1, 3, 5, 9, 15
+    parameter [15:0]DPassword = 16'b1000_0010_0010_1011;
+    wire hasDPassword;
+    assign hasDPassword = (sw == DPassword);
+    wire clk_6Hz;
+    flexible_clock_divider clock_6Hz(basys_clock, 8333332, clk_6Hz);
+    wire [15:0] DLights;
+    get_blinking_lights(clk_6Hz, DLights, DPassword, 15);
+    wire [15:0]D_oled;
+    collision_module collision(
+        .basys_clock(basys_clock),
+        .btnU(btnU),
+        .btnD(btnD),
+        .btnL(btnL),
+        .btnR(btnR),
+        .pixel_index(pixel_index),
+        .oled_data(D_oled),
+        .hasPassword(hasDPassword)
+    );
+    
+    
+    assign led = hasAPassword ? ALights : (hasBPassword ? BLights : (hasDPassword ? DLights : sw));
     
     // Logic for integration to control which subtask to render
     // wire isCircle = 1;
-    assign oled_data = hasAPassword ? circle_oled : (hasBPassword? B_oled : team_oled_data);
+    assign oled_data = hasAPassword ? circle_oled : (hasBPassword? B_oled : (hasDPassword ? D_oled : team_oled_data));
     
     // Seven segment display for S207
     wire clk_500Hz;

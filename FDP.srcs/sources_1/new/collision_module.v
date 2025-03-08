@@ -31,14 +31,14 @@ module collision_module(
     );
     
     // Obtain pixel coordinates
-    wire [6:0] x;
-    wire [6:0] y;
+    wire [7:0] x;
+    wire [7:0] y;
     assign x = pixel_index % 96;
     assign y = pixel_index / 96;
         
     // Top left pixel of green square
-    reg [6:0] curr_x = 0;
-    reg [6:0] curr_y = 54;
+    reg [7:0] curr_x;
+    reg [7:0] curr_y;
     
     // Colour parameters
     parameter [15:0]RED = 16'b11111_000000_00000;
@@ -128,10 +128,11 @@ module collision_module(
 //            curr_y <= curr_y + 1; //able to move down
             
     end
-
-
-
-
-
-
+    
+    initial begin
+        oled_data = 16'b0;
+        direction = 2'b11;
+        curr_x = 0;
+        curr_y = 54;
+    end
 endmodule

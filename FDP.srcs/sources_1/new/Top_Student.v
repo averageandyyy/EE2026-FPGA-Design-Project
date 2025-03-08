@@ -99,4 +99,9 @@ module Top_Student (
     // Logic for integration to control which subtask to render
     // wire isCircle = 1;
     assign oled_data = hasAPassword ? circle_oled : team_oled_data;
+    
+    // Seven segment display for S207
+    wire clk_500Hz;
+    flexible_clock_divider clk_500Hz_gen(.main_clock(basys_clock), .ticks(99999), .output_clock(clk_500Hz));
+    render_segments segments(.input_clock(clk_500Hz), .an(an), .seg(seg));
 endmodule

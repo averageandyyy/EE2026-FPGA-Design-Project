@@ -18,7 +18,11 @@ module Top_Student (
     input btnD,
     input btnL,
     input btnR, 
-    output [7:0]JB
+    output [7:0]JB,
+    input [15:0]sw,
+    output [15:0]led,
+    output [3:0]an,
+    output [7:0]seg
     );
 
     // Initialize clock for OLED display
@@ -70,8 +74,14 @@ module Top_Student (
     .btnD(btnD)
     );
     
+    wire [15:0]team_oled_data;
+    team_oled team(
+        .pixel_index(pixel_index),
+        .oled_data(team_oled_data)
+    );
+    
     // Logic for integration to control which subtask to render
-    wire isCircle = 1;
-    assign oled_data = isCircle ? circle_oled : 0;
+    // wire isCircle = 1;
+    assign oled_data = team_oled_data;
 
 endmodule

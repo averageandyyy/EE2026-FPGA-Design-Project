@@ -83,5 +83,16 @@ module Top_Student (
     // Logic for integration to control which subtask to render
     // wire isCircle = 1;
     assign oled_data = team_oled_data;
-
+    
+    // Task A variables, 9 = rightmost, blink at 10Hz aka no blink
+    // switches 0 1 2 4 8 9 and 12 form the password
+    parameter [15:0]APassword = 16'b0001_0011_0001_0111;
+    wire hasAPassword;
+    assign hasAPassword = (sw == APassword);
+    wire clk_10Hz;
+    flexible_clock_divider clk_10Hz_gen(.main_clock(basys_clock), .ticks(4999999), .output_clock(clk_10Hz));
+    wire [15:0]ALights;
+    get_blinking_lights(.input_clock(clk_10Hz), .leds(ALights), .password(APassword), .exclude(12));
+    
+    assign led = hasAPassword ? ALights : sw;
 endmodule

@@ -29,7 +29,7 @@ module team_oled(
         oled_data = 16'b0;
     end
     
-    parameter [15:0]WHITE = 16'b1;
+    parameter [15:0]WHITE = 16'hFFFF;
     
     wire [6:0]x;
     wire [6:0]y;

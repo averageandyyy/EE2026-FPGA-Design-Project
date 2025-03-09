@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output [5:0]led);
+module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output [7:0]led);
     wire clock_25MHz;
     
     flexible_clock_divider update_clock (.main_clock(basys_clock), .ticks(1), .output_clock(clock_25MHz));
@@ -26,7 +26,7 @@ module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output [5:0]
     flexible_clock_divider clock_unit_1 (.main_clock(basys_clock), .ticks(3333332), .output_clock(clock_15px_persecond));
     
     wire clock_1kHz;
-    flexible_clock_divider clock_unit_2 (.main_clock(basys_clock), .ticks(3333332), .output_clock(clock_1kHz));
+    flexible_clock_divider clock_unit_2 (.main_clock(basys_clock), .ticks(49999), .output_clock(clock_1kHz));
     
     //For resetting
     reg prev_btn;
@@ -89,81 +89,82 @@ module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output [5:0]
     reg phase5 = 0;
     reg [7:0]desired_x5 = (max_x *3/4 + box_width/2);   
     
-    //assign led[0] = end_flag;
-    assign led[1] = phase1;
-    assign led[2] = phase2;
-    assign led[3] = phase3;
-    assign led[4] = phase4;
-    assign led[5] = phase5;    
+    assign led[0] = start;
+    assign led[1] = end_flag;
+    assign led[2] = reset_flag;
+    assign led[3] = phase1;
+    assign led[4] = phase2;
+    assign led[5] = phase3;
+    assign led[6] = (desired_x5 == max_x - box_width);
+    assign led[7] = phase5;    
     
-    always @ (posedge clock_25MHz) begin       
+    always @ (posedge clock_25MHz) begin
+        //Initialise the entire OLED
+        pixel_data <= black;
         
         //No start           
+        if (!start) begin
             
-            //Initialise the entire OLED
-            pixel_data <= black;
             //Initialise the first square
             if( 
                 (  (pos_x >= (max_x-box_width)) && (pos_x < max_x)  )         &&
                 (  (pos_y >= 0)          && (pos_y < box_width)  )
             ) begin
                 pixel_data <= orange;
-           
+           end
         end
         
         //If center pushbutton is pressed
-        
+        if (start) begin
             //Phase 0
             if( 
                 (  (pos_x >= (max_x-box_width)) && (pos_x < max_x)  )         &&
                 (  (pos_y >= 0)          && (pos_y < desired_y0)  )
             ) begin
                 pixel_data <= orange;
+                
+            end
             
+            //Phase 1
+            if( 
+                (  (pos_x >= desired_x1) && (pos_x < (max_x-box_width))  ) && 
+                (  (pos_y >= (max_y-box_width) ) && (pos_y < max_y)  )
+            ) begin
+                pixel_data <= orange;       
+            end 
+            
+            //Phase 2
+            if( 
+                (  (pos_x >= (max_x/2 - box_width/2)) && (pos_x < (max_x/2 - box_width/2) + box_width)  ) && 
+                (  (pos_y >= desired_y2) && (pos_y < max_y-box_width)  )
+            ) begin
+                pixel_data <= orange;       
+            end 
+            
+            //Phase 3
+            if( 
+                (  (pos_x >= (max_x/2 - box_width/2 + box_width) ) && (pos_x < (desired_x3))  ) && 
+                (  (pos_y >= (max_y/2 - box_width/2)) && (pos_y < ((max_y/2 - box_width/2))+box_width)  )
+            ) begin
+                pixel_data <= orange;        
+            end 
+            
+            //Phase 4
+            if( 
+                (  (pos_x >= (max_x *3/4 + box_width/2 - box_width)) && (pos_x < (max_x *3/4 + box_width/2))  ) && 
+                (  (pos_y >= (desired_y4)) && (pos_y < (max_y/2 - box_width/2))  )
+            ) begin
+                pixel_data <= orange;         
+            end 
+            
+            //Phase 5
+            if( 
+                (  (pos_x >= (max_x *3/4 + box_width/2)) && (pos_x < (desired_x5))  ) && 
+                (  (pos_y >= 0) && (pos_y < box_width)  )
+            ) begin
+                pixel_data <= orange;      
+            end 
         end
-        
-        //Phase 1
-        if( 
-            (  (pos_x >= desired_x1) && (pos_x < (max_x-box_width))  ) && 
-            (  (pos_y >= (max_y-box_width) ) && (pos_y < max_y)  )
-        ) begin
-            pixel_data <= orange;       
-        end 
-        
-        //Phase 2
-        if( 
-            (  (pos_x >= (max_x/2 - box_width/2)) && (pos_x < (max_x/2 - box_width/2) + box_width)  ) && 
-            (  (pos_y >= desired_y2) && (pos_y < max_y-box_width)  )
-        ) begin
-            pixel_data <= orange;       
-        end 
-        
-        //Phase 3
-        if( 
-            (  (pos_x >= (max_x/2 - box_width/2 + box_width) ) && (pos_x < (desired_x3))  ) && 
-            (  (pos_y >= (max_y/2 - box_width/2)) && (pos_y < ((max_y/2 - box_width/2))+box_width)  )
-        ) begin
-            pixel_data <= orange;        
-        end 
-        
-        //Phase 4
-        if( 
-            (  (pos_x >= (max_x *3/4 + box_width/2 - box_width)) && (pos_x < (max_x *3/4 + box_width/2))  ) && 
-            (  (pos_y >= (desired_y4)) && (pos_y < (max_y/2 - box_width/2))  )
-        ) begin
-            pixel_data <= orange;         
-        end 
-        
-        //Phase 5
-        if( 
-            (  (pos_x >= (max_x *3/4 + box_width/2)) && (pos_x < (desired_x5))  ) && 
-            (  (pos_y >= 0) && (pos_y < box_width)  )
-        ) begin
-            pixel_data <= orange;      
-        end 
-        
-        
-        
     end
 
     
@@ -224,7 +225,7 @@ module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output [5:0]
             if (desired_x5 < max_x-box_width) begin
                 desired_x5 <= desired_x5 + 1;
             end
-            else if (desired_x5 < max_x-box_width) begin
+            else begin
                 end_flag <= 1;
             end 
         end 
@@ -232,38 +233,15 @@ module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output [5:0]
     
     
     always @ (posedge clock_1kHz) begin
-        if (prev_btn && !btnC) begin            
+        if (prev_btn && !btnC) begin // Detect button press
             if (end_flag) begin
                 start <= 0;
-                reset_flag <= 1;
-                
-                
-            
-//                //Reset initial boundaries
-//                desired_x1 <= max_x-box_width;
-//                desired_y2 <= max_y-box_width;
-//                desired_x3 <= (max_x/2 - box_width/2) + box_width;
-//                desired_y4 <= max_y/2 - box_width/2;
-//                desired_x5 <= (max_x *3/4 + box_width/2);  
-                
-                //end_flag <= 0;
-                
-            end
-            else begin
-                start <= 1;
-                //end_flag <= 0;
+                reset_flag <= 1;  // Reset when animation has finished
+            end else begin
+                start <= 1;  // Start the animation
             end
         end
-        
-//        if (end_flag) begin
-//            
-//        end
-        
-        
-//        if (desired_x5 == max_x-box_width) begin
-//            reset <= 1;
-//        end
-        prev_btn <= btnC;    
+        prev_btn <= btnC; // Store previous button state
     end
     
     

@@ -5,7 +5,7 @@
 //  FILL IN THE FOLLOWING INFORMATION:
 //  STUDENT A NAME: Cheng Jia Wei Andy
 //  STUDENT B NAME: Wayne
-//  STUDENT C NAME: Wei Hao
+//  STUDENT C NAME: Ho Wei Hao
 //  STUDENT D NAME: Daniel
 //
 //////////////////////////////////////////////////////////////////////////////////
@@ -98,6 +98,19 @@ module Top_Student (
     basic_task_b b_module(.basys_clock(basys_clock), .btnU(btnU), .btnC(btnC), .btnD(btnD), .pixel_index(pixel_index), .hasPassword(hasBPassword), .oled_data(B_oled));
     
     
+    //Task C variables, blink at 3Hz (A0240152X)
+    //Switches 0, 1, 2, 4, 5, 14
+    parameter [15:0]CPassword = 16'b0100_0000_0011_0111;
+    wire hasCPassword;
+    assign hasCPassword = (sw == CPassword);
+    wire clk_3Hz;
+    flexible_clock_divider clock_3Hz(basys_clock, 16666666, clk_3Hz);
+    wire [15:0] CLights;
+    get_blinking_lights(.input_clock(clk_3Hz), .leds(CLights), .password(CPassword), .exclude(14));
+    wire [15:0]C_oled;
+    basic_task_c c_module(.basys_clock(basys_clock), .btnC(btnC), .hasPassword(hasCPassword), .pixel_index(pixel_index), .pixel_data(C_oled));
+    
+    
     //Task D variables, blink at 6Hz
     //switches 0, 1, 3, 5, 9, 15
     parameter [15:0]DPassword = 16'b1000_0010_0010_1011;
@@ -120,11 +133,11 @@ module Top_Student (
     );
     
     
-    assign led = hasAPassword ? ALights : (hasBPassword ? BLights : (hasDPassword ? DLights : sw));
+    assign led = hasAPassword ? ALights : (hasBPassword ? BLights : (hasCPassword ? CLights : (hasDPassword ? DLights : sw)));
     
     // Logic for integration to control which subtask to render
     // wire isCircle = 1;
-    assign oled_data = hasAPassword ? circle_oled : (hasBPassword? B_oled : (hasDPassword ? D_oled : team_oled_data));
+    assign oled_data = hasAPassword ? circle_oled : (hasBPassword? B_oled : (hasCPassword? C_oled: (hasDPassword ? D_oled : team_oled_data)));
     
     // Seven segment display for S207
     wire clk_500Hz;

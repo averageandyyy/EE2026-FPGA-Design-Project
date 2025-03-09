@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output [7:0]led);
+module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output [8:0]led, output reg ld = 0);
     wire clock_25MHz;
     
     flexible_clock_divider update_clock (.main_clock(basys_clock), .ticks(1), .output_clock(clock_25MHz));
@@ -96,7 +96,8 @@ module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output [7:0]
     assign led[4] = phase2;
     assign led[5] = phase3;
     assign led[6] = (desired_x5 == max_x - box_width);
-    assign led[7] = phase5;    
+    assign led[7] = phase5;  
+    assign led[8] = (desired_x1 > (max_x/2 - box_width/2));  
     
     always @ (posedge clock_25MHz) begin
         //Initialise the entire OLED
@@ -165,9 +166,19 @@ module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output [7:0]
                 pixel_data <= orange;      
             end 
         end
+        
+        //Check button press
+        if (prev_btn && !btnC) begin // Detect button press
+            if (end_flag) begin
+                start <= 0;
+            end else begin
+                start <= 1;  // Start the animation
+            end
+        end
+        prev_btn <= btnC; 
     end
 
-    
+    reg [1:0]count = 0;
     always @ (posedge clock_45px_persecond)
     begin
         if (start) begin
@@ -177,71 +188,83 @@ module basic_task_c (input basys_clock, input btnC, output [7:0]JB, output [7:0]
             else begin
                 phase1 <= 1;
             end 
-        end  
-        else 
-        phase1 <= 0;      
-
-        if (phase1) begin
-            if (desired_x1 > (max_x/2 - box_width/2) ) begin 
-                desired_x1 <= desired_x1 - 1;
-            end
-            else begin
-                phase2 <= 1;
+              
+            if (phase1) begin
+                if (desired_x1 > (max_x/2 - box_width/2) ) begin 
+                    desired_x1 <= desired_x1 - 1;
+                end
+                else begin
+                    phase2 <= 1;
+                end 
             end 
+            if (phase2) begin
+                if (count == 0) begin
+                    if (phase2) begin
+                            if (desired_y2 > (max_y/2 - box_width/2) ) begin 
+                                desired_y2 <= desired_y2 - 1;
+                            end
+                            else begin
+                                phase3 <= 1;
+                            end 
+                        end 
+                        
+                        if (phase3) begin
+                            if (desired_x3 < (max_x *3/4 + box_width/2) ) begin 
+                                desired_x3 <= desired_x3 + 1;
+                            end
+                            else begin
+                                phase4 <= 1;
+                            end 
+                        end 
+                        
+                        if (phase4) begin
+                            if (desired_y4 > 0) begin 
+                                desired_y4 <= desired_y4 - 1;
+                            end
+                            else begin
+                                phase5 <= 1;
+                            end 
+                        end 
+                        
+                        if (phase5) begin
+                            if (desired_x5 < max_x-box_width) begin
+                                desired_x5 <= desired_x5 + 1;
+                            end
+                            else begin
+                                end_flag <= 1;
+                            end 
+                        end 
+                end
+                count = (count ==3)? 0: count +1;
+            end
         end 
-        else
-        phase2 <= 0;
+        else begin
+            // Reset animation phases
+            phase1 <= 0;
+            phase2 <= 0;
+            phase3 <= 0;
+            phase4 <= 0;
+            phase5 <= 0;
+        
+            // Reset all movement parameters to initial positions
+            desired_y0 <= box_width;
+            desired_x1 <= max_x - box_width;
+            desired_y2 <= max_y - box_width;
+            desired_x3 <= (max_x/2 - box_width/2) + box_width;
+            desired_y4 <= max_y / 2 - box_width / 2;
+            desired_x5 <= (max_x * 3 / 4 + box_width / 2);
+            end_flag <= 0;
+        end
+        
     end
     
     always @ (posedge clock_15px_persecond) begin
-        if (phase2) begin
-            if (desired_y2 > (max_y/2 - box_width/2) ) begin 
-                desired_y2 <= desired_y2 - 1;
-            end
-            else begin
-                phase3 <= 1;
-            end 
-        end 
         
-        if (phase3) begin
-            if (desired_x3 < (max_x *3/4 + box_width/2) ) begin 
-                desired_x3 <= desired_x3 + 1;
-            end
-            else begin
-                phase4 <= 1;
-            end 
-        end 
-        
-        if (phase4) begin
-            if (desired_y4 > 0) begin 
-                desired_y4 <= desired_y4 - 1;
-            end
-            else begin
-                phase5 <= 1;
-            end 
-        end 
-        
-        if (phase5) begin
-            if (desired_x5 < max_x-box_width) begin
-                desired_x5 <= desired_x5 + 1;
-            end
-            else begin
-                end_flag <= 1;
-            end 
-        end 
     end
     
     
     always @ (posedge clock_1kHz) begin
-        if (prev_btn && !btnC) begin // Detect button press
-            if (end_flag) begin
-                start <= 0;
-                reset_flag <= 1;  // Reset when animation has finished
-            end else begin
-                start <= 1;  // Start the animation
-            end
-        end
-        prev_btn <= btnC; // Store previous button state
+        
     end
     
     

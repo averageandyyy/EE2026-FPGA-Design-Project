@@ -70,21 +70,30 @@ module collision_module(
     
     
     reg [1:0] direction;
+    reg prevU;
+    reg prevD;
+    reg prevL;
+    reg prevR;
     // Loop to update direction of movement, 00 = left, 01 = right, 10 = up, 11 = down
     always @ (posedge clk1kHz) begin
     if (hasPassword) begin
-        if (btnR) begin
+        if (prevR && !btnR) begin
             direction <= 2'b01;
         end
-        else if (btnU) begin
+        else if (prevU && !btnU) begin
             direction <= 2'b10;    
         end
-        else if (btnL) begin
+        else if (prevL && !btnL) begin
             direction <= 2'b00;    
         end
-        else if (btnD) begin
+        else if (prevD && !btnD) begin
             direction <= 2'b11;    
         end
+        
+        prevU <= btnU;
+        prevD <= btnD;
+        prevL <= btnL;
+        prevR <= btnR;
     end
     
     else direction <= 2'b11;
@@ -151,5 +160,9 @@ module collision_module(
         direction = 2'b11;
         curr_x = 0;
         curr_y = 54;
+        prevU = 0;
+        prevD = 0;
+        prevL = 0;
+        prevR = 0;
     end
 endmodule

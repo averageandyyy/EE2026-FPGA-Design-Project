@@ -59,17 +59,17 @@ module basic_task_b(input basys_clock, btnU, btnC, btnD, [12:0] pixel_index, inp
             if (debounce_counter_C > 0) debounce_counter_C <= debounce_counter_C - 1;
             if (debounce_counter_D > 0) debounce_counter_D <= debounce_counter_D - 1;
     
-            if (btnU && !btnU_prev && debounce_counter_U == 0) begin
+            if (!btnU && btnU_prev && debounce_counter_U == 0) begin
                 color_top_idx <= (color_top_idx >= 3'b101) ? 0 : color_top_idx + 1;
                 debounce_counter_U <= 200; 
             end
 
-            if (btnC && !btnC_prev && debounce_counter_C == 0) begin
+            if (!btnC && btnC_prev && debounce_counter_C == 0) begin
                 color_middle_idx <= (color_middle_idx >= 3'b101) ? 0 : color_middle_idx + 1;
                 debounce_counter_C <= 200;
             end
 
-            if (btnD && !btnD_prev && debounce_counter_D == 0) begin
+            if (!btnD && btnD_prev && debounce_counter_D == 0) begin
                 color_bottom_idx <= (color_bottom_idx >= 3'b101) ? 0 : color_bottom_idx + 1;
                 debounce_counter_D <= 200; 
             end

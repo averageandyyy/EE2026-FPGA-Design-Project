@@ -177,7 +177,7 @@ module circle_module(
             end
     
             // Transition from state 0 to 5;
-            if (btnC && !prev_C && debounce_C == 0 && state == 0) begin
+            if (!btnC && prev_C && debounce_C == 0 && state == 0) begin
                 state <= 5;
                 debounce_C <= 200;
             end

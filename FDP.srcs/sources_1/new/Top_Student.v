@@ -4,9 +4,9 @@
 //
 //  FILL IN THE FOLLOWING INFORMATION:
 //  STUDENT A NAME: Cheng Jia Wei Andy
-//  STUDENT B NAME: Wayne
+//  STUDENT B NAME: Choy Wayne
 //  STUDENT C NAME: Ho Wei Hao
-//  STUDENT D NAME: Daniel
+//  STUDENT D NAME: Daniel Kwan
 //
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -65,7 +65,7 @@ module Top_Student (
     
     
     
-    // Task A variables, 9 = rightmost, blink at 10Hz aka no blink
+    // Task A variables, 9 = rightmost, blink at 10Hz
     // switches 0 1 2 4 8 9 and 12 form the password
     parameter [15:0]APassword = 16'b0001_0011_0001_0111;
     wire hasAPassword;
@@ -98,8 +98,8 @@ module Top_Student (
     basic_task_b b_module(.basys_clock(basys_clock), .btnU(btnU), .btnC(btnC), .btnD(btnD), .pixel_index(pixel_index), .hasPassword(hasBPassword), .oled_data(B_oled));
     
     
-    //Task C variables, blink at 3Hz (A0240152X)
-    //Switches 0, 1, 2, 4, 5, 14
+    // Task C variables, blink at 3Hz (A0240152X)
+    // Switches 0, 1, 2, 4, 5, 14
     parameter [15:0]CPassword = 16'b0100_0000_0011_0111;
     wire hasCPassword;
     assign hasCPassword = (sw == CPassword);
@@ -117,7 +117,7 @@ module Top_Student (
     wire hasDPassword;
     assign hasDPassword = (sw == DPassword);
     wire clk_6Hz;
-    flexible_clock_divider clock_6Hz(basys_clock, 8333332, clk_6Hz);
+    flexible_clock_divider clock_6Hz(basys_clock, 8333333, clk_6Hz);
     wire [15:0] DLights;
     get_blinking_lights(clk_6Hz, DLights, DPassword, 15);
     wire [15:0]D_oled;

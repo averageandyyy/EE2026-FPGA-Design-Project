@@ -108,14 +108,14 @@ module basic_task_b(input basys_clock, btnU, btnC, btnD, [12:0] pixel_index, inp
         if (hasPassword) begin
             oled_data <= 16'b00000_000000_00000;
 
-            if (x > 41 && x < 54) begin
-                if (y > 2 && y < 15) begin
+            if (x >= 41 && x <= 53) begin
+                if (y >= 2 && y < 15) begin
                     oled_data <= get_color(color_top_idx);
                 end
-                if (y > 17 && y < 30) begin
+                if (y >= 17 && y < 30) begin
                     oled_data <= get_color(color_middle_idx);
                 end
-                if (y > 32 && y < 45) begin
+                if (y >= 32 && y < 45) begin
                     oled_data <= get_color(color_bottom_idx);
                 end       
             end

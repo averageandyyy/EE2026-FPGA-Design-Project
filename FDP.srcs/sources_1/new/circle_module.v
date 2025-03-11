@@ -116,7 +116,7 @@ module circle_module(
     always @ (posedge basys_clock)
     begin
         // Red Border Bounds
-        if ((y == 2 && x > 1 && x < 94) || (x == 2 && y > 1 && y < 62) || (y == 61 && x > 1 && x < 94) || (x == 93 && y > 1 && y < 62)) begin
+        if (((y >= 2 && y < 5) && (x > 1 && x < 94)) || ((x >= 2 && x < 5) && (y > 1 && y < 62)) || ((y > 58 && y <= 61) && (x > 1 && x < 94)) || ((x > 90 && x <= 93) && (y > 1 && y < 62))) begin
             oled_data <= RED;
         end
         else if (((x_squared + y_squared) <= r_squared) && ((x_squared + y_squared) >= ir_squared)) begin

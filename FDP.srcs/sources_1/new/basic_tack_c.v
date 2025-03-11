@@ -166,20 +166,20 @@ module basic_task_c (input basys_clock, input btnC, input [12:0]pixel_index, inp
         //Update boundaries for animation
         if (start_flag) begin
             if (desired_y0 < max_y) begin
-                desired_y0 <= desired_y0 + 1;
+                desired_y0 = desired_y0 + 1;
             end
             else begin
                 
-                phase1 <= 1;
+                phase1 = 1;
             end 
               
             if (phase1) begin
                 if (desired_x1 > (max_x/2 - box_width/2) ) begin 
-                    desired_x1 <= desired_x1 - 1;
+                    desired_x1 = desired_x1 - 1;
                 end
                 else begin
                    //Unlock next phase
-                    phase2 <= 1;
+                    phase2 = 1;
                 end 
             end 
             
@@ -189,41 +189,41 @@ module basic_task_c (input basys_clock, input btnC, input [12:0]pixel_index, inp
                 if (count == 0) begin
                     if (phase2) begin
                         if (desired_y2 > (max_y/2 - box_width/2) ) begin 
-                            desired_y2 <= desired_y2 - 1;
+                            desired_y2 = desired_y2 - 1;
                         end
                         else begin
                             //Unlock next phase
-                            phase3 <= 1;
+                            phase3 = 1;
                         end 
                     end 
                     
                     if (phase3) begin
                         if (desired_x3 < (max_x *3/4 + box_width/2) ) begin 
-                            desired_x3 <= desired_x3 + 1;
+                            desired_x3 = desired_x3 + 1;
                         end
                         else begin
                             //Unlock next phase
-                            phase4 <= 1;
+                            phase4 = 1;
                         end 
                     end 
                     
                     if (phase4) begin
                         if (desired_y4 > 0) begin 
-                            desired_y4 <= desired_y4 - 1;
+                            desired_y4 = desired_y4 - 1;
                         end
                         else begin
                             //Unlock next phase
-                            phase5 <= 1;
+                            phase5 = 1;
                         end 
                     end 
                     
                     if (phase5) begin
                         if (desired_x5 < max_x-box_width) begin
-                            desired_x5 <= desired_x5 + 1;
+                            desired_x5 = desired_x5 + 1;
                         end
                         else begin
                             //Signal animation ended
-                            end_flag <= 1;
+                            end_flag = 1;
                         end 
                     end 
                 end
@@ -233,20 +233,20 @@ module basic_task_c (input basys_clock, input btnC, input [12:0]pixel_index, inp
         end 
         else begin
             // Reset animation phases if start is 0
-            phase1 <= 0;
-            phase2 <= 0;
-            phase3 <= 0;
-            phase4 <= 0;
-            phase5 <= 0;
+            phase1 = 0;
+            phase2 = 0;
+            phase3 = 0;
+            phase4 = 0;
+            phase5 = 0;
         
             // Reset all movement parameters to initial positions
-            desired_y0 <= box_width;
-            desired_x1 <= max_x - box_width;
-            desired_y2 <= max_y - box_width;
-            desired_x3 <= (max_x/2 - box_width/2) + box_width;
-            desired_y4 <= max_y / 2 - box_width / 2;
-            desired_x5 <= (max_x * 3 / 4 + box_width / 2);
-            end_flag <= 0;
+            desired_y0 = box_width;
+            desired_x1 = max_x - box_width;
+            desired_y2 = max_y - box_width;
+            desired_x3 = (max_x/2 - box_width/2) + box_width;
+            desired_y4 = max_y / 2 - box_width / 2;
+            desired_x5 = (max_x * 3 / 4 + box_width / 2);
+            end_flag = 0;
         end
         
     end

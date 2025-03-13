@@ -232,13 +232,30 @@ module keypad_display(
     function should_draw_checkmark;
         input [5:0] x; // 0-23
         input [5:0] y; // 0-23
+        reg signed [7:0] diff;      
+        reg signed [8:0] line_val;  
         begin
-            // Create a simple checkmark shape
-            if ((x >= 6 && x <= 10 && y >= 12 && y <= 18 && x + y >= 20 && x + y <= 26) || // Short arm
-                (x >= 10 && x <= 18 && y >= 6 && y <= 14 && y <= 22-x)) // Long arm
-                should_draw_checkmark = 1;
-            else
-                should_draw_checkmark = 0;
+            // Default to not drawing the checkmark
+            should_draw_checkmark = 0;
+        
+            // Intended from (4,12) to (10,18) where y should be close to x + 8.
+            if ((x >= 4) && (x <= 10) && (y >= 12) && (y <= 18)) begin
+                diff = y - (x + 8);
+                // Allow a tolerance of 1 pixel above or below the ideal line.
+                if (diff >= -1 && diff <= 1) begin
+                    should_draw_checkmark = 1;
+                end
+            end
+        
+            // Intended from (10,18) to (20,6) with line: 6*x + 5*y = 150.
+            if (!should_draw_checkmark && (x >= 10) && (x <= 20) && (y >= 6) && (y <= 18)) begin
+                // Compute 6*x + 5*y
+                line_val = 6 * x + 5 * y;
+                // Allow a tolerance of 6 around 150.
+                if (line_val >= 144 && line_val <= 156) begin
+                    should_draw_checkmark = 1;
+                end
+            end
         end
     endfunction
     
@@ -257,7 +274,7 @@ module keypad_display(
                         should_draw_pixel_for_char = 1;
                     else if ((x == 2 || x == 11) && y > 0 && y < 9) // Left and right sides
                         should_draw_pixel_for_char = 1;
-                    else if (y > 2 && y < 7 && x > 2 && x < 11 && (x + y == 14 || x + y == 15)) // Diagonal
+                    else if (x > 2 && x < 11 && ((7 * y >= 9 * x - 29) && (7 * y <= 9 * x - 23))) // Diagonal
                         should_draw_pixel_for_char = 1;
                 end
                 

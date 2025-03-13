@@ -352,7 +352,7 @@ module keypad_display(
                 end
                 
                 "x": begin // Draw backspace symbol "x"
-                    if ((x == y || x == 9-y) && x >= 2 && x <= 9)
+                    if ((x == y || x == 9-y) && x >= 0 && x <= 9)
                         should_draw_pixel_for_char = 1;
                 end
             endcase

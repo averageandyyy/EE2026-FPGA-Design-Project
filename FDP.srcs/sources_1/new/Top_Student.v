@@ -28,7 +28,15 @@ module Top_Student (
         .output_clock(clk_6p25MHz)
     );
 
-    // First OLED display unit
+    // 1kHz clock for cursor_controller
+    wire clk_1kHz;
+    flexible_clock_divider clk_1kHz_gen(
+        .main_clock(basys_clock),
+        .ticks(49999),
+        .output_clock(clk_1k)
+    );
+
+    // First OLED display unit (for user input)
     wire one_frame_begin;
     wire one_sample_pixel;
     wire [12:0]one_pixel_index;
@@ -52,7 +60,7 @@ module Top_Student (
         .pmoden(JB[7])
     );
     
-    // Second OLED display unit
+    // Second OLED display unit (to render outputs)
     wire two_frame_begin;
     wire two_sample_pixel;
     wire [12:0]two_pixel_index;
@@ -74,6 +82,37 @@ module Top_Student (
         .resn(JA[5]), 
         .vccen(JA[6]),
         .pmoden(JA[7])
+    );
+
+    // Variables for cursor_controller
+    wire [1:0] cursor_row;
+    wire [2:0] cursor_col;
+    wire btn_pressed;
+    wire [3:0] selected_value;
+
+    cursor_controller keypad_cursor(
+        .clk(clk_1k),
+        .btnC(btnC),
+        .btnU(btnU),
+        .btnD(btnD),
+        .btnL(btnL),
+        .btnR(btnR),
+        .cursor_row(cursor_row),
+        .cursor_col(cursor_col),
+        .btn_pressed(btn_pressed),
+        .selected_value(selected_value)
+    );
+
+    assign led[0] = btn_pressed;
+    reg has_decimal = 0;
+
+    keypad_display keypad(
+        .clk(clk_6p25MHz),
+        .pixel_index(one_pixel_index),
+        .cursor_row(cursor_row),
+        .cursor_col(cursor_col),
+        .has_decimal(has_decimal),
+        .oled_data(one_oled_data)
     );
 
 endmodule

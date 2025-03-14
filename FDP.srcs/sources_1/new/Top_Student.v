@@ -33,7 +33,7 @@ module Top_Student (
     flexible_clock_divider clk_1kHz_gen(
         .main_clock(basys_clock),
         .ticks(49999),
-        .output_clock(clk_1k)
+        .output_clock(clk_1kHz)
     );
 
     // First OLED display unit (for user input)
@@ -84,34 +84,49 @@ module Top_Student (
         .pmoden(JA[7])
     );
 
-    // Variables for cursor_controller
-    wire [1:0] cursor_row;
-    wire [2:0] cursor_col;
-    wire btn_pressed;
-    wire [3:0] selected_value;
+    // Cursor controller outputs
+    wire [1:0] cursor_row_keypad;
+    wire [2:0] cursor_col_keypad;
+    wire [1:0] cursor_row_operand;
+    wire [1:0] cursor_col_operand;
+    wire keypad_btn_pressed;
+    wire operand_btn_pressed;
+    wire [3:0] selected_keypad_value;
+    wire [1:0] selected_operand_value;
 
-    cursor_controller keypad_cursor(
-        .clk(clk_1k),
+    // Calculator state variables
+    reg has_decimal = 0;
+    reg is_operand_mode = 0;
+
+    // Instantiate arithmetic cursor controller
+    arithmetic_cursor_controller cursor_ctrl(
+        .clk(clk_1kHz),
         .btnC(btnC),
         .btnU(btnU),
         .btnD(btnD),
         .btnL(btnL),
         .btnR(btnR),
-        .cursor_row(cursor_row),
-        .cursor_col(cursor_col),
-        .btn_pressed(btn_pressed),
-        .selected_value(selected_value)
+        .is_operand_mode(is_operand_mode),
+        .cursor_row_keypad(cursor_row_keypad),
+        .cursor_col_keypad(cursor_col_keypad),
+        .cursor_row_operand(cursor_row_operand),
+        .cursor_col_operand(cursor_col_operand),
+        .keypad_btn_pressed(keypad_btn_pressed),
+        .operand_btn_pressed(operand_btn_pressed),
+        .keypad_selected_value(selected_keypad_value),
+        .operand_selected_value(selected_operand_value)
     );
 
-    assign led[0] = btn_pressed;
-    reg has_decimal = 0;
-
-    keypad_display keypad(
+    // Connect arithmetic keypad renderer to first OLED
+    arithmetic_keypad_renderer keypad_renderer(
         .clk(clk_6p25MHz),
         .pixel_index(one_pixel_index),
-        .cursor_row(cursor_row),
-        .cursor_col(cursor_col),
+        .cursor_row_keypad(cursor_row_keypad),
+        .cursor_col_keypad(cursor_col_keypad),
+        .cursor_row_operand(cursor_row_operand),
+        .cursor_col_operand(cursor_col_operand),
         .has_decimal(has_decimal),
+        .is_operand_mode(is_operand_mode),
         .oled_data(one_oled_data)
     );
 

@@ -17,7 +17,8 @@ module Top_Student (
     output [15:0] led,
     input btnC, btnU, btnD, btnL, btnR,
     output [7:0]JB, // First OLED
-    output [7:0]JA  // Second OLED
+    output [7:0]JA,  // Second OLED
+    output [6:0]seg // 7-segment display
     );
 
     // 6.25MHz clock for OLED displays
@@ -122,17 +123,17 @@ module Top_Student (
     wire [15:0]one_oled_data;
 
     // Connect arithmetic keypad renderer to first OLED
-    arithmetic_keypad_renderer keypad_renderer(
-        .clk(clk_6p25MHz),
-        .pixel_index(one_pixel_index),
-        .cursor_row_keypad(cursor_row_keypad),
-        .cursor_col_keypad(cursor_col_keypad),
-        .cursor_row_operand(cursor_row_operand),
-        .cursor_col_operand(cursor_col_operand),
-        .has_decimal(has_decimal),
-        .is_operand_mode(is_operand_mode),
-        .oled_data(one_oled_data)
-    );
+//    arithmetic_keypad_renderer keypad_renderer(
+//        .clk(clk_6p25MHz),
+//        .pixel_index(one_pixel_index),
+//        .cursor_row_keypad(cursor_row_keypad),
+//        .cursor_col_keypad(cursor_col_keypad),
+//        .cursor_row_operand(cursor_row_operand),
+//        .cursor_col_operand(cursor_col_operand),
+//        .has_decimal(has_decimal),
+//        .is_operand_mode(is_operand_mode),
+//        .oled_data(one_oled_data)
+//    );
 
     Oled_Display first_display(
         .clk(clk_6p25MHz),
@@ -151,37 +152,39 @@ module Top_Student (
         .pmoden(JB[7])
     );
     
-    // Second OLED display unit (to render outputs)
-    wire two_frame_begin;
-    wire two_sample_pixel;
-    wire [12:0]two_pixel_index;
-    wire two_sending_pixels;
-    wire [15:0]two_oled_data;
+//    // Second OLED display unit (to render outputs)
+//    wire two_frame_begin;
+//    wire two_sample_pixel;
+//    wire [12:0]two_pixel_index;
+//    wire two_sending_pixels;
+//    wire [15:0]two_oled_data;
 
-    // Connect result renderer to second OLED
-    arithmetic_result_renderer result_renderer(
-        .clk(clk_6p25MHz),
-        .pixel_index(two_pixel_index),
-        .result(result),
-        .is_operand_mode(is_operand_mode),
-        .oled_data(two_oled_data)
-    );
+//    // Connect result renderer to second OLED
+//    arithmetic_result_renderer result_renderer(
+//        .clk(clk_6p25MHz),
+//        .pixel_index(two_pixel_index),
+//        .result(result),
+//        .is_operand_mode(is_operand_mode),
+//        .oled_data(two_oled_data)
+//    );
 
-    Oled_Display second_display(
-        .clk(clk_6p25MHz),
-        .reset(0),
-        .frame_begin(two_frame_begin),
-        .sending_pixels(two_sending_pixels),
-        .sample_pixel(two_sample_pixel),
-        .pixel_index(two_pixel_index),
-        .pixel_data(two_oled_data),
-        .cs(JA[0]), 
-        .sdin(JA[1]), 
-        .sclk(JA[3]), 
-        .d_cn(JA[4]), 
-        .resn(JA[5]), 
-        .vccen(JA[6]),
-        .pmoden(JA[7])
-    );
+//    Oled_Display second_display(
+//        .clk(clk_6p25MHz),
+//        .reset(0),
+//        .frame_begin(two_frame_begin),
+//        .sending_pixels(two_sending_pixels),
+//        .sample_pixel(two_sample_pixel),
+//        .pixel_index(two_pixel_index),
+//        .pixel_data(two_oled_data),
+//        .cs(JA[0]), 
+//        .sdin(JA[1]), 
+//        .sclk(JA[3]), 
+//        .d_cn(JA[4]), 
+//        .resn(JA[5]), 
+//        .vccen(JA[6]),
+//        .pmoden(JA[7])
+//    );
+    
+    main_menu mm(btnC, btnU, btnD, btnL, btnR, basys_clock, one_pixel_index, seg, one_oled_data);
 
 endmodule

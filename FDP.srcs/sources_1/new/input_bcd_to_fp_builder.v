@@ -24,7 +24,7 @@ module input_bcd_to_fp_builder(
     input clk,
     input keypad_btn_pressed,
     input [3:0]selected_keypad_value,
-    input is_operand,
+    input is_operand_mode,
     input reset,
     output reg has_decimal = 0,
     output reg [63:0]input_buffer,
@@ -83,7 +83,7 @@ module input_bcd_to_fp_builder(
         input_complete <= 0;
 
         // Reset all input states if in operand mode
-        if (is_operand) begin
+        if (is_operand_mode) begin
             input_index <= 0;
             has_decimal <= 0;
             decimal_pos <= 4'hF;

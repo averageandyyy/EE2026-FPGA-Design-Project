@@ -159,6 +159,8 @@ module arithmetic_result_renderer(
         end
     endfunction
     
+    reg [3:0] rel_x;
+    reg [3:0] rel_y;
     // Function to check if we should render a specific character at a location
     function should_draw_char;
         input [7:0] char;
@@ -172,8 +174,6 @@ module arithmetic_result_renderer(
             // Check if current pixel is within character area
             if (curr_x >= char_x && curr_x < char_x+8 && curr_y >= char_y && curr_y < char_y+12) begin
                 // Calculate relative position within character
-                reg [3:0] rel_x;
-                reg [3:0] rel_y;
                 rel_x = curr_x - char_x;
                 rel_y = curr_y - char_y;
                 

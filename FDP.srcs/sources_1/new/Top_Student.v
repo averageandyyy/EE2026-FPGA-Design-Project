@@ -36,83 +36,6 @@ module Top_Student (
         .output_clock(clk_1kHz)
     );
 
-    // Shared signals between calculator modules, primarily controlled by backend
-    wire is_operand_mode;          
-    wire has_decimal;              
-    wire input_complete;           
-    wire signed [31:0] fp_value;   
-    wire signed [31:0] result;     
-    wire [1:0] operation_done; // Currently unused
-
-    // Cursor controller outputs
-    wire [1:0] cursor_row_keypad;
-    wire [2:0] cursor_col_keypad;
-    wire [1:0] cursor_row_operand;
-    wire [1:0] cursor_col_operand;
-    wire keypad_btn_pressed;
-    wire operand_btn_pressed;
-    wire [3:0] selected_keypad_value;
-    wire [1:0] selected_operand_value;
-
-    // Input builder signals
-    wire [3:0] input_index;
-    wire [31:0] bcd_value;
-    wire [3:0] decimal_pos;
-
-    // Reset signal (TO BE FURTHER DEVELOPED)
-    wire reset = sw[15];
-
-    // Instantiate arithmetic cursor controller
-    arithmetic_cursor_controller cursor_ctrl(
-        .clk(clk_1kHz),
-        .btnC(btnC),
-        .btnU(btnU),
-        .btnD(btnD),
-        .btnL(btnL),
-        .btnR(btnR),
-        .is_operand_mode(is_operand_mode),
-        .cursor_row_keypad(cursor_row_keypad),
-        .cursor_col_keypad(cursor_col_keypad),
-        .cursor_row_operand(cursor_row_operand),
-        .cursor_col_operand(cursor_col_operand),
-        .keypad_btn_pressed(keypad_btn_pressed),
-        .operand_btn_pressed(operand_btn_pressed),
-        .keypad_selected_value(selected_keypad_value),
-        .operand_selected_value(selected_operand_value)
-    );
-
-    // Instantiate input builder
-    input_bcd_to_fp_builder input_builder(
-        .clk(clk_1kHz),
-        .keypad_btn_pressed(keypad_btn_pressed),
-        .selected_keypad_value(selected_keypad_value),
-        .is_operand_mode(is_operand_mode),
-        .reset(reset),
-        .has_decimal(has_decimal),
-        .input_index(input_index),
-        .fp_value(fp_value),
-        .bcd_value(bcd_value),
-        .input_complete(input_complete),
-        .decimal_pos(decimal_pos)
-    );
-
-    // Instantiate arithmetic backend
-    arithmetic_backend backend(
-        .clk(clk_1kHz),
-        .reset(reset),
-        .input_complete(input_complete),
-        .input_fp_value(fp_value),
-        .operand_btn_pressed(operand_btn_pressed),
-        .selected_operand_value(selected_operand_value),
-        .is_operand_mode(is_operand_mode),
-        .result(result),
-        .current_operation(),        // Not used in top module currently
-        .operation_done(operation_done)
-    );
-
-    // LED debugging
-    assign led[0] = is_operand_mode;
-    assign led[10] = has_decimal;
 
     // First OLED display unit (for user input)
     wire one_frame_begin;
@@ -120,19 +43,6 @@ module Top_Student (
     wire [12:0]one_pixel_index;
     wire one_sending_pixels;
     wire [15:0]one_oled_data;
-
-    // Connect arithmetic keypad renderer to first OLED
-    arithmetic_keypad_renderer keypad_renderer(
-        .clk(clk_6p25MHz),
-        .pixel_index(one_pixel_index),
-        .cursor_row_keypad(cursor_row_keypad),
-        .cursor_col_keypad(cursor_col_keypad),
-        .cursor_row_operand(cursor_row_operand),
-        .cursor_col_operand(cursor_col_operand),
-        .has_decimal(has_decimal),
-        .is_operand_mode(is_operand_mode),
-        .oled_data(one_oled_data)
-    );
 
     Oled_Display first_display(
         .clk(clk_6p25MHz),
@@ -151,37 +61,57 @@ module Top_Student (
         .pmoden(JB[7])
     );
     
-    // Second OLED display unit (to render outputs)
-    wire two_frame_begin;
-    wire two_sample_pixel;
-    wire [12:0]two_pixel_index;
-    wire two_sending_pixels;
-    wire [15:0]two_oled_data;
-
-    // Connect result renderer to second OLED
-    arithmetic_result_renderer result_renderer(
-        .clk(clk_6p25MHz),
-        .pixel_index(two_pixel_index),
-        .result(result),
-        .is_operand_mode(is_operand_mode),
-        .oled_data(two_oled_data)
+    
+    // 25MHz clock for screen display
+    wire clk_25MHz;
+    flexible_clock_divider clk_25MHz_gen(
+        .main_clock(basys_clock),
+        .ticks(7),
+        .output_clock(clk_25MHz)
+    );
+    
+    //wire pixel_x;
+    //wire pixel_y;
+    //assign pixel_x = one_pixel_index % 96;
+    //assign pixel_y = one_pixel_index / 96;
+    
+    localparam max_x = 96;
+    localparam max_y = 64;
+    reg [15:0] final_color;
+    
+    // Declare wires for active pixels and their corresponding colors for each number/sprite
+    wire [15:0] number1_color, number2_color;
+    wire number1_active, number2_active;
+    
+    // Instantiate number sprites at different positions
+    sprite_renderer number1 (
+        .clk(clk_25MHz),
+        .pixel_index(one_pixel_index),
+        .digit(4'b1011), // Digit to display
+        .start_x(30), // X position
+        .start_y(40), // Y position
+        .colour(16'b11111_000_00000), // Colour (e.g., red)
+        .oled_data(number1_color),
+        .active_pixel(number1_active),
+        .led(led)
     );
 
-    Oled_Display second_display(
-        .clk(clk_6p25MHz),
-        .reset(0),
-        .frame_begin(two_frame_begin),
-        .sending_pixels(two_sending_pixels),
-        .sample_pixel(two_sample_pixel),
-        .pixel_index(two_pixel_index),
-        .pixel_data(two_oled_data),
-        .cs(JA[0]), 
-        .sdin(JA[1]), 
-        .sclk(JA[3]), 
-        .d_cn(JA[4]), 
-        .resn(JA[5]), 
-        .vccen(JA[6]),
-        .pmoden(JA[7])
+    sprite_renderer number2 (
+        .clk(clk_25MHz),
+        .pixel_index(pixel_index),
+        .digit(4'b1011), // Digit to display
+        .start_x(20), // X position (offset from number1)
+        .start_y(20),  // Y position
+        .colour(16'b00000_111111_00000), // Colour (e.g., green)
+        .oled_data(number2_color),
+        .active_pixel(number2_active),
+        .led(led)
     );
+
+    // Combine the pixel data from all sprites
+    assign one_oled_data = number1_color ; //|| number2_color; // Default to white (background)
+
+        
+
 
 endmodule

@@ -33,7 +33,9 @@ module main_menu(
     
     // Generate the 25Mhz signal
     wire my_25mHz_signal;
+    wire my_1kHz_signal;
     flexible_clock_divider my_25mHz(.main_clock(basys_clock), .ticks(1), .output_clock(my_25mHz_signal));
+    flexible_clock_divider my_1kHz(.main_clock(basys_clock), .ticks(49999), .output_clock(my_1kHz_signal));
     
     // y and x coordinates of the OLED display
     wire [6:0] x;
@@ -42,7 +44,7 @@ module main_menu(
     // Get the x and y coordinates.
     assign x = pixel_index % 96;
     assign y = pixel_index / 96;
-    
+        
     // --------------------------------MAIN MENU PARAMETERS--------------------------------
     // stores the state
     // 0: main menu 
@@ -63,24 +65,10 @@ module main_menu(
     // 1: on the help button
     reg [1:0] mainMenuArrowState = 0;
     //-------------------------------------------------------------------------------------
+    // --------------------------------START MENU PARAMETERS-------------------------------
+    reg startMenuArrowState = 1'b0;
     
-    //  When the push button (center) is pressed, change the state after a certain time span
-    always @ (posedge my_25mHz_signal)
-    begin
-        if (pressed == 1) begin
-            if (delay_counter < DELAY_CYCLES) begin
-                delay_counter <= delay_counter + 1;
-            end
-            if (delay_counter >= DELAY_CYCLES) begin
-                state <= stateFlag;
-                delay_counter <= 0; // Reset counter
-            end 
-        end
-        if (btnL) begin
-            // return to the main menu
-            state <= 0;
-        end
-    end
+    //-------------------------------------------------------------------------------------
     
     // Handling the main menu arrow
     always @ (posedge my_25mHz_signal)
@@ -97,12 +85,20 @@ module main_menu(
         // initialise background
         oled_data <= 16'b00000_000000_00000;
         
+        // pressed takes note of when a button is pressed. Whenever a button is pressed, pressed will turn to 1.
+        if (pressed == 1) begin
+            if (delay_counter < DELAY_CYCLES) begin
+                delay_counter <= delay_counter + 1;
+            end
+            if (delay_counter >= DELAY_CYCLES) begin
+                state <= stateFlag;
+                delay_counter <= 0; // Reset counter
+                pressed <= 0;
+            end 
+        end
+        
         // Main menu
         if (state == 2'b00) begin
-            if (btnL) begin
-                pressed <= 0;
-                stateFlag <= 2'b00;
-            end
             // Write the Program title
             if ((y >= 5 && y <= 11) && (x >= 28 && x <= 68)) begin
                     // --- "S" ---
@@ -195,6 +191,7 @@ module main_menu(
                             (x == 57 && y >= 36 && y <= 41))    // Vertical stroke
                             oled_data <= 16'b11111_111111_11111;
                     end
+        
                 end
             
                 // help "button"
@@ -255,6 +252,11 @@ module main_menu(
         
         // Start menu
         if (state == 2'b01) begin
+            // If the left button is pressed, return to Main menu
+            if (btnL) begin
+                pressed <= 1;
+                stateFlag <= 0;
+            end
             // Write START at the top
             // Draw start
             if ((y >= 5 && y <= 11)) begin 
@@ -294,63 +296,85 @@ module main_menu(
             end
             
             // function button
-            if ((y >= 15 && y <= 25) && (x >= 32 && x <= 66)) begin  // Shifted right by 2
-                // Draw borders first
-                if ((x >= 32 && x <= 66 && y == 15) || (x >= 32 && x <= 66 && y == 25))
-                    oled_data <= 16'b11111_111111_11111;
-                if ((y >= 15 && y <= 25 && x == 32) || (y >= 15 && y <= 25 && x == 66))
-                    oled_data <= 16'b11111_111111_11111;                
-            
-                // --- "F" ---
-                if ((x == 34 && y >= 17 && y <= 21) ||   // Vertical stroke
-                    (x >= 34 && x <= 36 && y == 17) ||   // Top stroke
-                    (x >= 34 && x <= 36 && y == 19))     // Middle stroke
-                    oled_data <= 16'b11111_111111_11111;
+            if ((y >= 15 && y <= 25) && (x >= 32 && x <= 66)) begin 
+                if (btnC && startMenuArrowState == 0) begin
+                    pressed <= 1;
+                    stateFlag <= 2'b11;
+                    oled_data <= 16'b00000_111111_00000; // Green when selected   
+                end
+                else begin
+                    // Draw borders first
+                    if ((x >= 32 && x <= 66 && y == 15) || (x >= 32 && x <= 66 && y == 24))
+                        oled_data <= 16'b11111_111111_11111;
+                    if ((y >= 15 && y <= 24 && x == 32) || (y >= 15 && y <= 24 && x == 66))
+                        oled_data <= 16'b11111_111111_11111;                
+                
+                    // --- "F" ---
+                    if ((x == 34 && y >= 17 && y <= 21) ||   // Vertical stroke
+                        (x >= 34 && x <= 36 && y == 17) ||   // Top stroke
+                        (x >= 34 && x <= 36 && y == 19))     // Middle stroke
+                        oled_data <= 16'b11111_111111_11111;
+                        
+                    // --- "U" ---
+                    if ((x == 38 && y >= 17 && y <= 21) ||   // Left vertical stroke
+                        (x == 40 && y >= 17 && y <= 21) ||   // Right vertical stroke
+                        (x >= 38 && x <= 40 && y == 21))     // Bottom stroke
+                        oled_data <= 16'b11111_111111_11111;
                     
-                // --- "U" ---
-                if ((x == 38 && y >= 17 && y <= 21) ||   // Left vertical stroke
-                    (x == 40 && y >= 17 && y <= 21) ||   // Right vertical stroke
-                    (x >= 38 && x <= 40 && y == 21))     // Bottom stroke
-                    oled_data <= 16'b11111_111111_11111;
-                
-                // --- "N" ---
-                if ((x == 42 && y >= 17 && y <= 21) ||   // Left vertical stroke
-                    (x == 44 && y >= 17 && y <= 21) ||   // Right vertical stroke
-                    (x == 43 && y == 18) || (x == 43 && y == 19) || (x == 43 && y == 20)) // Diagonal stroke
-                    oled_data <= 16'b11111_111111_11111;
-                
-                // --- "C" ---
-                if ((x == 46 && y >= 17 && y <= 21) ||   // Left vertical stroke
-                    (x >= 46 && x <= 48 && y == 17) ||   // Top stroke
-                    (x >= 46 && x <= 48 && y == 21))     // Bottom stroke
-                    oled_data <= 16'b11111_111111_11111;
-                
-                // --- "T" ---
-                if ((x >= 50 && x <= 52 && y == 17) ||   // Top stroke
-                    (x == 51 && y >= 17 && y <= 21))     // Vertical stroke
-                    oled_data <= 16'b11111_111111_11111;
-                
-                // --- "I" ---
-                if ((x == 55 && y >= 17 && y <= 21))     // Vertical stroke
-                    oled_data <= 16'b11111_111111_11111;
-               
-                // --- "O" ---
-                if ((x == 58 && y >= 17 && y <= 21) ||   // Left vertical stroke
-                    (x == 60 && y >= 17 && y <= 21) ||   // Right vertical stroke
-                    (x >= 58 && x <= 60 && y == 17) ||   // Top stroke
-                    (x >= 58 && x <= 60 && y == 21))     // Bottom stroke
-                    oled_data <= 16'b11111_111111_11111;
-                
-                // --- "N" ---
-                if ((x == 62 && y >= 17 && y <= 21) ||   // Left vertical stroke
-                    (x == 64 && y >= 17 && y <= 21) ||   // Right vertical stroke
-                    (x == 63 && y == 18) || (x == 63 && y == 19) || (x == 63 && y == 20)) // Diagonal stroke
-                    oled_data <= 16'b11111_111111_11111;
+                    // --- "N" ---
+                    if ((x == 42 && y >= 17 && y <= 21) ||   // Left vertical stroke
+                        (x == 44 && y >= 17 && y <= 21) ||   // Right vertical stroke
+                        (x == 43 && y == 18) || (x == 43 && y == 19) || (x == 43 && y == 20)) // Diagonal stroke
+                        oled_data <= 16'b11111_111111_11111;
+                    
+                    // --- "C" ---
+                    if ((x == 46 && y >= 17 && y <= 21) ||   // Left vertical stroke
+                        (x >= 46 && x <= 48 && y == 17) ||   // Top stroke
+                        (x >= 46 && x <= 48 && y == 21))     // Bottom stroke
+                        oled_data <= 16'b11111_111111_11111;
+                    
+                    // --- "T" ---
+                    if ((x >= 50 && x <= 52 && y == 17) ||   // Top stroke
+                        (x == 51 && y >= 17 && y <= 21))     // Vertical stroke
+                        oled_data <= 16'b11111_111111_11111;
+                    
+                    // --- "I" ---
+                    if ((x == 55 && y >= 17 && y <= 21))     // Vertical stroke
+                        oled_data <= 16'b11111_111111_11111;
+                   
+                    // --- "O" ---
+                    if ((x == 58 && y >= 17 && y <= 21) ||   // Left vertical stroke
+                        (x == 60 && y >= 17 && y <= 21) ||   // Right vertical stroke
+                        (x >= 58 && x <= 60 && y == 17) ||   // Top stroke
+                        (x >= 58 && x <= 60 && y == 21))     // Bottom stroke
+                        oled_data <= 16'b11111_111111_11111;
+                    
+                    // --- "N" ---
+                    if ((x == 62 && y >= 17 && y <= 21) ||   // Left vertical stroke
+                        (x == 64 && y >= 17 && y <= 21) ||   // Right vertical stroke
+                        (x == 63 && y == 18) || (x == 63 && y == 19) || (x == 63 && y == 20)) // Diagonal stroke
+                        oled_data <= 16'b11111_111111_11111;
+                end
             end
+            
+            // Arrow indicating user selection position
+            if (x >= 28 && x <= 30) begin
+                if (startMenuArrowState == 0) begin
+                    if (y >= 19 && y <= 21 && (x == 28 || x == 29))
+                       oled_data <= 16'b11111_111111_11111;
+                    if (y == 20 && x == 30)
+                       oled_data <= 16'b11111_111111_11111;
+                end
+            end            
         end        
         
         // Help menu (Later implementation)
         if (state == 2'b10) begin
+            // If the left button is pressed, return to Main menu
+            if (btnL) begin
+                pressed <= 1;
+                stateFlag <= 0;
+            end
             // Write Help at the top
             // Draw help
             if ((y >= 5 && y <= 11)) begin 
@@ -379,7 +403,15 @@ module main_menu(
                     oled_data <= 16'b11111_111111_11111;
             end
         end
+        
+        // Function menu
+        if (state == 2'b11) begin
+            // If the left button is pressed, return to Start menu
+            if (btnL) begin
+                pressed <= 1;
+                stateFlag <= 2'b01;
+            end
+        end
     end
-    
-    
+
 endmodule

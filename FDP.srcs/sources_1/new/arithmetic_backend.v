@@ -42,6 +42,11 @@ module arithmetic_backend(
     // Flag for first calculation
     reg is_first_calc = 1;
 
+    // Temporary variable for multiplication
+    reg signed [63:0] product;
+    reg signed [63:0] dividend;
+
+
     always @ (posedge clk) begin
         // Reset operation_done
         operation_done <= 0;
@@ -80,13 +85,16 @@ module arithmetic_backend(
 
                         MULTIPLY: begin
                             // For Q16.16 multiplication, we need to shift right by 16
-                            result <= (result * input_fp_value) >>> 16;
+                            product = result * input_fp_value;
+                            result <= (product) >>> 16;
                         end
 
                         DIVIDE: begin
                             // For division, shift left by 16 instead
                             if (input_fp_value != 0) begin
-                                result <= (result << 16) / input_fp_value;
+                                // Extend the sign bit and result to 64-bits, then shift fractional part into integer part
+                                dividend = { {32{result[31]}}, result } <<< 16;
+                                result <= dividend / input_fp_value;
                             end
                         end
                     endcase

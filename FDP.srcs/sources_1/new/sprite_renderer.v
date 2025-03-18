@@ -1,11 +1,17 @@
 module sprite_renderer(
     input clk,
-    input [12:0] pixel_index, // pixel index in the overall display
-    input [3:0] digit,         // an array of 8 characters to render
-    input [6:0] start_x,       // starting x position of the text block
-    input [5:0] start_y,       // starting y position of the text block
+    
+    //Pixel in consideration
+    input [12:0] pixel_index, 
+    
+    // Character to render
+    input [5:0] character,
+    
+    //Coordinates of character        
+    input [6:0] start_x,       
+    input [5:0] start_y,    
     input [15:0] colour,
-    output reg [15:0] led,
+//    output reg [15:0] led,
     output reg [15:0] oled_data, // OLED pixel data output
     output reg active_pixel      // New output for active pixel
 );
@@ -28,39 +34,30 @@ module sprite_renderer(
 //    wire [3:0] row = y - start_y;
 //    wire [2:0] column = x - start_x;
 
-    reg [3:0] row;
-    reg [2:0] column;
+   wire [3:0] row = y - start_y;
+   wire [2:0] column = start_x - x;   
 
     // Instantiate the font ROM
     number_sprites number(
-        .number(digit),
+        .character(character),
         .row(row),
         .pixels(pixel_row)
     );
 
     always @(posedge clk) begin
-        // Default background: white
+        // White background
         oled_data <= 16'b11111_111111_11111;
-        active_pixel = 0;
-        //led[3] = 1;
+        active_pixel <= 0;
   
-        // Check if the pixel (x, y) lies within the current character's bounds
+        // Check if the pixel lies within the character's bounds
         if (x <= start_x && x > (start_x - CHAR_WIDTH) && y >= start_y && y < (start_y + CHAR_HEIGHT)) begin
-            row = y - start_y;
-            column = start_x - x;
-            
-            // Calculate the corresponding pixel in the character's sprite (row/column)
-            //led[4] = 1;
-            //oled_data <= 16'b00000_000000_11111;
 
-            // Get the pixel value from the sprite ROM
+            // Check pixel ON/OFF from the character sprite ROM
             if (pixel_row[column]) begin
-                //led[5] = 1;
-                oled_data <= colour;  // Set the pixel color to the provided colour
-                active_pixel = 1;    // Mark this as an active pixel
-//            end else begin
-//                oled_data <= 16'b00000_000000_00000;  // Set the pixel color to the provided colour
-//                active_pixel = 1;   
+                // Set pixel based on provided colour
+                oled_data <= colour;  
+                // Mark this as an active pixel
+                active_pixel <= 1; 
             end
         end 
     end

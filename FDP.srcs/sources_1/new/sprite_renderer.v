@@ -27,12 +27,6 @@ module sprite_renderer(
 
     // Variables for the current character being rendered
     wire [7:0] pixel_row;
-    
-//    reg [2:0] column = 0;
-//    reg [3:0] row = 0;
-    
-//    wire [3:0] row = y - start_y;
-//    wire [2:0] column = x - start_x;
 
    wire [3:0] row = y - start_y;
    wire [2:0] column = start_x - x;   
@@ -56,7 +50,6 @@ module sprite_renderer(
             if (pixel_row[column]) begin
                 // Set pixel based on provided colour
                 oled_data <= colour;  
-                // Mark this as an active pixel
                 active_pixel <= 1; 
             end
         end 

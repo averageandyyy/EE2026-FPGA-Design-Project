@@ -34,14 +34,14 @@ module string_renderer(
     input [15:0] colour,   
     
     //Pixel status 
-    output reg [15:0] oled_data,   // OLED data output
-    output reg active_pixel        // Output if pixel is active
+    output reg [15:0] oled_data,   
+    output reg active_pixel      
 );
 
-    parameter CHAR_WIDTH = 6; // Or whatever width you're using
+    parameter CHAR_WIDTH = 6; 
     
-    wire [15:0] char_data [7:0];  // One wire per renderer
-    wire char_active [7:0];       // One wire per renderer
+    wire [15:0] char_data [7:0]; 
+    wire pixel_active [7:0];  
     
     genvar i;
     generate
@@ -49,12 +49,12 @@ module string_renderer(
             sprite_renderer renderer_inst (
                 .clk(clk),
                 .pixel_index(pixel_index),
-                .character(word[(i+1)*6-1:i*6]), // Extracting each character
+                .character(word[(i+1)*6-1:i*6]), 
                 .start_x(start_x + ((7 - i) * (1 + CHAR_WIDTH))),
                 .start_y(start_y),
                 .colour(colour),
                 .oled_data(char_data[i]),
-                .active_pixel(char_active[i])
+                .active_pixel(pixel_active[i])
             );
         end
     endgenerate
@@ -64,9 +64,9 @@ module string_renderer(
     always @(*) begin
         oled_data = 16'b0;
         active_pixel = 0;
-        // Check all character renderers
+        
         for (j = 0; j < 8; j = j + 1) begin
-            if (char_active[j]) begin
+            if (pixel_active[j]) begin
                 oled_data = char_data[j];
                 active_pixel = 1;
             end

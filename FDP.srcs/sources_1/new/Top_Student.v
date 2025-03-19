@@ -82,7 +82,7 @@ module Top_Student (
     //Position of strings
     reg [7:0]posXOne = 15;
     reg [7:0]posYOne = 40;
-    reg [7:0]posXTwo = 55;
+    reg [7:0]posXTwo = 70;
     reg [7:0]posYTwo = 40;
     reg [7:0]posXThree = 15;
     reg [7:0]posYThree = 20;

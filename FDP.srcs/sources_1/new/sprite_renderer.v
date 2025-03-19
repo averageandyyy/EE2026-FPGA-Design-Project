@@ -29,7 +29,7 @@ module sprite_renderer(
     wire [7:0] pixel_row;
 
    wire [3:0] row = y - start_y;
-   wire [2:0] column = start_x - x;   
+   wire [2:0] column = x - start_x;   
 
     // Instantiate the font ROM
     number_sprites number(
@@ -44,10 +44,10 @@ module sprite_renderer(
         active_pixel <= 0;
   
         // Check if the pixel lies within the character's bounds
-        if (x <= start_x && x > (start_x - CHAR_WIDTH) && y >= start_y && y < (start_y + CHAR_HEIGHT)) begin
+        if (x >= start_x && x < (start_x + CHAR_WIDTH) && y >= start_y && y < (start_y + CHAR_HEIGHT)) begin
 
             // Check pixel ON/OFF from the character sprite ROM
-            if (pixel_row[column]) begin
+            if (pixel_row[CHAR_WIDTH - column]) begin
                 // Set pixel based on provided colour
                 oled_data <= colour;  
                 active_pixel <= 1; 

@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module number_sprites(
+module sprite_library(
     input [5:0] character,
     input [3:0] row,        
     output reg [7:0] pixels  

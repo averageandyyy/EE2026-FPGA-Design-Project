@@ -32,7 +32,7 @@ module sprite_renderer(
    wire [2:0] column = x - start_x;   
 
     // Instantiate the font ROM
-    number_sprites number(
+    sprite_library number(
         .character(character),
         .row(row),
         .pixels(pixel_row)

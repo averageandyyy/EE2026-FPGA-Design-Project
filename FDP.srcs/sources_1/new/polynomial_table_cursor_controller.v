@@ -43,8 +43,8 @@ module polynomial_table_cursor_controller(
     output reg [1:0] cursor_row = 0,
     output reg [2:0] cursor_col = 0,
     output reg keypad_btn_pressed = 0,
-    output reg [3:0] keypad_selected_value = 0;
-    output reg signed [31:0] starting_x = 0;
+    output reg [3:0] keypad_selected_value = 0,
+    output reg signed [31:0] starting_x = 0
     );
 
     // Previous button states for debouncing

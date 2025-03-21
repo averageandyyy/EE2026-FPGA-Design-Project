@@ -1,0 +1,28 @@
+diff a/FDP.xpr b/FDP.xpr	(rejected hunks)
+@@ -96,14 +96,25 @@
+           <Attr Name="UsedIn" Val="simulation"/>
+         </FileInfo>
+       </File>
+-      <File Path="$PSRCDIR/sources_1/new/input_bcd_to_fp_builder.v">
++      <File Path="$PSRCDIR/sources_1/new/sprite_library.v">
+         <FileInfo>
+           <Attr Name="UsedIn" Val="synthesis"/>
+           <Attr Name="UsedIn" Val="implementation"/>
+           <Attr Name="UsedIn" Val="simulation"/>
+         </FileInfo>
+       </File>
++<<<<<<< HEAD
+       <File Path="$PSRCDIR/sources_1/new/main_menu.v">
++=======
++      <File Path="$PSRCDIR/sources_1/new/sprite_renderer.v">
++        <FileInfo>
++          <Attr Name="UsedIn" Val="synthesis"/>
++          <Attr Name="UsedIn" Val="implementation"/>
++          <Attr Name="UsedIn" Val="simulation"/>
++        </FileInfo>
++      </File>
++      <File Path="$PSRCDIR/sources_1/new/string_renderer.v">
++>>>>>>> project-weihao
+         <FileInfo>
+           <Attr Name="UsedIn" Val="synthesis"/>
+           <Attr Name="UsedIn" Val="implementation"/>

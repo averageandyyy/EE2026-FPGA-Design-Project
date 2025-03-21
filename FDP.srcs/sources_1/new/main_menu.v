@@ -83,7 +83,7 @@ module main_menu(
     reg [5:0] startingY = 0;
     reg [15:0] wordColour = 0;
     reg activatePixel = 0;
-    string_renderer MMString();
+    string_renderer MMString(basys_clock, word, startingX, startingY, pixel_index, wordColour, oled_data, activatePixel);
     
     // 7-segment handler
     always @ (posedge my_1kHz_signal)
@@ -456,7 +456,10 @@ module main_menu(
            
             // Display FUNC on the 7-segment display
             // Write "input coeff" on the top
-            
+            word <= 48'b100000_010011_100001_100011_011010_100010_101001_111111;
+            startingX <= 10;
+            startingY <= 10;
+            wordColour <= 16'b11111_111111_11111;
             
         end
     end

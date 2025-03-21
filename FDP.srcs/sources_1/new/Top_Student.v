@@ -18,7 +18,8 @@ module Top_Student (
     input btnC, btnU, btnD, btnL, btnR,
     output [7:0]JB, // First OLED
     output [7:0]JA,  // Second OLED
-    output [6:0]seg // 7-segment display
+    output [6:0]seg, // 7-segment display
+    output [3:0]an
     );
 
     // 6.25MHz clock for OLED displays
@@ -185,6 +186,6 @@ module Top_Student (
 //        .pmoden(JA[7])
 //    );
     
-    main_menu mm(btnC, btnU, btnD, btnL, btnR, basys_clock, one_pixel_index, seg, one_oled_data);
+    main_menu mm(btnC, btnU, btnD, btnL, btnR, basys_clock, one_pixel_index, seg, one_oled_data, an);
 
 endmodule

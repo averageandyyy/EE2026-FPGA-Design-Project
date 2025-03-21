@@ -25,7 +25,8 @@ module main_menu(
     input basys_clock,
     input [12:0] pixel_index,
     output reg [6:0]seg = 0, // 7-segment display
-    output reg [15:0] oled_data = 0 // OLED output
+    output reg [15:0] oled_data = 0, // OLED output
+    output reg [3:0] an = 4'b1111
     );
     
     // 1. Show the main menu screen, which consists of name of product, a user manual, and the start
@@ -67,9 +68,42 @@ module main_menu(
     //-------------------------------------------------------------------------------------
     // --------------------------------START MENU PARAMETERS-------------------------------
     reg startMenuArrowState = 1'b0;
-    
     //-------------------------------------------------------------------------------------
     
+    // FUNC display
+    parameter [6:0] F = 7'b0001110;
+    parameter [6:0] U = 7'b1100011;
+    parameter [6:0] N = 7'b0101011;
+    parameter [6:0] C = 7'b0100111;
+    reg [1:0] displayState = 2'b00;
+    
+    // 7-segment handler
+    always @ (posedge my_1kHz_signal)
+    begin
+        if (state == 2'b11) begin
+            if (displayState == 2'b00) begin
+                an <= 4'b0111;
+                seg <= F;
+            end
+            else if (displayState == 2'b01) begin
+                an <= 4'b1011;
+                seg <= U;
+            end
+            else if (displayState == 2'b10) begin
+                an <= 4'b1101;
+                seg <= N;
+            end
+            else if (displayState == 2'b11) begin
+                an <= 4'b1110;
+                seg <= C;
+            end
+            displayState <= displayState + 1;
+        end 
+        else begin
+            an <= 4'b1111;
+        end
+    end
+
     // Handling the main menu arrow
     always @ (posedge my_25mHz_signal)
     begin
@@ -411,6 +445,10 @@ module main_menu(
                 pressed <= 1;
                 stateFlag <= 2'b01;
             end
+           
+            // Display FUNC on the 7-segment display
+            
+            
         end
     end
 

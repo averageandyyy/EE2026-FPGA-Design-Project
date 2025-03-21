@@ -77,6 +77,14 @@ module main_menu(
     parameter [6:0] C = 7'b0100111;
     reg [1:0] displayState = 2'b00;
     
+    // String generator
+    reg [48:0] word = 0;
+    reg [6:0] startingX = 0;
+    reg [5:0] startingY = 0;
+    reg [15:0] wordColour = 0;
+    reg activatePixel = 0;
+    string_renderer MMString();
+    
     // 7-segment handler
     always @ (posedge my_1kHz_signal)
     begin
@@ -447,6 +455,7 @@ module main_menu(
             end
            
             // Display FUNC on the 7-segment display
+            // Write "input coeff" on the top
             
             
         end

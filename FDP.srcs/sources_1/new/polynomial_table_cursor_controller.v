@@ -101,12 +101,14 @@ module polynomial_table_cursor_controller(
                 if (btnU && !prev_btnU && debounce_U == 0) begin
                     debounce_U <= 200;
 
-                    if (cursor_row > 0) begin
-                        cursor_row <= cursor_row - 1;
-                    end
-                    else begin
-                        // Wrap around
-                        cursor_row <= 3;
+                    if (!on_checkmark) begin
+                        if (cursor_row > 0) begin
+                            cursor_row <= cursor_row - 1;
+                        end
+                        else begin
+                            // Wrap around
+                            cursor_row <= 3;
+                        end
                     end
                 end
 
@@ -114,11 +116,13 @@ module polynomial_table_cursor_controller(
                 if (btnD && !prev_btnD && debounce_D == 0) begin
                     debounce_D <= 200;
 
-                    if (cursor_row < 3) begin
-                        cursor_row <= cursor_row + 1;
-                    end
-                    else begin
-                        cursor_row <= 0;
+                    if (!on_checkmark) begin
+                        if (cursor_row < 3) begin
+                            cursor_row <= cursor_row + 1;
+                        end
+                        else begin
+                            cursor_row <= 0;
+                        end
                     end
                 end
 
@@ -141,11 +145,11 @@ module polynomial_table_cursor_controller(
                 if (btnR && !prev_btnR && debounce_R == 0) begin
                     debounce_R <= 200;
 
-                    if (cursor_col < (on_checkmark ? 3 : 2)) begin
-                        cursor_col <= cursor_col + 1;
-                    end
-                    else begin
+                    if (on_checkmark) begin
                         cursor_col <= 0;
+                    end
+                    else if (cursor_col < 4) begin
+                        cursor_col <= cursor_col + 1;
                     end
                 end
 

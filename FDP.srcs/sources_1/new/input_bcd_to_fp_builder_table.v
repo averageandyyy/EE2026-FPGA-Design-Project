@@ -32,7 +32,7 @@ module input_bcd_to_fp_builder_table(
     output reg signed [31:0] fp_value = 0,
     output reg [31:0] bcd_value = 0,
     output reg input_complete = 0,
-    output reg [3:0] decimal_pose = 4'hF
+    output reg [3:0] decimal_pos = 4'hF
     );
 
     // Variables to store 8 BCD digits
@@ -77,7 +77,7 @@ module input_bcd_to_fp_builder_table(
             case (selected_keypad_value)
                 CHECKMARK: begin
                     // Convert bcd into fp representation and complete input (note the use of =)
-                    fp_value = convert_to_fixed_point(valid_digits, decimal_pose);
+                    fp_value = convert_to_fixed_point(valid_digits, decimal_pos);
                     if (has_negative) begin
                         fp_value <= -fp_value;
                     end

@@ -447,7 +447,7 @@ module main_menu(
             end
            
             // Display FUNC on the 7-segment display
-            
+            // Dsiplay "Input Coefficients" on the top of the screen.
             
         end
     end

@@ -66,7 +66,7 @@ module polynomial_table_cursor_controller(
 
     always @ (posedge clk) begin
         // Resetting button pressed on each cycle
-        keypad_btn_pressed = 0;
+        keypad_btn_pressed <= 0;
 
         // Decrement debounce counters
         if (debounce_U > 0) debounce_U <= debounce_U - 1;
@@ -96,6 +96,12 @@ module polynomial_table_cursor_controller(
 
             // Cursor movement and input selection logic
             if (is_table_input_mode) begin
+                
+                // Updating starting_x when input is complete (to check)
+                if (input_complete) begin
+                    starting_x <= fp_input_value;
+                    is_table_input_mode <= 0;
+                end
                 
                 // Up button
                 if (btnU && !prev_btnU && debounce_U == 0) begin
@@ -156,11 +162,11 @@ module polynomial_table_cursor_controller(
                 // Center button (input selection)
                 if (btnC && !prev_btnC && debounce_C == 0) begin
                     debounce_C <= 200;
-                    keypad_btn_pressed = 1;
+                    keypad_btn_pressed <= 1;
 
                     // Transition out of input mode
                     if (on_checkmark) begin
-                        is_table_input_mode <= 0;
+                        // is_table_input_mode <= 0;
                         keypad_selected_value <= 4'd12;
                     end
                     else begin
@@ -182,13 +188,10 @@ module polynomial_table_cursor_controller(
                         endcase
                     end
                 end
-
-                // Updating starting_x when input is complete (to check)
-                if (input_complete) begin
-                    starting_x <= fp_input_value;
-                end
             end
             else begin
+                
+
                 // Navigation Mode
                 if (btnU && !prev_btnU && debounce_U == 0) begin
                     debounce_U <= 200;

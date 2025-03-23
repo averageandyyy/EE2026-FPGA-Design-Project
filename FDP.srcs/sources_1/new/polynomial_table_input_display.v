@@ -61,7 +61,7 @@ module polynomial_table_input_display(
     wire value_active;
     
     // String renderer for "INPUT:" title
-    string_renderer title_renderer(
+    string_renderer_optimized title_renderer(
         .clk(clk),
         .word(title_text),
         .start_x(24), // Center horizontally
@@ -73,7 +73,7 @@ module polynomial_table_input_display(
     );
     
     // String renderer for value display
-    string_renderer value_renderer(
+    string_renderer_optimized value_renderer(
         .clk(clk),
         .word(value_text),
         .start_x(24), // Center horizontally

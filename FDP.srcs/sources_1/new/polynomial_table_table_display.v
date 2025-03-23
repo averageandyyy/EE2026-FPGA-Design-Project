@@ -40,67 +40,78 @@ module polynomial_table_table_display(
     // OLED dimensions
     parameter WIDTH = 96;
     parameter HEIGHT = 64;
-    
-    // Table layout constants
     parameter ROW_HEIGHT = 12;
     parameter COL_WIDTH = 48;
     parameter HEADER_HEIGHT = 12;
     parameter TABLE_ROWS = 5;
-
-    // Colors
     parameter WHITE = 16'hFFFF;
     parameter BLACK = 16'h0000;
 
     // Extract pixel coordinates
     wire [6:0] x = pixel_index % WIDTH;
-    wire [6:0] y = pixel_index / WIDTH;
-
-    // Variables to store computed values
+    wire [5:0] y = pixel_index / WIDTH;
+    
+    // Row detection
+    wire [2:0] current_row = (y - HEADER_HEIGHT) / ROW_HEIGHT;
+    wire in_header = (y < HEADER_HEIGHT);
+    wire in_table_body = (y >= HEADER_HEIGHT && current_row < TABLE_ROWS);
+    
+    // Table data storage
     reg signed [31:0] x_values[0:TABLE_ROWS-1];
     reg signed [31:0] y_values[0:TABLE_ROWS-1];
-
-    // For fixed point to character conversion
+    reg [47:0] x_string_cache[0:TABLE_ROWS-1];
+    reg [47:0] y_string_cache[0:TABLE_ROWS-1];
+    
+    // Control signals
+    reg is_full_computation = 0;
+    reg is_full_conversion = 0;
+    reg [31:0] prev_starting_x = 0;
+    
+    // Computation controller
+    reg requires_computation = 0;
+    reg [2:0] comp_row = 0;
+    wire signed [31:0] computed_y;
+    wire computation_complete;
+    
+    // Conversion controller
+    reg require_conversion = 0;
+    reg [2:0] conv_row = 0;
+    reg is_y_conversion = 0;
+    wire conversion_complete;
+    wire [47:0] converted_string;
+    reg [31:0] value_to_convert;
+    
+    // Computation module instance
+    polynomial_computation compute(
+        .clk(clk),
+        .requires_computation(requires_computation),
+        .x_value(x_values[comp_row]),
+        .coeff_a(coeff_a),
+        .coeff_b(coeff_b),
+        .coeff_c(coeff_c),
+        .coeff_d(coeff_d),
+        .y_value(computed_y),
+        .computation_complete(computation_complete)
+    );
+    
+    // String conversion module instance
+    fp_to_string_sequential convert(
+        .clk(clk),
+        .start_conversion(require_conversion),
+        .fp_value(value_to_convert),
+        .conversion_done(conversion_complete),
+        .result(converted_string)
+    );
+    
+    // For display rendering
     reg [47:0] x_text;
     reg [47:0] y_text;
-
-    // String renderer instances for x and y columns
     wire [15:0] x_string_data;
     wire x_active;
     wire [15:0] y_string_data;
     wire y_active;
-
-    // Row detection
-    wire [3:0] current_row = (y - HEADER_HEIGHT) / ROW_HEIGHT;
-    wire in_header = (y < HEADER_HEIGHT);
-    wire in_table_body = (y>= HEADER_HEIGHT && current_row < TABLE_ROWS);
-
-    // Computation state machine signals
-    reg [3:0] calc_state = 0;
-    reg [2:0] calc_row = 0;
-    reg needs_update = 1;
-    reg [31:0] prev_starting_x = 0;
-
-    // Intermediate calculation values
-    reg signed [31:0] current_x;
-    reg signed [31:0] x_squared_val;
-    reg signed [31:0] x_cubed_val;
-    reg signed [31:0] term_a_val;
-    reg signed [31:0] term_b_val;
-    reg signed [31:0] term_c_val;
-
-    // Shared multiplier registers (to save DSP blocks)
-    reg signed [31:0] mult_a, mult_b;
-    reg signed [63:0] mult_result;
-
-    // Pre-computation check
-    always @(posedge clk) begin
-        if (starting_x != prev_starting_x) begin
-            needs_update <= 1;
-            prev_starting_x <= starting_x;
-        end
-    end
-
-    // String renderer for x values
+    
+    // String renderers
     string_renderer_optimized x_renderer(
         .clk(clk),
         .word(x_text),
@@ -112,7 +123,6 @@ module polynomial_table_table_display(
         .active_pixel(x_active)
     );
 
-    // String renderer for y values
     string_renderer_optimized y_renderer(
         .clk(clk),
         .word(y_text),
@@ -123,207 +133,115 @@ module polynomial_table_table_display(
         .oled_data(y_string_data),
         .active_pixel(y_active)
     );
-
-    // Helper function to convert a fixed point value to a character string
-    function [47:0] fp_to_string(
-        input signed [31:0] fp_value
-    );
-        reg is_negative;
-        reg [31:0] abs_value;
-        reg [31:0] int_part;
-        reg [31:0] frac_part;
-        reg [3:0] int_digits;
-        reg [3:0] digit_values[0:8];
-        reg [5:0] char_codes[0:7];
-        integer i, j, digit_count;
-
-        begin
-            // Determine sign
-            is_negative = (fp_value < 0);
-            abs_value = is_negative ? -fp_value : fp_value;
-
-            // Split into integer and fractional parts
-            int_part = abs_value >> 16;
-            frac_part = ((abs_value & 16'hFFFF) * 10000) >> 16; // Scales fractional part to 4 decimals
-
-            // Count integer digits
-            if (int_part == 0) begin
-                int_digits = 1;
-            end
-            else begin
-                int_digits = 0;
-                // Use a fixed loop with a maximum of 10 digits (far more than needed)
-                for (i = 0; i < 10; i = i + 1) begin
-                    if (int_part > 0) begin
-                        int_digits = int_digits + 1;
-                        int_part = int_part / 10;
-                    end
-                end
-                // Restore int_part after counting
-                int_part = abs_value >> 16;
-            end 
-
-            // Extract digits (integer part) - using fixed bounds
-            for (i = 0; i < 8; i = i + 1) begin
-                if (i < int_digits) begin
-                    digit_values[int_digits - i - 1] = int_part % 10;
-                    int_part = int_part / 10;
-                end
-            end
-
-            // Extract digits (fractional part)
-            for (i = 0; i < 4; i = i + 1) begin 
-                digit_values[int_digits + 1 + i] = frac_part / 1000;
-                frac_part = (frac_part % 1000) * 10;
-            end
-
-            // Initialize all characters to space/blank
-            for (i = 0; i < 8; i = i + 1) begin
-                char_codes[i] = 6'b111111; // Nonsense value so that it defaults to blank (see sprite_library.v)
-            end
-
-            // Format string for display
-            digit_count = 0;
-        
-            // Adding negative sign if present
-            if (is_negative && digit_count < 8) begin
-                char_codes[digit_count] = 6'b001011; // Negative/minus sign code
-                digit_count = digit_count + 1;
-            end
-
-            // Add integer digits (with fixed loop bounds)
-            for (i = 0; i < 8; i = i + 1) begin
-                if (i < int_digits && digit_count < 8) begin
-                    char_codes[digit_count] = {2'b00, digit_values[i]};
-                    digit_count = digit_count + 1;
-                end
-            end
-
-            // Add decimal point and fractional part depending on space, use at least 2 spots 1 for dp and 1 for digit
-            if (digit_count < 7) begin
-                char_codes[digit_count] = 6'b001110; // Decimal point (code 14)
-                digit_count = digit_count + 1;
-
-                // Add fractional
-                for (i = 0; i < 4; i = i + 1) begin
-                    if (digit_count < 8) begin
-                        char_codes[digit_count] = {2'b00, digit_values[int_digits + i + 1]};
-                        digit_count = digit_count + 1;
-                    end
-                end
-            end
-
-            // Pack all characters into 48-bit output
-            fp_to_string = {
-                char_codes[0], char_codes[1], char_codes[2], char_codes[3],
-                char_codes[4], char_codes[5], char_codes[6], char_codes[7]
-            };
-        end
-    endfunction
-
-    // Compute table values at initialization
-    integer i;
-    initial begin
-        for (i = 0; i < 10; i = i + 1) begin
-            x_values[i] = 0;
-            y_values[i] = 0;
-        end
-    end
-
-    // Optimized state machine for multiplication and polynomial calculation
-    // This replaces the resource-intensive loop in the original code
+    
+    // Master state machine
+    reg [2:0] master_state = 0;
+    
+    // Master controller - manages computation and conversion sequence
     always @(posedge clk) begin
-        if (is_table_mode && needs_update) begin
-            case (calc_state)
-                0: begin // Initialize row calculation
-                    current_x <= starting_x + (calc_row << 16);
-                    calc_state <= 1;
-                end
+        // Default - clear control signals
+        requires_computation <= 0;
+        require_conversion <= 0;
+        
+        // Detect changes in starting_x
+        if (starting_x != prev_starting_x && is_table_mode) begin
+            prev_starting_x <= starting_x;
+            is_full_computation <= 0;
+            is_full_conversion <= 0;
+            master_state <= 1; // Start computation phase
+            comp_row <= 0;
+        end
+        
+        // Main state machine
+        case (master_state)
+            0: begin // Idle state - everything computed and converted
+                // Do nothing, wait for starting_x change
+            end
             
-                1: begin // Setup x^2 calculation
-                    mult_a <= current_x;
-                    mult_b <= current_x;
-                    calc_state <= 2;
-                    // No multiplication here - just setup
+            1: begin // Computation Phase - Initialize x values
+                if (!is_full_computation) begin
+                    // Fill x_values array
+                    x_values[comp_row] <= starting_x + (comp_row << 16);
+                    
+                    // Start computation for this row
+                    requires_computation <= 1;
+                    master_state <= 2;
                 end
-            
-                2: begin // Perform x^2 calculation
-                    mult_result <= mult_a * mult_b; // Do multiplication
-                    calc_state <= 3;
+                else begin
+                    // Move to conversion phase
+                    master_state <= 3;
+                    conv_row <= 0;
+                    is_y_conversion <= 0;
                 end
+            end
             
-                3: begin // Store x^2 result, setup x^3 calculation
-                    x_squared_val <= mult_result >>> 16;
-                    mult_a <= mult_result >>> 16; // x^2
-                    mult_b <= current_x;
-                    calc_state <= 4;
-                end
-            
-                4: begin // Perform x^3 calculation
-                    mult_result <= mult_a * mult_b;
-                    calc_state <= 5;
-                end
-            
-                5: begin // Store x^3, setup a*x^3 calculation
-                    x_cubed_val <= mult_result >>> 16;
-                    mult_a <= coeff_a;
-                    mult_b <= mult_result >>> 16; 
-                    calc_state <= 6;
-                end
-            
-                6: begin // Perform a*x^3 calculation
-                    mult_result <= mult_a * mult_b;
-                    calc_state <= 7;
-                end
-            
-                7: begin // Store a*x^3, setup b*x^2
-                    term_a_val <= mult_result >>> 16;
-                    mult_a <= coeff_b;
-                    mult_b <= x_squared_val;
-                    calc_state <= 8;
-                end
-            
-                8: begin // Perform b*x^2 calculation
-                    mult_result <= mult_a * mult_b;
-                    calc_state <= 9;
-                end
-            
-                9: begin // Store b*x^2, setup c*x
-                    term_b_val <= mult_result >>> 16;
-                    mult_a <= coeff_c;
-                    mult_b <= current_x;
-                    calc_state <= 10;
-                end
-            
-                10: begin // Perform c*x calculation
-                    mult_result <= mult_a * mult_b;
-                    calc_state <= 11;
-                end
-            
-                11: begin // Store c*x
-                    term_c_val <= mult_result >>> 16;
-                    calc_state <= 12;
-                end
-            
-                12: begin // Store results for this row
-                    x_values[calc_row] <= current_x;
-                    y_values[calc_row] <= term_a_val + term_b_val + term_c_val + coeff_d;
-                
-                    // Move to next row or finish
-                    if (calc_row < TABLE_ROWS-1) begin
-                        calc_row <= calc_row + 1;
-                        calc_state <= 0;
+            2: begin // Wait for computation to complete
+                if (computation_complete) begin
+                    // Store computed y value
+                    y_values[comp_row] <= computed_y;
+                    
+                    // Move to next row or finish computation
+                    if (comp_row < TABLE_ROWS-1) begin
+                        comp_row <= comp_row + 1;
+                        master_state <= 1; // Next row
                     end
                     else begin
-                        needs_update <= 0;
-                        calc_row <= 0;
-                        calc_state <= 0;
+                        is_full_computation <= 1;
+                        master_state <= 3; // Move to conversion phase
+                        conv_row <= 0;
+                        is_y_conversion <= 0;
                     end
                 end
-            endcase
-        end
+                else begin
+                    // Keep computation signal high while waiting
+                    requires_computation <= 1;
+                end
+            end
+            
+            3: begin // Conversion Phase - setup
+                if (!is_full_conversion) begin
+                    // Determine what to convert (x or y value)
+                    value_to_convert <= is_y_conversion ? y_values[conv_row] : x_values[conv_row];
+                    
+                    // Start conversion
+                    require_conversion <= 1;
+                    master_state <= 4;
+                end
+                else begin
+                    // All converted, go to idle
+                    master_state <= 0;
+                end
+            end
+            
+            4: begin // Wait for conversion to complete
+                if (conversion_complete) begin
+                    // Store converted string
+                    if (is_y_conversion) begin
+                        y_string_cache[conv_row] <= converted_string;
+                        
+                        // Move to next row or finish if all Y values are done
+                        if (conv_row < TABLE_ROWS-1) begin
+                            conv_row <= conv_row + 1;
+                            is_y_conversion <= 0;
+                            master_state <= 3; // Next row, still converting Y values
+                        end
+                        else begin
+                            // All values converted
+                            is_full_conversion <= 1;
+                            master_state <= 0; // Go to idle
+                        end
+                    end
+                    else begin
+                        // Store X string and switch to Y conversion
+                        x_string_cache[conv_row] <= converted_string;
+                        is_y_conversion <= 1;
+                        master_state <= 3; // Convert Y value for same row
+                    end
+                end
+            end
+        endcase
     end
-
+    
     // Display logic
     always @ (posedge clk) begin
         if (is_table_mode) begin
@@ -331,7 +249,7 @@ module polynomial_table_table_display(
             oled_data = WHITE;
 
             // Table grid
-            if (x ==  0 || x == WIDTH - 1 || x == COL_WIDTH ||
+            if (x == 0 || x == WIDTH - 1 || x == COL_WIDTH ||
                 y == 0 || y == HEIGHT - 1 || y == HEADER_HEIGHT ||
                 (y > HEADER_HEIGHT && (y - HEADER_HEIGHT) % ROW_HEIGHT == 0 && y < HEADER_HEIGHT + TABLE_ROWS * ROW_HEIGHT)
             ) begin
@@ -356,17 +274,18 @@ module polynomial_table_table_display(
                         end
                     end
                 end
-                else if (in_table_body) begin
-                    // Data rows
+                else if (in_table_body && is_full_computation && is_full_conversion) begin
+                    // Data rows - only display when computation and conversion are complete
                     if (x < COL_WIDTH) begin
                         // X value column
-                        x_text = fp_to_string(x_values[current_row]);
+                        x_text = x_string_cache[current_row];
                         if (x_active) begin
                             oled_data = x_string_data;
                         end
                     end
                     else begin
-                        y_text = fp_to_string(y_values[current_row]);
+                        // Y value column
+                        y_text = y_string_cache[current_row];
                         if (y_active) begin
                             oled_data = y_string_data;
                         end
@@ -377,5 +296,18 @@ module polynomial_table_table_display(
         else begin
             oled_data = WHITE;
         end
+    end
+    
+    // Initialize values
+    integer i;
+    initial begin
+        for (i = 0; i < TABLE_ROWS; i = i + 1) begin
+            x_values[i] = 0;
+            y_values[i] = 0;
+            x_string_cache[i] = 48'h303030303030; // Default to "000000"
+            y_string_cache[i] = 48'h303030303030;
+        end
+        is_full_computation = 0;
+        is_full_conversion = 0;
     end
 endmodule

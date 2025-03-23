@@ -80,7 +80,7 @@ module polynomial_table_keypad_display(
     reg [6:0] rel_y;
 
     // Sprite renderer for characters
-    sprite_renderer char_renderer(
+    sprite_renderer_optimized char_renderer(
         .clk(clk),
         .pixel_index(pixel_index),
         .character(current_char),

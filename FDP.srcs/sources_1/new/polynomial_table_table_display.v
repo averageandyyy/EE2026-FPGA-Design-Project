@@ -42,10 +42,10 @@ module polynomial_table_table_display(
     parameter HEIGHT = 64;
     
     // Table layout constants
-    parameter ROW_HEIGHT = 6;
+    parameter ROW_HEIGHT = 12;
     parameter COL_WIDTH = 48;
-    parameter HEADER_HEIGHT = 8;
-    parameter TABLE_ROWS = 10;
+    parameter HEADER_HEIGHT = 12;
+    parameter TABLE_ROWS = 5;
 
     // Colors
     parameter WHITE = 16'hFFFF;
@@ -80,7 +80,7 @@ module polynomial_table_table_display(
     reg signed [63:0] sum;
 
     // String renderer for x values
-    string_renderer x_renderer(
+    string_renderer_optimized x_renderer(
         .clk(clk),
         .word(x_text),
         .start_x(4),
@@ -92,12 +92,15 @@ module polynomial_table_table_display(
     );
 
     // String renderer for y values
-    string_renderer y_renderer(
+    string_renderer_optimized y_renderer(
         .clk(clk),
         .word(y_text),
         .start_x(COL_WIDTH + 4),
         .start_y(in_header ? 1 : HEADER_HEIGHT + current_row * ROW_HEIGHT + 1),
-        .pixel_index(pixel_index)
+        .pixel_index(pixel_index),
+        .colour(BLACK),
+        .oled_data(y_string_data),
+        .active_pixel(y_active)
     );
 
     // Helper function to convert a fixed point value to a character string
@@ -217,7 +220,7 @@ module polynomial_table_table_display(
                 x_cubed = ((x_squared * x_values[i]) >>> 16);
 
                 term_a = ((coeff_a * x_cubed) >>> 16);
-                term_b = ((coeff_d * x_squared) >>> 16);
+                term_b = ((coeff_b * x_squared) >>> 16);
                 term_c = ((coeff_c * x_values[i]) >>> 16);
 
                 y_values[i] = term_a[31:0] + term_b[31:0] + term_c[31:0] + coeff_d;

@@ -69,7 +69,13 @@ module main_menu(
     // --------------------------------START MENU PARAMETERS-------------------------------
     reg startMenuArrowState = 1'b0;
     //-------------------------------------------------------------------------------------
-    
+    // --------------------------------FUNC MENU PARAMETERS--------------------------------
+    reg [3:0]functionMenuLocationState = 0;
+    reg btnC_flag = 0;
+    reg [3:0]coeffCounter = 0;
+    reg escape_flag = 0;
+    // ------------------------------------------------------------------------------------
+
     // FUNC display
     parameter [6:0] F = 7'b0001110;
     parameter [6:0] U = 7'b1100011;
@@ -113,6 +119,10 @@ module main_menu(
         if (btnU && mainMenuArrowState == 1 && state == 0)
             mainMenuArrowState <= 0;
     end
+    
+    // Debouncing for push buttons
+    reg [25:0] counterR = 0, counterL = 0, counterU = 0, counterD = 0; 
+    reg btnR_flag = 0, btnL_flag = 0, btnU_flag = 0, btnD_flag = 0;
     
     // initialisation
     always @ (posedge my_25mHz_signal)
@@ -442,14 +452,12 @@ module main_menu(
         // Function menu
         if (state == 2'b11) begin
             // If the left button is pressed, return to Start menu
-            if (btnL) begin
+            if (btnL && (functionMenuLocationState == 0 || functionMenuLocationState == 2 || functionMenuLocationState == 4 || functionMenuLocationState == 6) && !btnC_flag) begin
                 pressed <= 1;
                 stateFlag <= 2'b01;
-            end
-           
+            end 
             // Display FUNC on the 7-segment display
             // Display "Input Coeffs" on the top of the screen.
-            
             if ((y >= 5 && y <= 11) && (x >= 9 && x <= 87)) begin   
             
                 // --- "I" ---
@@ -553,28 +561,176 @@ module main_menu(
             end
             
             // Write boxes
-            if ((x >= 27 && x < 33) && (y >= 17 && y < 23))  
-                oled_data <= 16'b11111_111111_11111;
-            if ((x >= 38 && x < 44) && (y >= 17 && y < 23))  
-                oled_data <= 16'b11111_111111_11111;
-            if ((x >= 27 && x < 33) && (y >= 27 && y < 33))  
-                oled_data <= 16'b11111_111111_11111;
-            if ((x >= 38 && x < 44) && (y >= 27 && y < 33))  
-                oled_data <= 16'b11111_111111_11111;
-            if ((x >= 27 && x < 33) && (y >= 37 && y < 43))  
-                oled_data <= 16'b11111_111111_11111;
-            if ((x >= 38 && x < 44) && (y >= 37 && y < 43))  
-                oled_data <= 16'b11111_111111_11111;
-            if ((x >= 27 && x < 33) && (y >= 47 && y < 53))  
-                oled_data <= 16'b11111_111111_11111;
-            if ((x >= 38 && x < 44) && (y >= 47 && y < 53))  
-                oled_data <= 16'b11111_111111_11111;
+            if (((x >= 26 && x < 33) && (y == 16 || y == 23)) || ((y >= 16 && y < 24) && (x == 26 || x == 32))) begin 
+                if (functionMenuLocationState == 0) begin
+                        oled_data <= 16'b11111_000001_10001;
+                    end else begin
+                        oled_data <= 16'b11111_111111_11111;         
+                    end
+                end
+            if (((x >= 38 && x < 45) && (y == 16 || y == 23)) || ((y >= 16 && y < 24) && (x == 38 || x == 44)))  
+                if (functionMenuLocationState == 1) begin
+                        oled_data <= 16'b11111_000001_10001;
+                    end else begin
+                        oled_data <= 16'b11111_111111_11111;         
+                end
+            if (((x >= 26 && x < 33) && (y == 26 || y == 33)) || ((y >= 26 && y < 34) && (x == 26 || x == 32)))  
+                if (functionMenuLocationState == 2) begin
+                        oled_data <= 16'b11111_000001_10001;
+                    end else begin
+                        oled_data <= 16'b11111_111111_11111;         
+                end
+            if (((x >= 38 && x < 45) && (y == 26 || y == 33)) || ((y >= 26 && y < 34) && (x == 38 || x == 44)))  
+                if (functionMenuLocationState == 3) begin
+                        oled_data <= 16'b11111_000001_10001;
+                    end else begin
+                        oled_data <= 16'b11111_111111_11111;         
+                end
+            if (((x >= 26 && x < 33) && (y == 36 || y == 43)) || ((y >= 36 && y < 44) && (x == 26 || x == 32)))  
+                if (functionMenuLocationState == 4) begin
+                        oled_data <= 16'b11111_000001_10001;
+                    end else begin
+                        oled_data <= 16'b11111_111111_11111;         
+                end
+            if (((x >= 38 && x < 45) && (y == 36 || y == 43)) || ((y >= 36 && y < 44) && (x == 38 || x == 44)))  
+                if (functionMenuLocationState == 5) begin
+                    oled_data <= 16'b11111_000001_10001;
+                end else begin
+                    oled_data <= 16'b11111_111111_11111;         
+            end
+            if (((x >= 26 && x < 33) && (y == 46 || y == 53)) || ((y >= 46 && y < 54) && (x == 26 || x == 32)))  
+                if (functionMenuLocationState == 6) begin
+                    oled_data <= 16'b11111_000001_10001;
+                end else begin
+                    oled_data <= 16'b11111_111111_11111;         
+            end
+            if (((x >= 38 && x < 45) && (y == 46 || y == 53)) || ((y >= 46 && y < 54) && (x == 38 || x == 44)))  
+                if (functionMenuLocationState == 7) begin
+                    oled_data <= 16'b11111_000001_10001;
+                end else begin
+                    oled_data <= 16'b11111_111111_11111;         
+            end
             
+            if (btnR && !btnC_flag) begin
+                // set flag
+                btnR_flag <= 1;
+            end                     
+            // Register button press Right button:
+            if (btnR_flag) begin
+                if (counterR < 24'hFEFFFF) begin
+                    counterR <= counterR + 1;
+                end else begin           
+                    if (functionMenuLocationState == 0 || functionMenuLocationState == 2 || functionMenuLocationState == 4 || functionMenuLocationState == 6) begin
+                        functionMenuLocationState <= functionMenuLocationState + 1;
+                    end
+                    // Reset parameters
+                    counterR <= 0;
+                    btnR_flag <= 0;
+                end
+            end
+            
+            if (btnL && !btnC_flag) begin
+                // set flag
+                btnL_flag <= 1;
+            end              
+            if (btnL_flag) begin
+                if (counterL < 24'hFEFFFF) begin
+                    counterL <= counterL + 1;
+                end else begin             
+                if (functionMenuLocationState == 1 || functionMenuLocationState == 3 || functionMenuLocationState == 5 || functionMenuLocationState == 7) begin
+                        functionMenuLocationState <= functionMenuLocationState - 1;
+                    end
+                    // Reset parameters
+                    counterL <= 0;
+                    btnL_flag <= 0;
+                end
+            end
+    
+    
+            if (btnU && !btnC_flag) begin
+                btnU_flag <= 1;
+            end
+            if (btnU_flag) begin
+                if (counterU < 24'hFEFFFF) begin
+                    counterU <= counterU + 1;
+                end else begin                 
+                    if (!(functionMenuLocationState == 0 || functionMenuLocationState == 1)) begin
+                        functionMenuLocationState <= functionMenuLocationState - 2;
+                    end
+                    counterU <= 0;
+                    btnU_flag <= 0;
+                end
+            end
+
+
+            if (btnD && !btnC_flag) begin
+                btnD_flag <= 1;
+            end
+            if (btnD_flag) begin
+               if (counterD < 24'hFEFFFF) begin
+                   counterD <= counterD + 1;
+               end else begin
+                   if (!(functionMenuLocationState == 6 || functionMenuLocationState == 7)) begin
+                        functionMenuLocationState <= functionMenuLocationState + 2;
+                   end
+                   counterD <= 0;
+                   btnD_flag <= 0;
+               end
+            end
             
             // Write decimal point
             if (x == 35 && (y == 23 || y == 33 || y == 43 || y == 53))
                 oled_data <= 16'b11111_111111_11111;
+                
+            if (btnC) begin
+               btnC_flag <= 1; 
+            end
+            if (btnC_flag) begin
+ 
+                if (functionMenuLocationState == 0) begin
+                    
+                end
+                if (functionMenuLocationState == 1) begin
+                    
+                end
+                if (functionMenuLocationState == 2) begin
+                                    
+                end
+                if (functionMenuLocationState == 3) begin
+                                    
+                end
+                if (functionMenuLocationState == 4) begin
+                                    
+                end                
+                if (functionMenuLocationState == 5) begin
+                                    
+                end
+                if (functionMenuLocationState == 6) begin
+                                    
+                end                
+                if (functionMenuLocationState == 7) begin
+                                    
+                end
+                
+                if (btnL) begin
+                    escape_flag <= 1;
+                end                                      
+                if (escape_flag) begin
+                    if (counterL < 24'hFEFFFF) begin
+                        counterL <= counterL + 1;
+                    end else begin             
+                        // Reset parameters
+                        counterL <= 0;
+                        escape_flag <= 0;
+                        // escape
+                        btnC_flag <= 0;
+                    end
+                end
+            end
         end
     end
+
+
+
 
 endmodule

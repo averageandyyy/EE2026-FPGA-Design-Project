@@ -56,8 +56,8 @@ module polynomial_table_table_display(
     wire [6:0] y = pixel_index / WIDTH;
 
     // Variables to store computed values
-    reg signed [31:0] x_values[0:9];
-    reg signed [31:0] y_values[0:9];
+    reg signed [31:0] x_values[0:TABLE_ROWS-1];
+    reg signed [31:0] y_values[0:TABLE_ROWS-1];
 
     // For fixed point to character conversion
     reg [47:0] x_text;
@@ -74,10 +74,31 @@ module polynomial_table_table_display(
     wire in_header = (y < HEADER_HEIGHT);
     wire in_table_body = (y>= HEADER_HEIGHT && current_row < TABLE_ROWS);
 
-    // For polynomial computations
-    reg signed [63:0] x_squared, x_cubed;
-    reg signed [63:0] term_a, term_b, term_c;
-    reg signed [63:0] sum;
+    // Computation state machine signals
+    reg [3:0] calc_state = 0;
+    reg [2:0] calc_row = 0;
+    reg needs_update = 1;
+    reg [31:0] prev_starting_x = 0;
+
+    // Intermediate calculation values
+    reg signed [31:0] current_x;
+    reg signed [31:0] x_squared_val;
+    reg signed [31:0] x_cubed_val;
+    reg signed [31:0] term_a_val;
+    reg signed [31:0] term_b_val;
+    reg signed [31:0] term_c_val;
+
+    // Shared multiplier registers (to save DSP blocks)
+    reg signed [31:0] mult_a, mult_b;
+    reg signed [63:0] mult_result;
+
+    // Pre-computation check
+    always @(posedge clk) begin
+        if (starting_x != prev_starting_x) begin
+            needs_update <= 1;
+            prev_starting_x <= starting_x;
+        end
+    end
 
     // String renderer for x values
     string_renderer_optimized x_renderer(
@@ -209,22 +230,97 @@ module polynomial_table_table_display(
         end
     end
 
-    // Updating computations when starting_x changes
-    always @ (posedge clk) begin
-        if (is_table_mode) begin
-            for (i = 0; i < 10; i = i + 1) begin
-                x_values[i] = starting_x + (i << 16); // Adding i in fixed point
-
-                // Calculate polynomial
-                x_squared = ((x_values[i] * x_values[i]) >>> 16); // Signed shift right
-                x_cubed = ((x_squared * x_values[i]) >>> 16);
-
-                term_a = ((coeff_a * x_cubed) >>> 16);
-                term_b = ((coeff_b * x_squared) >>> 16);
-                term_c = ((coeff_c * x_values[i]) >>> 16);
-
-                y_values[i] = term_a[31:0] + term_b[31:0] + term_c[31:0] + coeff_d;
-            end
+    // Optimized state machine for multiplication and polynomial calculation
+    // This replaces the resource-intensive loop in the original code
+    always @(posedge clk) begin
+        if (is_table_mode && needs_update) begin
+            case (calc_state)
+                0: begin // Initialize row calculation
+                    current_x <= starting_x + (calc_row << 16);
+                    calc_state <= 1;
+                end
+            
+                1: begin // Setup x^2 calculation
+                    mult_a <= current_x;
+                    mult_b <= current_x;
+                    calc_state <= 2;
+                    // No multiplication here - just setup
+                end
+            
+                2: begin // Perform x^2 calculation
+                    mult_result <= mult_a * mult_b; // Do multiplication
+                    calc_state <= 3;
+                end
+            
+                3: begin // Store x^2 result, setup x^3 calculation
+                    x_squared_val <= mult_result >>> 16;
+                    mult_a <= mult_result >>> 16; // x^2
+                    mult_b <= current_x;
+                    calc_state <= 4;
+                end
+            
+                4: begin // Perform x^3 calculation
+                    mult_result <= mult_a * mult_b;
+                    calc_state <= 5;
+                end
+            
+                5: begin // Store x^3, setup a*x^3 calculation
+                    x_cubed_val <= mult_result >>> 16;
+                    mult_a <= coeff_a;
+                    mult_b <= mult_result >>> 16; 
+                    calc_state <= 6;
+                end
+            
+                6: begin // Perform a*x^3 calculation
+                    mult_result <= mult_a * mult_b;
+                    calc_state <= 7;
+                end
+            
+                7: begin // Store a*x^3, setup b*x^2
+                    term_a_val <= mult_result >>> 16;
+                    mult_a <= coeff_b;
+                    mult_b <= x_squared_val;
+                    calc_state <= 8;
+                end
+            
+                8: begin // Perform b*x^2 calculation
+                    mult_result <= mult_a * mult_b;
+                    calc_state <= 9;
+                end
+            
+                9: begin // Store b*x^2, setup c*x
+                    term_b_val <= mult_result >>> 16;
+                    mult_a <= coeff_c;
+                    mult_b <= current_x;
+                    calc_state <= 10;
+                end
+            
+                10: begin // Perform c*x calculation
+                    mult_result <= mult_a * mult_b;
+                    calc_state <= 11;
+                end
+            
+                11: begin // Store c*x
+                    term_c_val <= mult_result >>> 16;
+                    calc_state <= 12;
+                end
+            
+                12: begin // Store results for this row
+                    x_values[calc_row] <= current_x;
+                    y_values[calc_row] <= term_a_val + term_b_val + term_c_val + coeff_d;
+                
+                    // Move to next row or finish
+                    if (calc_row < TABLE_ROWS-1) begin
+                        calc_row <= calc_row + 1;
+                        calc_state <= 0;
+                    end
+                    else begin
+                        needs_update <= 0;
+                        calc_row <= 0;
+                        calc_state <= 0;
+                    end
+                end
+            endcase
         end
     end
 

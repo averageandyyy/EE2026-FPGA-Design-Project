@@ -25,7 +25,7 @@ module number_sprite_renderer(
     input [3:0] digit,     // Number (0-9)
     input [6:0] x_pos,      // Bottom-right X
     input [6:0] y_pos,      // Bottom-right Y
-    output reg [15:0] pixel_data;
+    output reg [15:0] pixel_data,
     output reg [95:0] screen_buffer [0:63] // OLED buffer
 );
     wire [4:0] row_pixels;
@@ -33,7 +33,7 @@ module number_sprite_renderer(
     integer i, j, k, l;
 
     // Get row-by-row pixel data
-    number_sprites row_data(.digit(digit), .row(row), .row_pixels(row_pixels));
+    sprite_library row_data(.digit(digit), .row(row), .row_pixels(row_pixels));
 
     always @(posedge clk) begin
         for (i = 0; i < 7; i = i+1) begin

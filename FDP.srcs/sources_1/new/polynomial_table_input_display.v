@@ -92,8 +92,6 @@ module polynomial_table_input_display(
         input [3:0] dec_pos,
         input [3:0] inp_idx
     );
-        
-        
         reg [5:0] char_codes[0:7];
         integer i; 
         integer char_idx;
@@ -146,12 +144,18 @@ module polynomial_table_input_display(
 
     always @ (posedge clk) begin
         // "INPUT" title
-        title_text = {
+//        title_text[0] = 6'b010111;
+//        title_text[1] = 6'b011100;
+//        title_text[2] = 6'b011110;
+//        title_text[3] = 6'b100100;
+//        title_text[4] = 6'b100011; 
+            
+        title_text = {  
             6'b010111, // I
             6'b011100, // N
             6'b011110, // P
-            6'b100011, // U
-            6'b100010 // T
+            6'b100100, // U
+            6'b100011 // T
         };
 
         value_text = bcd_to_string(

@@ -26,11 +26,17 @@ module polynomial_table_module(
     // Clocks for display and keypad controller
     input clk_6p25MHz,
     input clk_1kHz,
+    input clk_100MHz,
     input btnC,
     input btnU,
     input btnD,
     input btnL,
     input btnR,
+    input [6:0] xpos,
+    input [6:0] ypos,
+    input use_mouse,
+    input mouse_left,
+    input mouse_middle,
 
     // Control flag
     input is_table_mode,
@@ -74,6 +80,12 @@ module polynomial_table_module(
 
     // Cursor controller
     polynomial_table_cursor_controller cursor_controller(
+        .mouse_xpos(xpos),
+        .mouse_ypos(ypos),
+        .mouse_left(mouse_left),
+        .mouse_middle(mouse_middle),
+        .use_mouse(use_mouse),
+        .clk_100MHz(clk_100MHz),
         .clk(clk_1kHz),
         .btnC(btnC),
         .btnU(btnU),

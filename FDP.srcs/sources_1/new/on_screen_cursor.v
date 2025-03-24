@@ -21,7 +21,10 @@
 
 
 module on_screen_cursor(input basys_clock, input [12:0] pixel_index, input graph_mode_check, input setmax_x, input setmax_y, input setx, input sety,
-input [11:0] xpos, ypos, value, output reg [15:0] oled_data, input [15:0] bg_data);
+input [11:0] xpos, ypos, value, output reg [15:0] oled_data, input [15:0] bg_data,
+output reg [6:0] cursor_x,  // New output: current x (0-95)
+output reg [6:0] cursor_y
+    );
 
     wire [7:0] curr_x;
     wire [7:0] curr_y;
@@ -96,7 +99,10 @@ input [11:0] xpos, ypos, value, output reg [15:0] oled_data, input [15:0] bg_dat
                   else
                       y <= ypos[7:0];
               end
-          end
-      end
+              cursor_x <= x[6:0];
+              cursor_y <= y[6:0];
+            end
+            
+        end
     
 endmodule

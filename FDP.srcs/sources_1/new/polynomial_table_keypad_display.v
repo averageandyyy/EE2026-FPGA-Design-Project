@@ -42,6 +42,7 @@ module polynomial_table_keypad_display(
     // Keypad layout constants
     parameter BUTTON_WIDTH = 24;
     parameter BUTTON_HEIGHT = 16;
+    // this is the size of the buttom
     parameter KEYPAD_START_X = 0;
     parameter KEYPAD_START_Y = 0;
     parameter CHECKMARK_X = 72;
@@ -163,7 +164,8 @@ module polynomial_table_keypad_display(
                 end
             end
         end
-        else begin
+        // Check if pixel is in the large rectangle area on the right
+        else if (x >= CHECKMARK_X) begin
             inside_checkmark = 1;
 
             rel_x = x - CHECKMARK_X;
@@ -177,7 +179,7 @@ module polynomial_table_keypad_display(
                 oled_data = is_selected_checkmark ? BLACK : WHITE;
 
                 if (y >= 24 && y < 40) begin
-                    current_char = 6'd41;
+                    current_char = 6'd42;
                     char_x = CHECKMARK_X + 8;
                     char_y = 24;
 

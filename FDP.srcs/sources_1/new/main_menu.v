@@ -74,6 +74,21 @@ module main_menu(
     reg btnC_flag = 0;
     reg [3:0]coeffCounter = 0;
     reg escape_flag = 0;
+    reg increment_flag = 0;
+    reg decrement_flag = 0;
+    
+    // Store the values of the coefficients
+    reg [3:0] cubicCoeffInteger = 0;
+    reg [3:0] cubicCoeffDecimal = 1;
+
+    reg [3:0] quadraticCoeffInteger = 2;
+    reg [3:0] quadraticCoeffDecimal = 3;
+    
+    reg [3:0] monicCoeffInteger = 4;
+    reg [3:0] monicCoeffDecimal = 5;
+    
+    reg [3:0] constantCoeffInteger = 6;
+    reg [3:0] constantCoeffDecimal = 7;
     // ------------------------------------------------------------------------------------
 
     // FUNC display
@@ -82,6 +97,58 @@ module main_menu(
     parameter [6:0] N = 7'b0101011;
     parameter [6:0] C = 7'b0100111;
     reg [1:0] displayState = 2'b00;
+    
+    //  Helps to draw the boxes with their corresponding number and colour, for a given x and y value
+    //  The (x,y) pair indicates the top left part of the box
+    function [15:0] getBoxes(input [3:0] number, input [6:0] x_start, input [6:0] y_start, input [15:0] col, input [6:0] x, input [6:0] y); begin
+            case(number)
+                4'b0000: begin
+                        if (((x >= x_start && x < x_start + 7) && (y == y_start || y == y_start + 7)) || ((y >= y_start && y < y_start + 7) && (x == x_start || x == x_start + 6)) 
+                        || ((x >= x_start + 2 && x < x_start + 5) && (y == y_start + 2 || y == y_start + 5)) || ((y >= y_start + 2 && y < y_start + 5) && (x == x_start + 2 || x == x_start + 4))) begin
+                            getBoxes = col;
+                        end
+                    end
+                4'b0001: begin
+                        if (((x >= x_start && x < x_start + 7) && (y == y_start || y == y_start + 7)) || ((y >= y_start && y < y_start + 7) && (x == x_start || x == x_start + 6)) 
+                        || (x == x_start + 3 && (y >= y_start + 2 && y <= y_start + 5))) begin
+                            getBoxes = col;
+                        end
+                    end
+                4'b0010: begin
+                        if (((x >= x_start && x < x_start + 7) && (y == y_start || y == y_start + 7)) || ((y >= y_start && y < y_start + 7) && (x == x_start || x == x_start + 6)) 
+                        || (x == x_start + 3 && (y == y_start + 2 || y == y_start + 4 || y == y_start + 5)) || (x == x_start + 4 && (y == y_start + 3 || y == y_start + 5))) begin
+                           getBoxes = col;
+                        end
+                    end
+                4'b0011: begin
+                        if (((x >= x_start && x < x_start + 7) && (y == y_start || y == y_start + 7)) || ((y >= y_start && y < y_start + 7) && (x == x_start || x == x_start + 6)) 
+                        || (x == x_start + 3 && (y == y_start + 2 || y == y_start + 4 || y == y_start + 6)) || (x == x_start + 4 && (y == y_start + 3 || y == y_start + 5))) begin
+                            getBoxes = col;
+                        end
+                    end
+                4'b0100: begin
+                         if (((x >= x_start && x < x_start + 7) && (y == y_start || y == y_start + 7)) || ((y >= y_start && y < y_start + 7) && (x == x_start || x == x_start + 6)) 
+                         || (x == x_start + 2 && y == y_start + 4) || (x == x_start + 3 && y == y_start + 3) || (x == x_start + 4 && (y >= y_start + 2 && y <= y_start + 6)) || (y == y_start + 4 && (x == x_start + 3 || x == x_start + 6))) begin
+                            getBoxes = col;
+                         end
+                    end
+                4'b0101: begin
+                         if (((x >= x_start && x < x_start + 7) && (y == y_start || y == y_start + 7)) || ((y >= y_start && y < y_start + 7) && (x == x_start || x == x_start + 6)) 
+                         || ((x >= x_start + 2 && x < x_start + 5) && (y == y_start + 2 || y == y_start + 5)) || ((x == x_start + 3 || x == x_start + 2) && y == y_start + 3) 
+                         || (y == y_start + 4 && x == x_start + 4)) begin
+                            getBoxes = col;
+                         end
+                    end
+                
+//                4'b0110: getBoxes = col;
+//                4'b0111: getBoxes = col;                   
+//                4'b1000: getBoxes = col;
+//                4'b1001: getBoxes = col;
+                default: getBoxes = 16'b00000_000000_11111;
+            endcase
+        end    
+    endfunction
+    
     
     
     // 7-segment handler
@@ -561,54 +628,61 @@ module main_menu(
             end
             
             // Write boxes
-            if (((x >= 26 && x < 33) && (y == 16 || y == 23)) || ((y >= 16 && y < 24) && (x == 26 || x == 32))) begin 
+            if ((x >= 26 && x < 33) && (y >= 16 && y < 24)) begin 
                 if (functionMenuLocationState == 0) begin
-                        oled_data <= 16'b11111_000001_10001;
-                    end else begin
-                        oled_data <= 16'b11111_111111_11111;         
-                    end
+                    oled_data <= getBoxes(cubicCoeffInteger, 26, 16, 16'b11111_000001_10001, x, y);
+                end else begin
+                    oled_data <= getBoxes(cubicCoeffInteger, 26, 16, 16'b11111_111111_11111, x, y);         
                 end
-            if (((x >= 38 && x < 45) && (y == 16 || y == 23)) || ((y >= 16 && y < 24) && (x == 38 || x == 44)))  
+            end
+            if ((x >= 38 && x < 45) && (y >= 16 && y < 24)) begin
                 if (functionMenuLocationState == 1) begin
-                        oled_data <= 16'b11111_000001_10001;
-                    end else begin
-                        oled_data <= 16'b11111_111111_11111;         
+                    oled_data <= getBoxes(cubicCoeffDecimal, 38, 16, 16'b11111_000001_10001, x, y);
+                end else begin
+                    oled_data <= getBoxes(cubicCoeffDecimal, 38, 16, 16'b11111_111111_11111, x, y);         
                 end
-            if (((x >= 26 && x < 33) && (y == 26 || y == 33)) || ((y >= 26 && y < 34) && (x == 26 || x == 32)))  
+            end
+            if ((x >= 26 && x < 33) && (y >= 26 && y < 34)) begin            
                 if (functionMenuLocationState == 2) begin
-                        oled_data <= 16'b11111_000001_10001;
-                    end else begin
-                        oled_data <= 16'b11111_111111_11111;         
+                    oled_data <= getBoxes(quadraticCoeffInteger, 26, 26, 16'b11111_000001_10001, x, y);
+                end else begin
+                    oled_data <= getBoxes(quadraticCoeffInteger, 26, 26, 16'b11111_111111_11111, x, y);         
                 end
-            if (((x >= 38 && x < 45) && (y == 26 || y == 33)) || ((y >= 26 && y < 34) && (x == 38 || x == 44)))  
+            end
+            if ((x >= 38 && x < 45) && (y >= 26 && y < 34)) begin            
                 if (functionMenuLocationState == 3) begin
-                        oled_data <= 16'b11111_000001_10001;
-                    end else begin
-                        oled_data <= 16'b11111_111111_11111;         
+                    oled_data <= getBoxes(quadraticCoeffDecimal, 38, 26, 16'b11111_000001_10001, x, y);
+                end else begin
+                    oled_data <= getBoxes(quadraticCoeffDecimal, 38, 26, 16'b11111_111111_11111, x, y);         
                 end
-            if (((x >= 26 && x < 33) && (y == 36 || y == 43)) || ((y >= 36 && y < 44) && (x == 26 || x == 32)))  
+            end
+            if ((x >= 26 && x < 33) && (y >= 36 && y < 44)) begin            
                 if (functionMenuLocationState == 4) begin
-                        oled_data <= 16'b11111_000001_10001;
-                    end else begin
-                        oled_data <= 16'b11111_111111_11111;         
+                    oled_data <= getBoxes(monicCoeffInteger, 26, 36, 16'b11111_000001_10001, x, y);
+                end else begin
+                    oled_data <= getBoxes(monicCoeffInteger, 26, 36, 16'b11111_111111_11111, x, y);         
                 end
-            if (((x >= 38 && x < 45) && (y == 36 || y == 43)) || ((y >= 36 && y < 44) && (x == 38 || x == 44)))  
+            end    
+            if ((x >= 38 && x < 45) && (y >= 36 && y < 44)) begin            
                 if (functionMenuLocationState == 5) begin
-                    oled_data <= 16'b11111_000001_10001;
+                    oled_data <= getBoxes(monicCoeffDecimal, 38, 36, 16'b11111_000001_10001, x, y);
                 end else begin
-                    oled_data <= 16'b11111_111111_11111;         
+                    oled_data <= getBoxes(monicCoeffDecimal, 38, 36, 16'b11111_111111_11111, x, y);         
+                end
             end
-            if (((x >= 26 && x < 33) && (y == 46 || y == 53)) || ((y >= 46 && y < 54) && (x == 26 || x == 32)))  
+            if ((x >= 26 && x < 33) && (y >= 46 && y < 54)) begin            
                 if (functionMenuLocationState == 6) begin
-                    oled_data <= 16'b11111_000001_10001;
+                    oled_data <= getBoxes(constantCoeffInteger, 26, 46, 16'b11111_000001_10001, x, y);
                 end else begin
-                    oled_data <= 16'b11111_111111_11111;         
+                    oled_data <= getBoxes(constantCoeffInteger, 26, 46, 16'b11111_111111_11111, x, y);         
+                end
             end
-            if (((x >= 38 && x < 45) && (y == 46 || y == 53)) || ((y >= 46 && y < 54) && (x == 38 || x == 44)))  
+            if ((x >= 38 && x < 45) && (y >= 46 && y < 54)) begin  
                 if (functionMenuLocationState == 7) begin
-                    oled_data <= 16'b11111_000001_10001;
+                    oled_data <= getBoxes(constantCoeffDecimal, 38, 46, 16'b11111_000001_10001, x, y);
                 end else begin
-                    oled_data <= 16'b11111_111111_11111;         
+                    oled_data <= getBoxes(constantCoeffDecimal, 38, 46, 16'b11111_111111_11111, x, y);         
+                end
             end
             
             if (btnR && !btnC_flag) begin
@@ -686,9 +760,21 @@ module main_menu(
                btnC_flag <= 1; 
             end
             if (btnC_flag) begin
- 
                 if (functionMenuLocationState == 0) begin
-                    
+                    if (btnU) begin
+                        increment_flag <= 1;
+                    end
+                    if (increment_flag) begin
+                        if (counterL < 24'hFEFFFF) begin
+                            counterL <= counterL + 1;
+                        end else begin             
+                            // Reset parameters
+                            counterL <= 0;
+                            increment_flag <= 0;
+                            
+                            cubicCoeffInteger <= (cubicCoeffInteger == 9) ? 0 : cubicCoeffInteger + 1;
+                        end    
+                    end    
                 end
                 if (functionMenuLocationState == 1) begin
                     

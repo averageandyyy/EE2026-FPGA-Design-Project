@@ -119,9 +119,9 @@ module Top_Student (
     // First OLED display unit (for user input)
     wire one_frame_begin;
     wire one_sample_pixel;
-    wire [12:0]one_pixel_index;
+    wire [12:0]JB_pixel_index;
     wire one_sending_pixels;
-    wire [15:0]one_oled_data;
+    wire [15:0]JB_oled_data;
 
     // Connect arithmetic keypad renderer to first OLED
 //    arithmetic_keypad_renderer keypad_renderer(
@@ -142,8 +142,8 @@ module Top_Student (
         .frame_begin(one_frame_begin),
         .sending_pixels(one_sending_pixels),
         .sample_pixel(one_sample_pixel),
-        .pixel_index(one_pixel_index),
-        .pixel_data(one_oled_data),
+        .pixel_index(JB_pixel_index),
+        .pixel_data(JB_oled_data),
         .cs(JB[0]), 
         .sdin(JB[1]), 
         .sclk(JB[3]), 

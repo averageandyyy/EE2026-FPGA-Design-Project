@@ -23,7 +23,7 @@
 module string_renderer(
     input clk,
     //6 bits for 8 words
-    input [48:0] word, 
+    input [47:0] word, 
     
     // Starting coordinates
     input [6:0] start_x,      

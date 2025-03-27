@@ -1,5 +1,6 @@
 module arithmetic_cursor_controller(
     input clk,
+    input reset,
     input btnC,
     input btnU,
     input btnD,

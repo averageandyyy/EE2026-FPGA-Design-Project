@@ -49,7 +49,7 @@ module arithmetic_keypad_renderer(
         .oled_data(keypad_data)
     );
     
-    operand_display operand(
+    arithmetic_operand_display operand(
         .clk(clk),
         .pixel_index(pixel_index),
         .cursor_row(cursor_row_operand),

@@ -131,11 +131,15 @@ module arithmetic_module(
     );
 
     // Result/Input renderer (second OLED)
-    arithmetic_result_renderer result_renderer(
+    arithmetic_input_result_renderer input_result_renderer(
         .clk(clk_6p25MHz),
         .pixel_index(two_pixel_index),
         .result(result),
         .is_operand_mode(is_operand_mode),
+        .bcd_value(bcd_value),
+        .decimal_pos(decimal_pos),
+        .input_index(input_index),
+        .has_decimal(has_decimal),
         .oled_data(two_oled_data)
     );
 

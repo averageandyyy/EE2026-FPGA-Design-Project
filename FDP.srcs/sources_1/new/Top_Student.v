@@ -55,7 +55,7 @@ module Top_Student (
     // System control signals
     wire reset = sw[15];                   // Use SW15 for reset
     wire is_arithmetic_mode = 1'b1;        // Always enabled for arithmetic testing
-    wire is_table_mode = 1'b1;             // Disabled for testing
+    wire is_table_mode = 1'b0;             // Disabled for testing
     
     // Mouse placeholder signals (not used for testing)
     wire [6:0] mouse_x = 0;

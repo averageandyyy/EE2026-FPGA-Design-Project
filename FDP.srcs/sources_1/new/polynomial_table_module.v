@@ -104,12 +104,14 @@ module polynomial_table_module(
     );
 
     // Input builder
-    input_bcd_to_fp_builder_table input_builder(
+    unified_input_bcd_to_fp_builder input_builder(
         .clk(clk_1kHz),
         .keypad_btn_pressed(keypad_btn_pressed),
         .selected_keypad_value(keypad_selected_value),
-        .is_table_input_mode(is_table_input_mode),
+        .is_active_mode(is_table_input_mode && is_table_mode),
         .reset(!is_table_mode),
+        .enable_negative(1), // Table module uses negative key
+        .enable_backspace(0), // Table module doesn't use backspace
         .has_decimal(has_decimal),
         .has_negative(has_negative),
         .input_index(input_index),
@@ -118,7 +120,7 @@ module polynomial_table_module(
         .input_complete(input_complete),
         .decimal_pos(decimal_pos)
     );
-
+    
     // Keypad display
     polynomial_table_keypad_display keypad_display(
         .clk(clk_6p25MHz),

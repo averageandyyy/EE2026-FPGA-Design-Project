@@ -42,7 +42,7 @@ module polynomial_table_keypad_display(
     // Keypad layout constants
     parameter BUTTON_WIDTH = 24;
     parameter BUTTON_HEIGHT = 16;
-    // this is the size of the buttom
+    // this is the size of the button
     parameter KEYPAD_START_X = 0;
     parameter KEYPAD_START_Y = 0;
     parameter CHECKMARK_X = 72;

@@ -54,15 +54,28 @@ module Top_Student (
     
     // System control signals
     wire reset = sw[15];                   // Use SW15 for reset
-    wire is_arithmetic_mode = 1'b1;        // Always enabled for testing
+    wire is_arithmetic_mode = 1'b1;        // Always enabled for arithmetic testing
+    wire is_table_mode = 1'b1;             // Disabled for testing
     
-    // Mouse placeholder signals (not used for arithmetic testing)
+    // Mouse placeholder signals (not used for testing)
     wire [6:0] mouse_x = 0;
     wire [6:0] mouse_y = 0;
     wire mouse_left = 0;
     wire mouse_middle = 0;
 
-    // ARITHMETIC MODULE - THE ONLY MODULE WE'RE TESTING
+    // Output data from both modules
+    wire [15:0] arith_one_oled_data;
+    wire [15:0] arith_two_oled_data;
+    wire [15:0] poly_one_oled_data;
+    wire [15:0] poly_two_oled_data;
+    
+    // Default polynomial coefficients (when not connected to actual inputs)
+    wire signed [31:0] coeff_a = 32'h00010000; // 1.0 in fixed-point
+    wire signed [31:0] coeff_b = 32'h00010000; // 1.0 in fixed-point
+    wire signed [31:0] coeff_c = 32'h00010000; // 1.0 in fixed-point
+    wire signed [31:0] coeff_d = 32'h00000000; // 0.0 in fixed-point
+
+    // ARITHMETIC MODULE - Connected to OLED for testing
     arithmetic_module arithmetic(
         .clk_6p25MHz(clk_6p25MHz),
         .clk_1kHz(clk_1kHz),
@@ -80,9 +93,39 @@ module Top_Student (
         .mouse_middle(mouse_middle),
         .one_pixel_index(JB_pixel_index),
         .two_pixel_index(JA_pixel_index),
-        .one_oled_data(JB_oled_data),
-        .two_oled_data(JA_oled_data)
+        .one_oled_data(arith_one_oled_data),
+        .two_oled_data(arith_two_oled_data)
     );
+
+    // POLYNOMIAL TABLE MODULE - Instantiated but not connected to OLED
+    polynomial_table_module polynomial_table(
+        .clk_6p25MHz(clk_6p25MHz),
+        .clk_1kHz(clk_1kHz),
+        .clk_100MHz(basys_clock),
+        .btnC(btnC),
+        .btnU(btnU),
+        .btnD(btnD),
+        .btnL(btnL),
+        .btnR(btnR),
+        .xpos(mouse_x),
+        .ypos(mouse_y),
+        .use_mouse(1'b0),                  // Disable mouse
+        .mouse_left(mouse_left),
+        .mouse_middle(mouse_middle),
+        .is_table_mode(is_table_mode),     // Disabled - set to 0
+        .coeff_a(coeff_a),
+        .coeff_b(coeff_b),
+        .coeff_c(coeff_c),
+        .coeff_d(coeff_d),
+        .one_pixel_index(JB_pixel_index),
+        .two_pixel_index(JA_pixel_index),
+        .one_oled_data(poly_one_oled_data),
+        .two_oled_data(poly_two_oled_data)
+    );
+
+    // Connect arithmetic module outputs to OLED displays during testing
+    assign JB_oled_data = arith_one_oled_data;
+    assign JA_oled_data = arith_two_oled_data;
 
     // OLED display connections
     Oled_Display first_display(
@@ -121,6 +164,7 @@ module Top_Student (
 
     // Basic LED indicators
     assign led[0] = is_arithmetic_mode;    // Arithmetic mode active
-    assign led[1] = reset;                 // Reset status
+    assign led[1] = is_table_mode;         // Table mode (inactive)
+    assign led[2] = reset;                 // Reset status
     
 endmodule

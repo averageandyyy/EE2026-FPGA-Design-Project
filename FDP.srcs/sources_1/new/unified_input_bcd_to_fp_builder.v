@@ -206,7 +206,7 @@ module unified_input_bcd_to_fp_builder(
                 
                 PROCESS_FRACTION: begin
                     if (digit_idx < valid_digits) begin
-                        power_of_ten <= power_of_ten * 10;
+                        power_of_ten = power_of_ten * 10;
                         fractional_part <= fractional_part + 
                                           (bcd_digits[digit_idx] * 65536) / power_of_ten;
                         digit_idx <= digit_idx + 1;

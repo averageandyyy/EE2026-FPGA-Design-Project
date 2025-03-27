@@ -52,19 +52,11 @@ module arithmetic_input_result_renderer(
     );
 
     // Instantiate the result display module
-    // arithmetic_result_display result_display(
-        // .clk(clk),
-        // .pixel_index(pixel_index),
-        // .result(result),
-        // .oled_data(result_data)
-    // );
-
-     arithmetic_result_renderer(
-     .clk(clk),
-         .pixel_index(pixel_index),
-         .result(result),
-         .is_operand_mode(is_operand_mode),
-         .oled_data(result_data)
+    arithmetic_result_display result_display(
+        .clk(clk),
+        .pixel_index(pixel_index),
+        .result(result),
+        .oled_data(result_data)
     );
     
     // Select which display to show based on the current mode

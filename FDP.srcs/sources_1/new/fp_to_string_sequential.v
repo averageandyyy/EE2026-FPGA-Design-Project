@@ -32,28 +32,31 @@ module fp_to_string_sequential(
     );
     
     // States
-    localparam IDLE               = 0;
-    localparam EXTRACT_SIGN       = 1;
-    localparam COUNT_DIGITS       = 2;
+    localparam IDLE = 0;
+    localparam EXTRACT_SIGN = 1;
+    localparam COUNT_DIGITS = 2;
     localparam EXTRACT_INT_DIGITS = 3;
-    localparam EXTRACT_FRAC_DIGITS= 4;
-    localparam FORMAT_STRING      = 5;
-    localparam DONE               = 6;
+    localparam EXTRACT_FRAC_DIGITS = 4;
+    localparam FORMAT_STRING = 5;
+    localparam DONE = 6;
     
     reg [2:0] state = IDLE;
     
     // Internal variables
-    reg         is_negative;
-    reg [31:0]  abs_value;
-    reg [31:0]  int_part;
-    reg [31:0]  frac_part;
-    reg [31:0]  temp_int;   // temporary copy of int_part for counting digits
-    reg [3:0]   int_digits; // Number of digits in the integer part
-    reg [3:0]   digit_values[0:9]; // Will store up to 9 digits (max 5 integer + 4 fractional)
-    reg [5:0]   char_codes[0:7];   // 8 characters, 6 bits each
-    reg [3:0]   i;          // loop counter
-    reg [3:0]   digit_count; // count of characters placed into string
-    reg [31:0]  temp_frac;  // temporary copy of frac_part for extraction
+    reg is_negative;
+    reg [31:0] abs_value;
+    reg [31:0] int_part;
+    reg [31:0] frac_part;
+    reg [31:0] temp_int;   
+    reg [3:0] int_digits; 
+    
+    // Allow up to 8 digits 
+    reg [3:0] digit_values[0:7]; 
+    reg [5:0] char_codes[0:7];   
+    reg [3:0] i;          
+    reg [3:0] j;
+    reg [3:0] digit_count; 
+    reg [31:0] temp_frac;  
     
     always @(posedge clk) begin
         case (state)
@@ -63,6 +66,7 @@ module fp_to_string_sequential(
                     // Reset variables
                     digit_count <= 0;
                     i <= 0;
+                    j <= 0;
                     int_digits <= 0;
                     // Initialize char_codes to blanks (here, using 6'b111111 as a blank)
                     char_codes[0] <= 6'b111111;
@@ -85,8 +89,10 @@ module fp_to_string_sequential(
                 // Split into integer and fractional parts
                 int_part <= (fp_value < 0 ? -fp_value : fp_value) >> 16;
                 frac_part <= (((fp_value < 0 ? -fp_value : fp_value) & 16'hFFFF) * 10000) >> 16;
+
                 // Copy int_part for counting
                 temp_int <= (fp_value < 0 ? -fp_value : fp_value) >> 16;
+
                 state <= COUNT_DIGITS;
                 i <= 0;
                 int_digits <= 0;
@@ -99,10 +105,9 @@ module fp_to_string_sequential(
                     temp_int <= temp_int / 10;
                 end else begin
                     // If no digits counted, then number is 0.
-                    if (int_digits == 0)
+                    if (int_digits == 0) begin
                         int_digits <= 1;
-                    // Restore int_part for extraction
-                    int_part <= (fp_value < 0 ? -fp_value : fp_value) >> 16;
+                    end
                     i <= 0;
                     state <= EXTRACT_INT_DIGITS;
                 end
@@ -110,8 +115,8 @@ module fp_to_string_sequential(
             
             EXTRACT_INT_DIGITS: begin
                 // Extract integer digits from int_part.
-                // Process one digit per cycle until we've extracted int_digits digits.
-                if (i < int_digits) begin
+                // Process one digit per cycle until we've extracted int_digits digits or 8 digits
+                if (i < int_digits && i < 8) begin
                     // Extract least significant digit and store it in reverse order.
                     digit_values[int_digits - i - 1] <= int_part % 10;
                     int_part <= int_part / 10;
@@ -119,18 +124,19 @@ module fp_to_string_sequential(
                 end else begin
                     // Move on to extracting fractional digits
                     state <= EXTRACT_FRAC_DIGITS;
-                    i <= 0;
+                    // i <= 0;
                     temp_frac <= frac_part;
                 end
             end
             
             EXTRACT_FRAC_DIGITS: begin
                 // Extract exactly 4 fractional digits sequentially.
-                if (i < 4) begin
+                if (i < 8 && j < 4) begin
                     // Store the fractional digit at position int_digits+1+i.
-                    digit_values[int_digits + 1 + i] <= temp_frac / 1000;
+                    digit_values[int_digits + 1 + j] <= temp_frac / 1000;
                     temp_frac <= (temp_frac % 1000) * 10;
                     i <= i + 1;
+                    j <= j + 1;
                 end else begin
                     state <= FORMAT_STRING;
                     i <= 0;

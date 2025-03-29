@@ -40,7 +40,7 @@ module arithmetic_keypad_renderer(
     wire [15:0]operand_data;
 
     // Instantiate both display modules
-    keypad_display keypad(
+    arithmetic_keypad_display keypad(
         .clk(clk),
         .pixel_index(pixel_index),
         .cursor_row(cursor_row_keypad),
@@ -49,7 +49,7 @@ module arithmetic_keypad_renderer(
         .oled_data(keypad_data)
     );
     
-    operand_display operand(
+    arithmetic_operand_display operand(
         .clk(clk),
         .pixel_index(pixel_index),
         .cursor_row(cursor_row_operand),

@@ -22,23 +22,44 @@
 
 module graph_display (
     input clk,
-    //input rst,
+    input btnU, btnD, btnL, btnR, btnC,
     input [12:0] pixel_index,
-    input [3:0] zoom_level,    // Simple zoom control via switches
-    input [6:0] pan_offset_x,  // Signed panning control
-    input [5:0] pan_offset_y,
-    input [3:0] coeff_1,
-    input [3:0] coeff_2,
-    input [3:0] coeff_3,
-    input [3:0] coeff_4,
-    input [15:0] colour,
+    //input [3:0] zoom_level,    // KIV for daniel, for mouse
+    input signed [31:0] coeff_1, // [31:16] for integer, [15:0] for fractions
+    input signed [31:0] coeff_2,
+    input signed [31:0] coeff_3,
+    input signed [31:0] coeff_4,
+    input [31:0] colour,
+    input is_graphing_mode,
     output reg [15:0] oled_data, // OLED pixel data (RGB 565 format)
-    output reg oled_valid
+    output reg oled_valid,
+    output reg [15:0] led
 );
 
     // Parameters for screen size
     parameter SCREEN_WIDTH = 96;
     parameter SCREEN_HEIGHT = 64;
+    parameter FP_SHIFT = 16;
+    
+    
+    wire signed [15:0]pan_offset_x;
+    wire signed [15:0]pan_offset_y;
+    wire [15:0]zoom_level_x;
+    wire [15:0]zoom_level_y;
+    
+    pan_graph panning_unit (
+        .basys_clk(clk),
+        .btnU(btnU), 
+        .btnD(btnD), 
+        .btnL(btnL), 
+        .btnR(btnR),
+        .is_pan(is_pan),
+        .pan_offset_x(pan_offset_x), 
+        .pan_offset_y(pan_offset_y),
+        .zoom_level_x(zoom_level_x),
+        .zoom_level_y(zoom_level_y)
+        );
+        
 
     // Coordinates
     wire [6:0]x_pos;
@@ -48,7 +69,6 @@ module graph_display (
     
     reg signed [31:0] x_coord = 0;
     reg signed [31:0] y_coord = 0;
-    reg signed [31:0] y_plot = 0; //Based on x_coord
     
     reg result = 0;
     reg zoom = 0;
@@ -69,92 +89,97 @@ module graph_display (
         .oled_data(text_colour),
         .active_pixel(text_flag)
     );
+    
+    reg signed [31:0]y_plot = 0; // Holds value of equation
+    reg signed [31:0]y_plot_next = 0; // Hold next value of equation
+    reg signed [31:0]x_coord_next = 0;
+    
+    reg is_zoom = 0;
+    reg is_pan = 1;
+    reg prev_btnC = 0;
+    
+    reg signed [63:0] temp_cubic;
+    reg signed [63:0] temp_quad;
+    reg signed [63:0] temp_linear;
         
     // Initialize
     always @(posedge clk) begin
-        oled_data = 16'hFFFF;
-        oled_valid = 1;
-   
+        if (is_graphing_mode) begin
         
-        x_coord = (x_pos - pan_offset_x) / zoom_level ;
-        y_coord = (y_pos - pan_offset_y) / zoom_level ;
-        
-       // Simple grid rendering (every 10 pixels vertical & horizontal lines)
-        if (x_coord % 10 == 0 || y_coord % 10 == 0) begin
-            oled_data = 16'h7777; // black grid lines
-        end
-        if ((x_coord == 0) || (y_coord == 0)) begin
-            oled_data = 16'h0000; // black grid lines    
-        end
-
-        
-        if (
-            (
-             (
-              y_coord != 0 &&  
-                
-              y_coord < (
-              coeff_1 * (x_coord+1) * (x_coord+1) * (x_coord+1) +
-              coeff_2 * (x_coord+1) * (x_coord+1) +
-              coeff_3 * (x_coord+1) + 
-              coeff_4 )
-             )
-             
-             &&
-             
-             (y_coord > (
-              coeff_1 * (x_coord-1) * (x_coord-1) * (x_coord-1) +
-              coeff_2 * (x_coord-1) * (x_coord-1) +
-              coeff_3 * (x_coord-1) + 
-              coeff_4)
-             )
-            ) 
+            if (prev_btnC & ~btnC) begin
+                is_pan = ~is_pan;
+            end  
             
-            ||
-
-            (
-             y_coord != 0 &&  
-             
-             (y_coord > (
-              coeff_1 * (x_coord+1) * (x_coord+1) * (x_coord+1) +
-              coeff_2 * (x_coord+1) * (x_coord+1) +
-              coeff_3 * (x_coord+1) + 
-              coeff_4 )
-             )
-             
-             &&
-             
-             (y_coord < (
-              coeff_1 * (x_coord-1) * (x_coord-1) * (x_coord-1) +
-              coeff_2 * (x_coord-1) * (x_coord-1) +
-              coeff_3 * (x_coord-1) + 
-              coeff_4 )
-             )
-            ) 
-            ||
-             
-            y_coord == (
-            coeff_1 * (x_coord) * (x_coord) * (x_coord) +
-            coeff_2 * (x_coord) * (x_coord) +
-            coeff_3 * (x_coord) +  
-            coeff_4 )
-             //This is the real equation, but the above two conditionas are 
-             //added to ensure that steep gradients do not just disappear since 
-             //the y coordinates of the pixels that lie on the line are far apart
-        ) begin
-            oled_data = colour; // Red function line
-        end 
-        
-//        if (y_pos > 0 && y_pos <= 15) begin
-//            if (text_flag) begin
-//                oled_data = text_colour;
-//            end 
-//            else begin
-//                oled_data = 16'b01111_011111_01111;
-//            end
-//        end
-        
-        
+            oled_data = 16'hFFFF;
+            oled_valid = 1;
+       
+            if (y_pos > 0 && y_pos < 63) begin      
+                                
+                x_coord = (((x_pos - (SCREEN_WIDTH / 2)) * (65536 / zoom_level_x)) + (pan_offset_x * 65536));
+                y_coord = (((y_pos - (SCREEN_HEIGHT / 2)) * (65536 / zoom_level_y)) + (pan_offset_y * 65536)); 
+                x_coord_next = (((x_pos - (SCREEN_WIDTH / 2) + 1) * (65536 / zoom_level_x)) + (pan_offset_x * 65536));
+//                x_coord = (x_pos / zoom_level_x) - pan_offset_x;
+//                y_coord = (y_pos  / zoom_level_y) - pan_offset_y;
+                
+                // Simple grid rendering (every 10 pixels vertical & horizontal lines)
+                if (
+                    ( (x_coord % (16'd10 <<< FP_SHIFT )) == 0 ) 
+                    || 
+                    ( (y_coord % (16'd10 <<< FP_SHIFT )) == 0 )
+                ) begin
+                    oled_data = 16'h7777; // grey grid lines
+                end
+                //Render x and y axis
+                if ((x_coord == 0) || (y_coord == 0)) begin
+                    oled_data = 16'h0000; // black axis lines
+                end
+                
+                temp_cubic = (coeff_1 * x_coord * x_coord * x_coord) >>> 48; // Ensure 16.16 output
+                temp_quad  = (coeff_2 * x_coord * x_coord) >>> 32;
+                temp_linear = (coeff_3 * x_coord) >>> 16;
+                
+                y_plot = temp_cubic + temp_quad + temp_linear + coeff_4;
+                
+                temp_cubic = (coeff_1 * x_coord_next * x_coord_next * x_coord_next) >>> 48; // Ensure 16.16 output
+                temp_quad   = (coeff_2 * x_coord_next * x_coord_next) >>> 32;
+                temp_linear = (coeff_3 * x_coord_next) >>> 16;
+                              
+                y_plot_next = temp_cubic + temp_quad + temp_linear + coeff_4;
+                
+               
+               if (y_plot_next > y_plot) begin
+                    if ((y_coord >= y_plot) && (y_coord < y_plot_next)) begin
+                        oled_data = colour;
+                    end
+                end else if (y_plot_next < y_plot) begin
+                    if ((y_coord >= y_plot_next) && (y_coord < y_plot)) begin
+                        oled_data = colour;
+                    end
+                end else if (y_coord == y_plot) begin
+                    oled_data = colour;
+                end
+                    
+    //            end
+    //            if (y_plot_next < y_plot) begin
+    //                if ((y_coord <= y_plot) && (y_coord >= y_plot_next)) begin
+    //                    oled_data = colour; 
+    //                end
+    //            end
+                
+        //        if (y_pos > 0 && y_pos <= 15) begin
+        //            if (text_flag) begin
+        //                oled_data = text_colour;
+        //            end 
+        //            else begin
+        //                oled_data = 16'b01111_011111_01111;
+        //            end
+        //        end
+                
+            end
+            
+            prev_btnC <= btnC;
+            led[15] = is_pan;
+        end
     end
     
 endmodule

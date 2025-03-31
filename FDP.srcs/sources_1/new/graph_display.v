@@ -108,7 +108,7 @@ module graph_display (
     
     reg signed [127:0] temp_cubic_next; 
     
-    render_segments integrate_sign(.basys_clk(basys_clk), .is_integrate(is_integrate), .seg(seg), .an(an));
+    render_segments integrate_sign(.basys_clk(clk), .is_integrate(is_integrate), .seg(seg), .an(an));
     
     
     // Initialize

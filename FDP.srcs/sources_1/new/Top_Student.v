@@ -17,7 +17,9 @@ module Top_Student (
     output [15:0] led,
     input btnC, btnU, btnD, btnL, btnR,
     output [7:0]JB, // First OLED
-    output [7:0]JA,  // Second OLED
+    output [7:0]JA,,  // Second OLED
+    inout wire ps2_clk,
+    inout wire ps2_data
     output [7:0] seg,
     output [3:0] an
     );
@@ -37,13 +39,57 @@ module Top_Student (
         .ticks(49999),
         .output_clock(clk_1kHz)
     );
+    //mouse part
+             // Default input values for the mouse_module
+                wire [11:0] value;
+                assign value = 12'b0; // Default value is 0 (origin)
+            
+                wire setx;
+                assign setx = 1'b0;   // No update command, keep current position
+            
+                wire sety;
+                assign sety = 1'b0;   // No update command, keep current position
+            
+                wire setmax_x;
+                assign setmax_x= 1'b0; // Do not update max_x
+            
+                wire setmax_y;
+                assign setmax_y = 1'b0; // Do not update max_y
+                wire [11:0] xpos;
+                wire [11:0] ypos;
+                wire [3:0]  zpos;
+                wire        left;
+                wire        middle;
+                wire        right;
+                wire        new_event;
+                wire        rst;        // Reset signal
+             mouse_module unit_0 (
+                   .clk       (basys_clock),
+                   .rst       (rst),
+                   .value     (value),
+                   .setmax_x  (setmax_x),
+                   .setmax_y  (setmax_y),
+                   .setx      (setx),
+                   .sety      (sety),
+                   .ps2_clk   (ps2_clk),
+                   .ps2_data  (ps2_data),
+                   .xpos      (xpos),
+                   .ypos      (ypos),
+                   .zpos      (zpos),
+                   .left      (left),
+                   .middle    (middle),
+                   .right     (right),
+                   .new_event (new_event)
+               );
+               //end of mouse part
+
     
     // First OLED display unit (for user input)
     wire one_frame_begin;
     wire one_sample_pixel;
-    wire [12:0]one_pixel_index;
+    wire [12:0]JB_pixel_index;
     wire one_sending_pixels;
-    wire [15:0]one_oled_data;
+    wire [15:0]JB_oled_data;
 
     Oled_Display first_display(
         .clk(clk_6p25MHz),
@@ -51,8 +97,8 @@ module Top_Student (
         .frame_begin(one_frame_begin),
         .sending_pixels(one_sending_pixels),
         .sample_pixel(one_sample_pixel),
-        .pixel_index(one_pixel_index),
-        .pixel_data(one_oled_data),
+        .pixel_index(JB_pixel_index),
+        .pixel_data(JB_oled_data),
         .cs(JB[0]), 
         .sdin(JB[1]), 
         .sclk(JB[3]), 
@@ -62,7 +108,7 @@ module Top_Student (
         .pmoden(JB[7])
     );
     
-    
+    wire graph_active;
     // 25MHz clock for screen display
     wire clk_25MHz;
     flexible_clock_divider clk_25MHz_gen(
@@ -70,8 +116,11 @@ module Top_Student (
         .ticks(7),
         .output_clock(clk_25MHz)
     );
+    wire [6:0] curr_x, curr_y;
+    wire [15:0] JB_bg_data;
+    
 
-    wire graph_active;
+    
     wire [15:0] graph_oled_data; 
     reg zoom_level = 1;
     reg is_graphing_mode = 1'b1;
@@ -83,23 +132,29 @@ module Top_Student (
         .btnL(btnL), 
         .btnR(btnR),
         .btnC(btnC),
-        .clk(clk_6p25MHz),
-        .pixel_index(one_pixel_index),
-        //.zoom_level(3'b001),    // Simple zoom by Danial
+        .clk(basys_clock),
+        .pixel_index(JB_pixel_index),
         .coeff_1( {{12{1'b0}}, sw[14:12], {16{1'b0}}} ),
         .coeff_2( {{11{1'b0}}, sw[11:8], {16{1'b0}}} ),
         .coeff_3( {{11{1'b0}}, sw[7:4], {16{1'b0}}} ),
         .coeff_4( {{11{1'b0}}, sw[3:0], {16{1'b0}}} ),
-        .is_integrate(sw[15]),
         .colour(16'hF800), 
+        .zoom_level(zpos),
         .is_graphing_mode(is_graphing_mode),
+        .new_event(new_event),
         .oled_data(graph_oled_data), // OLED pixel data (RGB 565 format)
-        .oled_valid(graph_active),
-        .seg(seg),
-        .an(an)
+        .oled_valid(graph_active)
     );
-
+    on_screen_cursor unit_1 (.basys_clock(clk_6p25MHz),
+        .pixel_index(JB_pixel_index),
+        .graph_mode_check(1), 
+        .value(value),.setx(setx),
+        .sety(sety),
+        .setmax_x(setmax_x),.setmax_y(setmax_y),
+        .xpos(xpos), .ypos(ypos),.bg_data(JB_bg_data),
+        .oled_data(JB_oled_data), 
+        .cursor_x(curr_x), .cursor_y(curr_y));
     // Combine the pixel data from all sprites
-    assign one_oled_data = graph_active ? graph_oled_data :
+    assign JB_bg_data = graph_active ? graph_oled_data :
                            16'hFFFF; // Background
 endmodule

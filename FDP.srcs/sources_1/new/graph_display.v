@@ -24,11 +24,17 @@ module graph_display (
     input clk,
     input btnU, btnD, btnL, btnR, btnC,
     input [12:0] pixel_index,
-    //input [3:0] zoom_level,    // KIV for daniel, for mouse
     input signed [31:0] coeff_1, // [31:16] for integer, [15:0] for fractions
     input signed [31:0] coeff_2,
     input signed [31:0] coeff_3,
     input signed [31:0] coeff_4,
+    input [11:0] curr_x,
+    input [11:0] curr_y,
+    input [3:0] zoom_level,    // KIV for daniel, for mouse
+    input mouse_left,
+    input new_event,
+    input mouse_middle,
+    input mouse_right,
     input [31:0] colour,
     input is_graphing_mode,
     input is_integrate,
@@ -49,6 +55,7 @@ module graph_display (
     wire signed [15:0]pan_offset_y;
     wire [15:0]zoom_level_x;
     wire [15:0]zoom_level_y;
+    reg is_pan = 1;
     
     pan_graph panning_unit (
         .basys_clk(clk),
@@ -56,7 +63,14 @@ module graph_display (
         .btnD(btnD), 
         .btnL(btnL), 
         .btnR(btnR),
+        .btnC(btnC),
         .is_pan(is_pan),
+        .mouse_x(curr_x),
+        .mouse_y(curr_y),
+        .zpos(zoom_level),
+        .new_event(new_event),
+        .left(mouse_left),
+        .right(mouse_right),
         .pan_offset_x(pan_offset_x), 
         .pan_offset_y(pan_offset_y),
         .zoom_level_x(zoom_level_x),
@@ -98,7 +112,9 @@ module graph_display (
     reg signed [31:0]x_coord_next = 0;
     
     reg is_pan = 1;
+    reg is_zoom = 0;
     reg prev_btnC = 0;
+    reg prev_mouse_middle = 0;
     reg x_intg_limit = 96; // to use for animation
     
     reg signed [127:0] temp_cubic;
@@ -114,11 +130,11 @@ module graph_display (
     // Initialize
     always @(posedge clk) begin
         if (is_graphing_mode) begin
-            
         
-            if (prev_btnC & ~btnC) begin
+            if ((prev_btnC & ~btnC) || (prev_mouse_middle & ~mouse_middle)) begin
                 is_pan = ~is_pan;
             end  
+            
             
             oled_data = 16'hFFFF;
             oled_valid = 1;
@@ -230,9 +246,9 @@ module graph_display (
             end
             
             prev_btnC <= btnC;
+            prev_mouse_middle <= mouse_middle;
             led[15] = is_pan;
             led[0] = overflow_flag;
         end
     end
-    
 endmodule

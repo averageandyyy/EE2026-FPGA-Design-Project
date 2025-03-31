@@ -40,7 +40,7 @@ module graph_display (
     input is_integrate,
     output reg [15:0] oled_data, // OLED pixel data (RGB 565 format)
     output reg oled_valid,
-    output reg [15:0] led,
+    output [15:0] led,
     output [7:0] seg,
     output [3:0] an
 );
@@ -74,7 +74,8 @@ module graph_display (
         .pan_offset_x(pan_offset_x), 
         .pan_offset_y(pan_offset_y),
         .zoom_level_x(zoom_level_x),
-        .zoom_level_y(zoom_level_y)
+        .zoom_level_y(zoom_level_y),
+        .led(led)
         );
         
 
@@ -247,8 +248,6 @@ module graph_display (
             
             prev_btnC <= btnC;
             prev_mouse_middle <= mouse_middle;
-            led[15] = is_pan;
-            led[0] = overflow_flag;
         end
     end
 endmodule

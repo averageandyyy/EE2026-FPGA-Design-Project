@@ -33,7 +33,8 @@ module pan_graph(
     output reg signed [15:0]pan_offset_x, 
     output reg signed [15:0]pan_offset_y,
     output reg [3:0]zoom_level_x,
-    output reg [3:0]zoom_level_y 
+    output reg [3:0]zoom_level_y ,
+    output reg [15:0]led
 );
     
     parameter SCREEN_WIDTH = 96;
@@ -124,40 +125,40 @@ module pan_graph(
         end
         
         else if (is_pan) begin
-        
+               
 //            if (left) begin
 //              // When left mouse button is held, update panning smoothly:
 //                        pan_offset_x <= {9'b0, mouse_x};  // extend mouse_x (7 bits) to 16 bits
 //                        pan_offset_y <= {9'b0, mouse_y};
 //             end 
                         // Otherwise, if the left mouse button is not held, use button inputs.
-                        if (prevBtnU && ~btnU || ((curr_x >= 19) && (curr_x <= 76) && (curr_y >= 0) && (curr_y<= 12) && ~left && prevleft)) begin
+                        if (prevBtnU && ~btnU || ((curr_x >= 19) && (curr_x <= 76) && (curr_y >= 0) && (curr_y<= 12) && (~left && prevleft))) begin
                             if (pan_offset_y >= 90)
                                 pan_offset_y <= 90;
                             else
                                 pan_offset_y <= pan_offset_y + 2;
                         end
-                        if (prevBtnD && ~btnD || ((curr_x >= 19) && (curr_x <= 76) && (curr_y >= 51) && (curr_y <= 63) && ~left && prevleft)) begin
+                        if (prevBtnD && ~btnD || ((curr_x >= 19) && (curr_x <= 76) && (curr_y >= 51) && (curr_y <= 63) && (~left && prevleft) )) begin
                             if (pan_offset_y <= -90)
                                 pan_offset_y <= -90;
                             else
                                 pan_offset_y <= pan_offset_y - 2;
                         end
-                        if (prevBtnL && ~btnL || ((curr_x >= 0) && (curr_x <= 18) && (curr_y >= 0) && (curr_y <= 63) &&
-                        ~left && prevleft)) begin
+                        if (prevBtnL && ~btnL || ((curr_x >= 0) && (curr_x <= 18) && (curr_y >= 0) && (curr_y <= 63) && (~left && prevleft) )) begin
                             if (pan_offset_x <= -90)
                                 pan_offset_x <= -90;
                             else
                                 pan_offset_x <= pan_offset_x - 2;
                         end
-                        if (prevBtnR && ~btnR || ((curr_x >= 77) && (curr_x <= 95) && (curr_y >= 0) && 
-                                                (curr_y <= 63) && ~left && prevleft)) begin
+                        if (prevBtnR && ~btnR || ((curr_x >= 77) && (curr_x <= 95) && (curr_y >= 0) && (curr_y <= 63) && (~left && prevleft) )) begin
                             if (pan_offset_x >= 90)
                                 pan_offset_x <= 90;
                             else
                                 pan_offset_x <= pan_offset_x + 2;
                         end
                     end
+                    led[13:7] = curr_x;
+                    led[6:0] = curr_y;
 
        // In all cases, update the previous mouse position.
         prevBtnU <= btnU;

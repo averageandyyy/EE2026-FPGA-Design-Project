@@ -17,9 +17,9 @@ module Top_Student (
     output [15:0] led,
     input btnC, btnU, btnD, btnL, btnR,
     output [7:0]JB, // First OLED
-    output [7:0]JA,,  // Second OLED
+    output [7:0]JA,  // Second OLED
     inout wire ps2_clk,
-    inout wire ps2_data
+    inout wire ps2_data,
     output [7:0] seg,
     output [3:0] an
     );
@@ -126,24 +126,28 @@ module Top_Student (
     reg is_graphing_mode = 1'b1;
     
     graph_display graph (
-        .led(led),
-        .btnU(btnU), 
-        .btnD(btnD), 
-        .btnL(btnL), 
-        .btnR(btnR),
-        .btnC(btnC),
         .clk(basys_clock),
+        .btnU(btnU), .btnD(btnD), .btnL(btnL), .btnR(btnR), .btnC(btnC),
         .pixel_index(JB_pixel_index),
         .coeff_1( {{12{1'b0}}, sw[14:12], {16{1'b0}}} ),
         .coeff_2( {{11{1'b0}}, sw[11:8], {16{1'b0}}} ),
         .coeff_3( {{11{1'b0}}, sw[7:4], {16{1'b0}}} ),
         .coeff_4( {{11{1'b0}}, sw[3:0], {16{1'b0}}} ),
-        .colour(16'hF800), 
+        .curr_x(xpos),
+        .curr_y(ypos),
         .zoom_level(zpos),
-        .is_graphing_mode(is_graphing_mode),
+        .mouse_left(left),
         .new_event(new_event),
+        .mouse_middle(middle),
+        .mouse_right(right),
+        .colour(16'hF800),
+        .is_graphing_mode(is_graphing_mode),
+        .is_integrate(sw[15]),
         .oled_data(graph_oled_data), // OLED pixel data (RGB 565 format)
-        .oled_valid(graph_active)
+        .oled_valid(graph_active),
+        .led(led), //for debugging
+        .seg(seg),
+        .an(an)         
     );
     on_screen_cursor unit_1 (.basys_clock(clk_6p25MHz),
         .pixel_index(JB_pixel_index),

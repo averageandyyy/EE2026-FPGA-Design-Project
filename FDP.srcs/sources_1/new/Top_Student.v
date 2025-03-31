@@ -17,7 +17,9 @@ module Top_Student (
     output [15:0] led,
     input btnC, btnU, btnD, btnL, btnR,
     output [7:0]JB, // First OLED
-    output [7:0]JA  // Second OLED
+    output [7:0]JA,  // Second OLED
+    output [7:0] seg,
+    output [3:0] an
     );
 
     // 6.25MHz clock for OLED displays
@@ -84,14 +86,17 @@ module Top_Student (
         .clk(clk_6p25MHz),
         .pixel_index(one_pixel_index),
         //.zoom_level(3'b001),    // Simple zoom by Danial
-        .coeff_1( {{11{1'b0}}, sw[15:12], {16{1'b0}}} ),
+        .coeff_1( {{12{1'b0}}, sw[14:12], {16{1'b0}}} ),
         .coeff_2( {{11{1'b0}}, sw[11:8], {16{1'b0}}} ),
         .coeff_3( {{11{1'b0}}, sw[7:4], {16{1'b0}}} ),
         .coeff_4( {{11{1'b0}}, sw[3:0], {16{1'b0}}} ),
+        .is_integrate(sw[15]),
         .colour(16'hF800), 
         .is_graphing_mode(is_graphing_mode),
         .oled_data(graph_oled_data), // OLED pixel data (RGB 565 format)
-        .oled_valid(graph_active)
+        .oled_valid(graph_active),
+        .seg(seg),
+        .an(an)
     );
 
     // Combine the pixel data from all sprites

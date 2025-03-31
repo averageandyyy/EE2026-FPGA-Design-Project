@@ -31,9 +31,12 @@ module graph_display (
     input signed [31:0] coeff_4,
     input [31:0] colour,
     input is_graphing_mode,
+    input is_integrate,
     output reg [15:0] oled_data, // OLED pixel data (RGB 565 format)
     output reg oled_valid,
-    output reg [15:0] led
+    output reg [15:0] led,
+    output [7:0] seg,
+    output [3:0] an
 );
 
     // Parameters for screen size
@@ -90,21 +93,28 @@ module graph_display (
         .active_pixel(text_flag)
     );
     
-    reg signed [31:0]y_plot = 0; // Holds value of equation
-    reg signed [31:0]y_plot_next = 0; // Hold next value of equation
+    reg signed [63:0]y_plot = 0; // Holds value of equation
+    reg signed [63:0]y_plot_next = 0; // Hold next value of equation
     reg signed [31:0]x_coord_next = 0;
     
-    reg is_zoom = 0;
     reg is_pan = 1;
     reg prev_btnC = 0;
+    reg x_intg_limit = 96; // to use for animation
     
-    reg signed [63:0] temp_cubic;
-    reg signed [63:0] temp_quad;
+    reg signed [127:0] temp_cubic;
+    reg signed [95:0] temp_quad;
     reg signed [63:0] temp_linear;
-        
+    reg overflow_flag = 0;
+    
+    reg signed [127:0] temp_cubic_next; 
+    
+    render_segments integrate_sign(.basys_clk(basys_clk), .is_integrate(is_integrate), .seg(seg), .an(an));
+    
+    
     // Initialize
     always @(posedge clk) begin
         if (is_graphing_mode) begin
+            
         
             if (prev_btnC & ~btnC) begin
                 is_pan = ~is_pan;
@@ -133,52 +143,95 @@ module graph_display (
                 if ((x_coord == 0) || (y_coord == 0)) begin
                     oled_data = 16'h0000; // black axis lines
                 end
+                overflow_flag = 0; // Reset for each pixel
                 
-                temp_cubic = (coeff_1 * x_coord * x_coord * x_coord) >>> 48; // Ensure 16.16 output
-                temp_quad  = (coeff_2 * x_coord * x_coord) >>> 32;
-                temp_linear = (coeff_3 * x_coord) >>> 16;
+                temp_cubic = coeff_1 * x_coord * x_coord * x_coord;
+                temp_quad  = (coeff_2 * x_coord * x_coord);
+                temp_linear = (coeff_3 * x_coord);
+                
+                temp_cubic_next = coeff_1 * x_coord_next * x_coord_next * x_coord_next;
+                
+                if (
+                    (temp_cubic >>> (FP_SHIFT*3)) > (32767<<<FP_SHIFT) || (temp_cubic >>> (FP_SHIFT*3)) < (-32768<<<FP_SHIFT) 
+                    ||
+                    (temp_quad >>> (FP_SHIFT*2)) > (32767<<<FP_SHIFT) || (temp_quad >>> (FP_SHIFT*2)) < (-32768<<<FP_SHIFT)
+                    ||
+                    (temp_linear >>> (FP_SHIFT)) >  (32767<<<FP_SHIFT) || (temp_linear >>> (FP_SHIFT)) < (-32768<<<FP_SHIFT)
+                    ) begin
+                    overflow_flag = 1;  
+                end
+                
+                temp_cubic = temp_cubic >>> 48; // Ensure 16.16 output
+                temp_quad  = temp_quad >>> 32;
+                temp_linear = temp_linear >>> 16;
                 
                 y_plot = temp_cubic + temp_quad + temp_linear + coeff_4;
                 
-                temp_cubic = (coeff_1 * x_coord_next * x_coord_next * x_coord_next) >>> 48; // Ensure 16.16 output
-                temp_quad   = (coeff_2 * x_coord_next * x_coord_next) >>> 32;
-                temp_linear = (coeff_3 * x_coord_next) >>> 16;
-                              
+                if ( 
+                    ( y_plot > (32767<<<FP_SHIFT) ) 
+                    || 
+                    ( y_plot < (-32768<<<FP_SHIFT) ) 
+                    )  begin
+                    overflow_flag = 1;
+                end
+                
+                temp_cubic = coeff_1 * x_coord_next * x_coord_next * x_coord_next;
+                temp_quad  = (coeff_2 * x_coord_next * x_coord_next);
+                temp_linear = (coeff_3 * x_coord_next);
+                
+                if (
+                    (temp_cubic >>> (FP_SHIFT*3)) > (32767<<<FP_SHIFT) || (temp_cubic >>> (FP_SHIFT*3)) < (-32768<<<FP_SHIFT) 
+                    ||
+                    (temp_quad >>> (FP_SHIFT*2)) > (32767<<<FP_SHIFT) || (temp_quad >>> (FP_SHIFT*2)) < (-32768<<<FP_SHIFT)
+                    ||
+                    (temp_linear >>> (FP_SHIFT)) >  (32767<<<FP_SHIFT) || (temp_linear >>> (FP_SHIFT)) < (-32768<<<FP_SHIFT)
+                    ) begin
+                    overflow_flag = 1;  
+                end
+                
+                temp_cubic = temp_cubic >>> 48; // Ensure 16.16 output
+                temp_quad  = temp_quad >>> 32;
+                temp_linear = temp_linear >>> 16;
+                
                 y_plot_next = temp_cubic + temp_quad + temp_linear + coeff_4;
                 
-               
-               if (y_plot_next > y_plot) begin
-                    if ((y_coord >= y_plot) && (y_coord < y_plot_next)) begin
-                        oled_data = colour;
-                    end
-                end else if (y_plot_next < y_plot) begin
-                    if ((y_coord >= y_plot_next) && (y_coord < y_plot)) begin
-                        oled_data = colour;
-                    end
-                end else if (y_coord == y_plot) begin
-                    oled_data = colour;
+                if ( 
+                    ( y_plot_next > (32767<<<FP_SHIFT) ) 
+                    || 
+                    ( y_plot_next < (-32768<<<FP_SHIFT) ) 
+                    )  begin
+                    overflow_flag = 1;
                 end
-                    
-    //            end
-    //            if (y_plot_next < y_plot) begin
-    //                if ((y_coord <= y_plot) && (y_coord >= y_plot_next)) begin
-    //                    oled_data = colour; 
-    //                end
-    //            end
                 
-        //        if (y_pos > 0 && y_pos <= 15) begin
-        //            if (text_flag) begin
-        //                oled_data = text_colour;
-        //            end 
-        //            else begin
-        //                oled_data = 16'b01111_011111_01111;
-        //            end
-        //        end
+               if (~overflow_flag) begin
+                   if (y_plot_next > y_plot) begin
+                        if ((y_coord >= y_plot) && (y_coord < y_plot_next)) begin
+                            oled_data = colour;
+                        end
+                    end else if (y_plot_next < y_plot) begin
+                        if ((y_coord >= y_plot_next) && (y_coord < y_plot)) begin
+                            oled_data = colour;
+                        end
+                    end else if (y_coord == y_plot) begin
+                        oled_data = colour;
+                    end
+                
+                    if (is_integrate) begin
+                        if (
+                            ( (y_coord <= y_plot) && (y_coord > 0) )
+                            ||
+                            ( (y_coord >= y_plot) && (y_coord < 0) )
+                            ) begin
+                            oled_data = colour;
+                        end
+                    end
+                end
                 
             end
             
             prev_btnC <= btnC;
             led[15] = is_pan;
+            led[0] = overflow_flag;
         end
     end
     

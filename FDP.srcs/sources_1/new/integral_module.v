@@ -43,6 +43,10 @@ module integral_module(
     input [12:0] two_pixel_index,
     output [15:0] one_oled_data,
     output [15:0] two_oled_data
+
+    // Expose user input bounds for use in graph module (KIV WeiHao)       
+    output signed [31:0] integration_lower_bound,
+    output signed [31:0] integration_upper_bound
     );
 
     // Internal signals for module coordination
@@ -56,6 +60,8 @@ module integral_module(
     // Integration bounds
     wire signed [31:0] a_lower;
     wire signed [31:0] b_upper;
+    assign integration_lower_bound = a_lower;
+    assign integration_upper_bound = b_upper;
     
     // Computation signals
     wire start_computation;

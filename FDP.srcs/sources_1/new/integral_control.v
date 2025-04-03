@@ -47,7 +47,7 @@ module integral_control(
     output reg signed [31:0] integral_result, 
     
     // Controls for unified_input_bcd_to_fp_builder
-    output reg is_active_mode       
+    output reg is_active_mode
     );
 
     // State definitions

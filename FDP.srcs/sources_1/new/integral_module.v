@@ -158,7 +158,9 @@ module integral_module(
         .pixel_index(one_pixel_index),
         .cursor_row(cursor_row),
         .cursor_col(cursor_col),
-        .oled_data(keypad_oled_data)
+        .oled_data(keypad_oled_data),
+        .has_decimal(has_decimal),
+        .has_negative(has_negative)
     );
     
     // Input display 

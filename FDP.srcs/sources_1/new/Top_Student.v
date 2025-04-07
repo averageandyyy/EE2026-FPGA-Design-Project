@@ -150,14 +150,21 @@ module Top_Student (
         //.an(an)         
     //);
 
-    graph_display_optimized graph (
+    wire clk_50MHz;
+    flexible_clock_divider clk_50MHz_gen(
+        .main_clock(basys_clock),
+        .ticks(0),
+        .output_clock(clk_50MHz)
+    );
+
+    graph_display_cached graph (
         .clk(basys_clock),
         .btnU(btnU), .btnD(btnD), .btnL(btnL), .btnR(btnR), .btnC(btnC),
         .pixel_index(JB_pixel_index),
-        .coeff_1( {{12{1'b0}}, sw[14:12], {16{1'b0}}} ),
-        .coeff_2( {{11{1'b0}}, sw[11:8], {16{1'b0}}} ),
-        .coeff_3( {{11{1'b0}}, sw[7:4], {16{1'b0}}} ),
-        .coeff_4( {{11{1'b0}}, sw[3:0], {16{1'b0}}} ),
+        .coeff_a( {{12{1'b0}}, sw[14:12], {16{1'b0}}} ),
+        .coeff_b( {{11{1'b0}}, sw[11:8], {16{1'b0}}} ),
+        .coeff_c( {{11{1'b0}}, sw[7:4], {16{1'b0}}} ),
+        .coeff_d( {{11{1'b0}}, sw[3:0], {16{1'b0}}} ),
         .curr_x(xpos),
         .curr_y(ypos),
         .zoom_level(zpos),
@@ -169,10 +176,6 @@ module Top_Student (
         .is_graphing_mode(is_graphing_mode),
         .is_integrate(sw[15]),
         .oled_data(graph_oled_data), // OLED pixel data (RGB 565 format)
-        .oled_valid(graph_active),
-        .led(led), //for debugging
-        .seg(seg),
-        .an(an),
         .integration_lower_bound(0),
         .integration_upper_bound(0)
     );
@@ -188,6 +191,6 @@ module Top_Student (
         .cursor_x(curr_x), .cursor_y(curr_y));
 
     // Combine the pixel data from all sprites
-    assign JB_bg_data = graph_active ? graph_oled_data :
+    assign JB_bg_data = 1 ? graph_oled_data :
                            16'hFFFF; // Background
 endmodule

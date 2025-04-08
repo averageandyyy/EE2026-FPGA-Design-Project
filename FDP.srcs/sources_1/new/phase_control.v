@@ -35,7 +35,9 @@ module phase_control(
     input use_mouse,
     input mouse_left,
     input mouse_middle,
-    output [15:0] led
+    output [15:0] led,
+    output [3:0] an,
+    output [7:0] seg
     );
 
     // Phase state signals
@@ -110,6 +112,14 @@ module phase_control(
                           (is_phase_two ? phase_two_oled_data : phase_one_oled_data);
                           
     assign two_oled_data = is_phase_three ? phase_three_two_oled_data : 16'h0000;
+    
+    // Controlling the seven segment display
+    seven_seg_controller ssc(
+        .seg(seg),
+        .an(an),
+        .back_switch(back_switch),
+        .my_1_khz_clk(clk_1kHz)
+    );
 
     // Debug LEDs
     assign led[0] = is_phase_two;

@@ -102,7 +102,9 @@ module Top_Student (
         .btnL(btnL),
         .btnR(btnR),
         .back_switch(sw[15]),
-        .led(led)
+        .led(led),
+        .an(an),
+        .seg(seg)
     );
 
 endmodule

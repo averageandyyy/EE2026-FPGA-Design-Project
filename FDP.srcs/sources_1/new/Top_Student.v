@@ -39,8 +39,52 @@ module Top_Student (
         .ticks(49999),
         .output_clock(clk_1kHz)
     );
+    //mouse part
+             // Default input values for the mouse_module
+                wire [11:0] value;
+                assign value = 12'b0; // Default value is 0 (origin)
+            
+                wire setx;
+                assign setx = 1'b0;   // No update command, keep current position
+            
+                wire sety;
+                assign sety = 1'b0;   // No update command, keep current position
+            
+                wire setmax_x;
+                assign setmax_x= 1'b0; // Do not update max_x
+            
+                wire setmax_y;
+                assign setmax_y = 1'b0; // Do not update max_y
+                wire [11:0] xpos;
+                wire [11:0] ypos;
+                wire [3:0]  zpos;
+                wire        left;
+                wire        middle;
+                wire        right;
+                wire        new_event;
+                wire        rst;        // Reset signal
+             mouse_module unit_0 (
+                   .clk       (basys_clock),
+                   .rst       (rst),
+                   .value     (value),
+                   .setmax_x  (setmax_x),
+                   .setmax_y  (setmax_y),
+                   .setx      (setx),
+                   .sety      (sety),
+                   .ps2_clk   (ps2_clk),
+                   .ps2_data  (ps2_data),
+                   .xpos      (xpos),
+                   .ypos      (ypos),
+                   .zpos      (zpos),
+                   .left      (left),
+                   .middle    (middle),
+                   .right     (right),
+                   .new_event (new_event)
+               );
+               //end of mouse part
+
     
-    // First OLED display unit
+    // First OLED display unit (for user input)
     wire one_frame_begin;
     wire one_sample_pixel;
     wire [12:0]JB_pixel_index;

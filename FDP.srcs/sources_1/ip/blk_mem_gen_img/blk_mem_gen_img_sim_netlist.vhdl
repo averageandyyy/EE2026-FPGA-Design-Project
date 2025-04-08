@@ -24,8 +24,6 @@ entity blk_mem_gen_img_blk_mem_gen_prim_wrapper_init is
     addrb : in STD_LOGIC_VECTOR ( 9 downto 0 );
     dina : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of blk_mem_gen_img_blk_mem_gen_prim_wrapper_init : entity is "blk_mem_gen_prim_wrapper_init";
 end blk_mem_gen_img_blk_mem_gen_prim_wrapper_init;
 
 architecture STRUCTURE of blk_mem_gen_img_blk_mem_gen_prim_wrapper_init is
@@ -211,8 +209,6 @@ entity blk_mem_gen_img_blk_mem_gen_prim_width is
     addrb : in STD_LOGIC_VECTOR ( 9 downto 0 );
     dina : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of blk_mem_gen_img_blk_mem_gen_prim_width : entity is "blk_mem_gen_prim_width";
 end blk_mem_gen_img_blk_mem_gen_prim_width;
 
 architecture STRUCTURE of blk_mem_gen_img_blk_mem_gen_prim_width is
@@ -242,8 +238,6 @@ entity blk_mem_gen_img_blk_mem_gen_generic_cstr is
     addrb : in STD_LOGIC_VECTOR ( 9 downto 0 );
     dina : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of blk_mem_gen_img_blk_mem_gen_generic_cstr : entity is "blk_mem_gen_generic_cstr";
 end blk_mem_gen_img_blk_mem_gen_generic_cstr;
 
 architecture STRUCTURE of blk_mem_gen_img_blk_mem_gen_generic_cstr is
@@ -273,8 +267,6 @@ entity blk_mem_gen_img_blk_mem_gen_top is
     addrb : in STD_LOGIC_VECTOR ( 9 downto 0 );
     dina : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of blk_mem_gen_img_blk_mem_gen_top : entity is "blk_mem_gen_top";
 end blk_mem_gen_img_blk_mem_gen_top;
 
 architecture STRUCTURE of blk_mem_gen_img_blk_mem_gen_top is
@@ -304,8 +296,6 @@ entity blk_mem_gen_img_blk_mem_gen_v8_4_1_synth is
     addrb : in STD_LOGIC_VECTOR ( 9 downto 0 );
     dina : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of blk_mem_gen_img_blk_mem_gen_v8_4_1_synth : entity is "blk_mem_gen_v8_4_1_synth";
 end blk_mem_gen_img_blk_mem_gen_v8_4_1_synth;
 
 architecture STRUCTURE of blk_mem_gen_img_blk_mem_gen_v8_4_1_synth is
@@ -537,8 +527,6 @@ entity blk_mem_gen_img_blk_mem_gen_v8_4_1 is
   attribute C_WRITE_WIDTH_B of blk_mem_gen_img_blk_mem_gen_v8_4_1 : entity is 1;
   attribute C_XDEVICEFAMILY : string;
   attribute C_XDEVICEFAMILY of blk_mem_gen_img_blk_mem_gen_v8_4_1 : entity is "artix7";
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of blk_mem_gen_img_blk_mem_gen_v8_4_1 : entity is "blk_mem_gen_v8_4_1";
   attribute downgradeipidentifiedwarnings : string;
   attribute downgradeipidentifiedwarnings of blk_mem_gen_img_blk_mem_gen_v8_4_1 : entity is "yes";
 end blk_mem_gen_img_blk_mem_gen_v8_4_1;

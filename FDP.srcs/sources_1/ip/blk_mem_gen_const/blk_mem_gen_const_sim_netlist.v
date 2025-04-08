@@ -192,7 +192,6 @@ module blk_mem_gen_const
         .web(1'b0));
 endmodule
 
-(* ORIG_REF_NAME = "blk_mem_gen_generic_cstr" *) 
 module blk_mem_gen_const_blk_mem_gen_generic_cstr
    (douta,
     addra,
@@ -577,7 +576,6 @@ module blk_mem_gen_const_blk_mem_gen_generic_cstr
         .wea(wea));
 endmodule
 
-(* ORIG_REF_NAME = "blk_mem_gen_mux" *) 
 module blk_mem_gen_const_blk_mem_gen_mux
    (douta,
     p_7_out,
@@ -1414,7 +1412,6 @@ module blk_mem_gen_const_blk_mem_gen_mux
         .R(1'b0));
 endmodule
 
-(* ORIG_REF_NAME = "blk_mem_gen_prim_width" *) 
 module blk_mem_gen_const_blk_mem_gen_prim_width
    (\douta[0] ,
     clka,
@@ -2266,7 +2263,6 @@ module blk_mem_gen_const_blk_mem_gen_prim_width__parameterized9
         .wea(wea));
 endmodule
 
-(* ORIG_REF_NAME = "blk_mem_gen_prim_wrapper_init" *) 
 module blk_mem_gen_const_blk_mem_gen_prim_wrapper_init
    (\douta[0] ,
     clka,
@@ -8624,7 +8620,6 @@ module blk_mem_gen_const_blk_mem_gen_prim_wrapper_init__parameterized9
         .O(\DEVICE_7SERIES.NO_BMM_INFO.SP.SIMPLE_PRIM36.ram_0 ));
 endmodule
 
-(* ORIG_REF_NAME = "blk_mem_gen_top" *) 
 module blk_mem_gen_const_blk_mem_gen_top
    (douta,
     addra,
@@ -8675,7 +8670,7 @@ endmodule
 (* C_USE_URAM = "0" *) (* C_WEA_WIDTH = "1" *) (* C_WEB_WIDTH = "1" *) 
 (* C_WRITE_DEPTH_A = "50890" *) (* C_WRITE_DEPTH_B = "50890" *) (* C_WRITE_MODE_A = "READ_FIRST" *) 
 (* C_WRITE_MODE_B = "WRITE_FIRST" *) (* C_WRITE_WIDTH_A = "16" *) (* C_WRITE_WIDTH_B = "16" *) 
-(* C_XDEVICEFAMILY = "artix7" *) (* ORIG_REF_NAME = "blk_mem_gen_v8_4_1" *) (* downgradeipidentifiedwarnings = "yes" *) 
+(* C_XDEVICEFAMILY = "artix7" *) (* downgradeipidentifiedwarnings = "yes" *) 
 module blk_mem_gen_const_blk_mem_gen_v8_4_1
    (clka,
     rsta,
@@ -8909,7 +8904,6 @@ module blk_mem_gen_const_blk_mem_gen_v8_4_1
         .wea(wea));
 endmodule
 
-(* ORIG_REF_NAME = "blk_mem_gen_v8_4_1_synth" *) 
 module blk_mem_gen_const_blk_mem_gen_v8_4_1_synth
    (douta,
     addra,

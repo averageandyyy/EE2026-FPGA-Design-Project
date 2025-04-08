@@ -80,11 +80,11 @@ module phase_two_menu_controller(
                     // Arithmetic Selection or Function Selection
                     // Only supports transition to phase two i.e. click start
                     if (btnC && !prev_btnC && debounce_C == 0) begin
-                        if (!cursor_row) begin
+                        if (cursor_row) begin
                             is_phase_three <= 1;
                             is_arithmetic_mode <= 1;
                         end
-                        else if (cursor_row) begin
+                        else if (!cursor_row) begin
                             is_phase_three <= 1;
                         end
                         // Transition to a state that allows phase_two to be false

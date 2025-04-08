@@ -21,7 +21,8 @@
 
 
 module phase_control(
-    input main_clock,
+    input clk_100MHz,
+    input clk_6p25MHz,
     input clk_1kHz,
     input [12:0] one_pixel_index,
     input [12:0] two_pixel_index,
@@ -51,7 +52,7 @@ module phase_control(
 
     // Instantiate phase one wrapper
     phase_one_wrapper phase_one(
-        .clock(main_clock),
+        .clock(clk_6p25MHz),
         .pixel_index(one_pixel_index),
         .oled_data(phase_one_oled_data),
         .btnU(btnU),
@@ -65,7 +66,7 @@ module phase_control(
 
     // Instantiate phase two wrapper
     phase_two_wrapper phase_two(
-        .clock(main_clock),
+        .clock(clk_6p25MHz),
         .pixel_index(one_pixel_index),
         .oled_data(phase_two_oled_data),
         .btnU(btnU),
@@ -81,9 +82,9 @@ module phase_control(
 
     // Instantiate phase three wrapper
     phase_three_wrapper phase_three(
-        .clock(main_clock),
+        .clk_100MHz(clk_100MHz),
         .clk_1kHz(clk_1kHz),
-        .clk_6p25MHz(main_clock),
+        .clk_6p25MHz(clk_6p25MHz),
         .one_pixel_index(one_pixel_index),
         .two_pixel_index(two_pixel_index),
         .one_oled_data(phase_three_one_oled_data),

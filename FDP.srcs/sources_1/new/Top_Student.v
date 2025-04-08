@@ -89,8 +89,9 @@ module Top_Student (
     );
 
     phase_control phase(
-        .main_clock(clk_6p25MHz),
+        .clk_100MHz(basys_clock),
         .clk_1kHz(clk_1kHz),
+        .clk_6p25MHz(clk_6p25MHz),
         .one_pixel_index(JB_pixel_index),
         .two_pixel_index(JA_pixel_index),
         .one_oled_data(JB_oled_data),

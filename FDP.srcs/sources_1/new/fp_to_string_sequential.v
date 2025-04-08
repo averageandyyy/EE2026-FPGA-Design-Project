@@ -56,7 +56,20 @@ module fp_to_string_sequential(
     reg [3:0] i;          
     reg [3:0] j;
     reg [3:0] digit_count; 
-    reg [31:0] temp_frac;  
+    reg [31:0] temp_frac; 
+
+    // NEW optimization approach, use multiplication and shifting based divisions
+    localparam DIV10_FACTOR =  32'd429496730;
+    localparam DIV100_FACTOR = 32'd42949673;
+    localparam DIV1000_FACTOR = 32'd4294967;
+    localparam SHIFT = 32;
+    reg [63:0] product;
+    reg [31:0] quotient;
+    reg [31:0] remainder;
+    reg [31:0] digit;
+
+
+
     
     always @(posedge clk) begin
         case (state)
@@ -77,6 +90,11 @@ module fp_to_string_sequential(
                     char_codes[5] <= 6'b111111;
                     char_codes[6] <= 6'b111111;
                     char_codes[7] <= 6'b111111;
+
+                    product <= 0;
+                    quotient <= 0;
+                    remainder <= 0;
+                    digit <= 0;
                     state <= EXTRACT_SIGN;
                 end
             end
@@ -101,8 +119,11 @@ module fp_to_string_sequential(
             COUNT_DIGITS: begin
                 // Sequentially count digits using temp_int.
                 if (temp_int > 0) begin
+                    // int_digits <= int_digits + 1;
+                    // temp_int <= temp_int / 10;
+                    product = temp_int * DIV10_FACTOR;
+                    temp_int <= product >>> SHIFT;
                     int_digits <= int_digits + 1;
-                    temp_int <= temp_int / 10;
                 end else begin
                     // If no digits counted, then number is 0.
                     if (int_digits == 0) begin
@@ -118,8 +139,14 @@ module fp_to_string_sequential(
                 // Process one digit per cycle until we've extracted int_digits digits or 8 digits
                 if (i < int_digits && i < 8) begin
                     // Extract least significant digit and store it in reverse order.
-                    digit_values[int_digits - i - 1] <= int_part % 10;
-                    int_part <= int_part / 10;
+                    // digit_values[int_digits - i - 1] <= int_part % 10;
+                    // int_part <= int_part / 10;
+
+                    product = int_part * DIV10_FACTOR;
+                    quotient = product >>> SHIFT;
+                    remainder = int_part - (quotient * 10);
+                    digit_values[int_digits - i - 1] <= remainder;
+                    int_part <= quotient;
                     i <= i + 1;
                 end else begin
                     // Move on to extracting fractional digits
@@ -133,8 +160,34 @@ module fp_to_string_sequential(
                 // Extract exactly 4 fractional digits sequentially.
                 if (i < 8 && j < 4) begin
                     // Store the fractional digit at position int_digits+1+i.
-                    digit_values[int_digits + 1 + j] <= temp_frac / 1000;
-                    temp_frac <= (temp_frac % 1000) * 10;
+                    // digit_values[int_digits + 1 + j] <= temp_frac / 1000;
+                    // temp_frac <= (temp_frac % 1000) * 10;
+                    case (j)
+                        0: begin // Thousands place (division by 1000)
+                            product = temp_frac * DIV1000_FACTOR;
+                            quotient = product >>> SHIFT;
+                            digit <= quotient;
+                            digit_values[int_digits + 1 + j] <= digit;
+                            temp_frac <= temp_frac - (digit * 1000);
+                        end
+                        1: begin // Hundreds place (division by 100)
+                            product = temp_frac * DIV100_FACTOR;
+                            quotient = product >>> SHIFT;
+                            digit <= quotient;
+                            digit_values[int_digits + 1 + j] <= digit;
+                            temp_frac <= temp_frac - (digit * 100);
+                        end
+                        2: begin // Tens place (division by 10)
+                            product = temp_frac * DIV10_FACTOR;
+                            quotient = product >>> SHIFT;
+                            digit <= quotient;
+                            digit_values[int_digits + 1 + j] <= digit;
+                            temp_frac <= temp_frac - (digit * 10);
+                        end
+                        3: begin // Units place
+                            digit_values[int_digits + 1 + j] <= temp_frac;
+                        end
+                    endcase
                     i <= i + 1;
                     j <= j + 1;
                 end else begin

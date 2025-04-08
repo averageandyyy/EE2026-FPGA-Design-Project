@@ -32,7 +32,7 @@ The user should be able to traverse backwards via our current backing sequence o
 Also notice how under phase_two_controller, we disable is_phase_three only if the user is in arithmetic mode or is_getting_coefficients, meaning if the program is at one of the GET_COEFFICIENTS state, it must be communicated back.
 */
 module phase_three_wrapper(
-    input clock,
+    input clk_100MHz,
     input clk_1kHz,
     input clk_6p25MHz,
     input [12:0] one_pixel_index,
@@ -93,7 +93,7 @@ module phase_three_wrapper(
 
     // Controllers and modules
     phase_three_controller controller(
-        .clock(clock),
+        .clock(clk_6p25MHz),
         .btnU(btnU),
         .btnD(btnD),
         .btnC(btnC),
@@ -119,7 +119,7 @@ module phase_three_wrapper(
 
     // Unified input builder for coefficients
     unified_input_bcd_to_fp_builder input_builder(
-        .clk(clock),
+        .clk(clk_6p25MHz),
         .keypad_btn_pressed(keypad_btn_pressed),
         .selected_keypad_value(keypad_selected_value),
         .is_active_mode(keypad_active && is_phase_three && !is_arithmetic_mode),
@@ -137,7 +137,7 @@ module phase_three_wrapper(
 
     // Coefficient input cursor controller (reused from integral), interfaces with the input builder
     integral_cursor_controller coeff_cursor_ctrl(
-        .clk(clock),
+        .clk(clk_1kHz),
         .reset(!is_getting_coefficients || !is_phase_three),
         .btnC(is_getting_coefficients ? btnC : 1'b0),
         .btnU(is_getting_coefficients ? btnU : 1'b0),
@@ -219,7 +219,7 @@ module phase_three_wrapper(
     polynomial_table_module table_module(
         .clk_6p25MHz(clk_6p25MHz),
         .clk_1kHz(clk_1kHz),
-        .clk_100MHz(clock), 
+        .clk_100MHz(clk_100MHz), 
         .btnC(btnC),
         .btnU(btnU),
         .btnD(btnD),

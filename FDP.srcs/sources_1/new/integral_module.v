@@ -42,7 +42,7 @@ module integral_module(
     input [12:0] one_pixel_index,
     input [12:0] two_pixel_index,
     output [15:0] one_oled_data,
-    output [15:0] two_oled_data
+    output [15:0] two_oled_data,
 
     // Expose user input bounds for use in graph module (KIV WeiHao)       
     output signed [31:0] integration_lower_bound,

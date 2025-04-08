@@ -32,6 +32,14 @@ module Top_Student (
         .output_clock(clk_6p25MHz)
     ); 
 
+    // 1kHz clock for cursor_controller
+    wire clk_1kHz;
+    flexible_clock_divider clk_1kHz_gen(
+        .main_clock(basys_clock),
+        .ticks(49999),
+        .output_clock(clk_1kHz)
+    );
+
     // First OLED display unit (for user input)
     wire one_frame_begin;
     wire one_sample_pixel;
@@ -82,6 +90,7 @@ module Top_Student (
 
     phase_control phase(
         .main_clock(clk_6p25MHz),
+        .clk_1kHz(clk_1kHz),
         .one_pixel_index(JB_pixel_index),
         .two_pixel_index(JA_pixel_index),
         .one_oled_data(JB_oled_data),
@@ -90,6 +99,7 @@ module Top_Student (
         .btnD(btnD),
         .btnC(btnC),
         .btnL(btnL),
+        .btnR(btnR),
         .back_switch(sw[15]),
         .led(led)
     );

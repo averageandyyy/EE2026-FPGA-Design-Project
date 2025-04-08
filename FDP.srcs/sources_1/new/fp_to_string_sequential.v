@@ -22,6 +22,8 @@
 /*
 The idea for this module is for it replace to fp_to_string function, which makes use of combinational logic for everything to happen in parallel
 which is expensive in terms of LUT consumption. With FSMs, we reduce the amount of parallel logic and hence LUT consumption. To be verified.
+
+Update: New Optimization
 */
 module fp_to_string_sequential(
     input clk,

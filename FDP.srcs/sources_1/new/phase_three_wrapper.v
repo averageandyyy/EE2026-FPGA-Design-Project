@@ -44,8 +44,8 @@ module phase_three_wrapper(
     input is_arithmetic_mode,
     output is_getting_coefficients,
     input back_switch,
-    input [6:0] xpos,
-    input [6:0] ypos,
+    input [11:0] xpos,
+    input [11:0] ypos,
     input use_mouse,
     input mouse_left,
     input mouse_middle

@@ -166,6 +166,7 @@ module integral_module(
         .cursor_col(cursor_col),
         .oled_data(keypad_oled_data),
         .has_decimal(has_decimal),
+        .input_index(input_index),
         .has_negative(has_negative)
     );
     

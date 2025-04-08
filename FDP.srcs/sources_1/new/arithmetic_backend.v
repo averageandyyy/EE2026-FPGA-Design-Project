@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module arithmetic_backend(
+(* use_dsp = "yes" *) module arithmetic_backend(
     input clk,
     input reset,
     input input_complete,

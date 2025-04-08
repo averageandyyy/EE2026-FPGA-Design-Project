@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module integral_computation(
+(* use_dsp = "yes" *) module integral_computation(
     input clk,                      
     input reset,                    
     input start_computation,        

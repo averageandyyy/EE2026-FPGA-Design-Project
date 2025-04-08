@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module polynomial_computation(
+(* use_dsp = "yes" *) module polynomial_computation(
     input clk,
     input requires_computation,
     input signed [31:0] x_value,

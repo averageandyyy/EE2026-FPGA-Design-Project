@@ -119,7 +119,7 @@ module phase_three_wrapper(
 
     // Unified input builder for coefficients
     unified_input_bcd_to_fp_builder input_builder(
-        .clk(clk_6p25MHz),
+        .clk(clk_1kHz),
         .keypad_btn_pressed(keypad_btn_pressed),
         .selected_keypad_value(keypad_selected_value),
         .is_active_mode(keypad_active && is_phase_three && !is_arithmetic_mode),

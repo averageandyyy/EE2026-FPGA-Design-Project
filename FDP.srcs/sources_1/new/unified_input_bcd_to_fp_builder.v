@@ -80,10 +80,14 @@ module unified_input_bcd_to_fp_builder(
 
     // Loop to update packed BCD value from individual digits
     always @ (*) begin
+        if (reset || !is_active_mode) begin
+            bcd_value = 32'b0;
+        end else begin
         bcd_value = {
             bcd_digits[7], bcd_digits[6], bcd_digits[5], bcd_digits[4],
             bcd_digits[3], bcd_digits[2], bcd_digits[1], bcd_digits[0]
         };
+        end
     end
 
     always @(posedge clk) begin

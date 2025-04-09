@@ -50,7 +50,7 @@ module coefficient_input_display(
     parameter GREEN = 16'h07E0;
     
     // Display constants
-    parameter TEXT_START_X = 16;
+    parameter TEXT_START_X = 8;
     parameter TEXT_START_Y = 24;
     parameter LABEL_Y = 8;
     
@@ -69,8 +69,8 @@ module coefficient_input_display(
     reg [47:0] display_string = 48'hFFFFFFFFFFFF; // All spaces initially
     
     // Strings for labels
-    reg [47:0] label_a = {6'd31, 6'd28, 6'd35, 6'd31, 6'd35, 6'd32, 6'd10, 6'd32}; // "ENTER A"
-    reg [47:0] label_b = {6'd31, 6'd28, 6'd35, 6'd31, 6'd35, 6'd32, 6'd11, 6'd32}; // "ENTER B"
+    reg [47:0] label_a = {6'd23, 6'd28, 6'd30, 6'd36, 6'd35, 6'd32, 6'd15, 6'd32}; // "INPUT A"
+    reg [47:0] label_b = {6'd23, 6'd28, 6'd30, 6'd36, 6'd35, 6'd32, 6'd16, 6'd32}; // "INPUT B"
     reg [47:0] label_c = {6'd31, 6'd28, 6'd35, 6'd31, 6'd35, 6'd32, 6'd12, 6'd32}; // "ENTER C"
     reg [47:0] label_d = {6'd31, 6'd28, 6'd35, 6'd31, 6'd35, 6'd32, 6'd13, 6'd32}; // "ENTER D"
     reg [47:0] current_label;

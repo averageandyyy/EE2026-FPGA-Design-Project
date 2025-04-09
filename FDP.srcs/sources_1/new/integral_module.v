@@ -66,6 +66,7 @@ module integral_module(
     // Computation signals
     wire start_computation;
     wire signed [31:0] integral_result;
+    wire signed [31:0] computation_result;
     
     // Keypad interaction signals
     wire [1:0] cursor_row;
@@ -96,7 +97,7 @@ module integral_module(
         .input_complete(input_complete),
         .is_computation_complete(is_computation_complete),
         .fp_value(fp_value),
-        .computation_result(integral_result),
+        .computation_result(computation_result),
         .is_integral_input_mode(is_integral_input_mode),
         .is_input_a(is_input_a),
         .is_input_b(is_input_b),
@@ -154,7 +155,7 @@ module integral_module(
         .coeff_d(coeff_d),
         .a_lower(a_lower),
         .b_upper(b_upper),
-        .integral_result(integral_result),
+        .integral_result(computation_result),
         .is_computation_complete(is_computation_complete)
     );
     

@@ -54,7 +54,8 @@ module phase_control(
 
     // Instantiate phase one wrapper
     phase_one_wrapper phase_one(
-        .clock(clk_6p25MHz),
+        .clk_6p25MHz(clk_6p25MHz),
+        .clk_1kHz(clk_1kHz),
         .pixel_index(one_pixel_index),
         .oled_data(phase_one_oled_data),
         .btnU(btnU),
@@ -68,7 +69,8 @@ module phase_control(
 
     // Instantiate phase two wrapper
     phase_two_wrapper phase_two(
-        .clock(clk_6p25MHz),
+        .clk_6p25MHz(clk_6p25MHz),
+        .clk_1kHz(clk_1kHz),
         .pixel_index(one_pixel_index),
         .oled_data(phase_two_oled_data),
         .btnU(btnU),

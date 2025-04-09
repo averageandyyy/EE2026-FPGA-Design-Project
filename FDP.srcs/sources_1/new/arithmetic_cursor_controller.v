@@ -31,6 +31,9 @@ module arithmetic_cursor_controller(
     reg [7:0] debounce_L = 0;
     reg [7:0] debounce_R = 0;
 
+    // Waiting counter
+    reg [8:0] counter = 9'd500;
+
     // Flag to track if on the checkmark
     wire on_checkmark = (cursor_col_keypad == 3'd3 && !is_operand_mode);
 
@@ -58,6 +61,7 @@ module arithmetic_cursor_controller(
             debounce_D <= 0;
             debounce_L <= 0;
             debounce_R <= 0;
+            counter <= 500;
         end
         else begin
             // Reset button pressed signal each cycle
@@ -72,67 +76,72 @@ module arithmetic_cursor_controller(
             if (debounce_C > 0) debounce_C <= debounce_C - 1;
 
             if (!is_operand_mode) begin
-                // Up button processing
-                if (btnU && !prev_btnU && debounce_U == 0) begin
-                    if (cursor_row_keypad > 0 && !on_checkmark) begin
-                        cursor_row_keypad <= cursor_row_keypad - 1;
+                if (counter == 0) begin
+                    // Up button processing
+                    if (btnU && !prev_btnU && debounce_U == 0) begin
+                        if (cursor_row_keypad > 0 && !on_checkmark) begin
+                            cursor_row_keypad <= cursor_row_keypad - 1;
+                        end
+                        debounce_U <= 200;
                     end
-                    debounce_U <= 200;
+
+                    // Down
+                    if (btnD && !prev_btnD && debounce_D == 0) begin
+                        if (cursor_row_keypad < 3 && !on_checkmark) begin
+                            cursor_row_keypad <= cursor_row_keypad + 1;
+                        end
+                        debounce_D <= 200;
+                    end
+
+                    // Left
+                    if (btnL && !prev_btnL && debounce_L == 0) begin
+                        if (on_checkmark) begin
+                            // Moving left from checkmark goes to the main keypad
+                            cursor_col_keypad <= 3'd2;
+                        end else if (cursor_col_keypad > 0) begin
+                            cursor_col_keypad <= cursor_col_keypad - 1;
+                        end
+                        debounce_L <= 200;
+                    end
+
+                    // Right
+                    if (btnR && !prev_btnR && debounce_R == 0) begin
+                        if (!on_checkmark && cursor_col_keypad < 2) begin
+                            cursor_col_keypad <= cursor_col_keypad + 1;
+                        end else if (!on_checkmark && cursor_col_keypad == 2) begin
+                            cursor_col_keypad <= 3'd3;  // Go to checkmark column
+                        end
+                        debounce_R <= 200;
+                    end
+
+                    // Center (Selection)
+                    if (btnC && !prev_btnC && debounce_C == 0) begin
+                        keypad_btn_pressed <= 1;
+                        counter <= 500;
+                        if (on_checkmark) begin
+                            // Checkmark selected
+                            keypad_selected_value <= 4'd12;  // Special value for checkmark
+                        end else begin
+                            // Determining selected value based on cursor position in main keypad
+                            case(cursor_row_keypad)
+                                2'd0: keypad_selected_value <= cursor_col_keypad + 4'd7; // 7, 8, 9
+                                2'd1: keypad_selected_value <= cursor_col_keypad + 4'd4; // 4, 5, 6
+                                2'd2: keypad_selected_value <= cursor_col_keypad + 4'd1; // 1, 2, 3
+                                2'd3: begin
+                                    case(cursor_col_keypad)
+                                        2'd0: keypad_selected_value <= 4'd0; // 0
+                                        2'd1: keypad_selected_value <= 4'd10; // . decimal
+                                        2'd2: keypad_selected_value <= 4'd11; // x backspace
+                                    endcase
+                                end
+                            endcase
+                        end
+
+                        debounce_C <= 200;
+                    end
                 end
-
-                // Down
-                if (btnD && !prev_btnD && debounce_D == 0) begin
-                    if (cursor_row_keypad < 3 && !on_checkmark) begin
-                        cursor_row_keypad <= cursor_row_keypad + 1;
-                    end
-                    debounce_D <= 200;
-                end
-
-                // Left
-                if (btnL && !prev_btnL && debounce_L == 0) begin
-                    if (on_checkmark) begin
-                        // Moving left from checkmark goes to the main keypad
-                        cursor_col_keypad <= 3'd2;
-                    end else if (cursor_col_keypad > 0) begin
-                        cursor_col_keypad <= cursor_col_keypad - 1;
-                    end
-                    debounce_L <= 200;
-                end
-
-                // Right
-                if (btnR && !prev_btnR && debounce_R == 0) begin
-                    if (!on_checkmark && cursor_col_keypad < 2) begin
-                        cursor_col_keypad <= cursor_col_keypad + 1;
-                    end else if (!on_checkmark && cursor_col_keypad == 2) begin
-                        cursor_col_keypad <= 3'd3;  // Go to checkmark column
-                    end
-                    debounce_R <= 200;
-                end
-
-                // Center (Selection)
-                if (btnC && !prev_btnC && debounce_C == 0) begin
-                    keypad_btn_pressed <= 1;
-
-                    if (on_checkmark) begin
-                        // Checkmark selected
-                        keypad_selected_value <= 4'd12;  // Special value for checkmark
-                    end else begin
-                        // Determining selected value based on cursor position in main keypad
-                        case(cursor_row_keypad)
-                            2'd0: keypad_selected_value <= cursor_col_keypad + 4'd7; // 7, 8, 9
-                            2'd1: keypad_selected_value <= cursor_col_keypad + 4'd4; // 4, 5, 6
-                            2'd2: keypad_selected_value <= cursor_col_keypad + 4'd1; // 1, 2, 3
-                            2'd3: begin
-                                case(cursor_col_keypad)
-                                    2'd0: keypad_selected_value <= 4'd0; // 0
-                                    2'd1: keypad_selected_value <= 4'd10; // . decimal
-                                    2'd2: keypad_selected_value <= 4'd11; // x backspace
-                                endcase
-                            end
-                        endcase
-                    end
-
-                    debounce_C <= 200;
+                else begin
+                    counter <= counter -1;
                 end
             end
             else begin

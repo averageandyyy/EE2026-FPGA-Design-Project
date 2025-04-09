@@ -57,6 +57,9 @@ module phase_three_controller(
     reg [7:0] debounce_U = 0;
     reg [7:0] debounce_D = 0;
     reg [7:0] debounce_L = 0;
+
+    // Delay counters
+    reg [8:0] count = 9'd500;
     
     // State definitions
     localparam IDLE = 0;
@@ -81,74 +84,99 @@ module phase_three_controller(
             case (current_state)
                 IDLE: begin
                     // Initial state, start getting coefficients
-                    is_getting_coefficients <= 1;
-                    is_menu_selection <= 0;
-                    is_table_selected <= 0;
-                    is_integral_selected <= 0;
-                    keypad_active <= 1;
-                    coeff_state <= 2'b00; // Start with coefficient A
-                    current_state <= GET_COEFF_A;
+                    if (count == 0) begin
+                        is_getting_coefficients <= 1;
+                        is_menu_selection <= 0;
+                        is_table_selected <= 0;
+                        is_integral_selected <= 0;
+                        keypad_active <= 1;
+                        coeff_state <= 2'b00; // Start with coefficient A
+                        current_state <= GET_COEFF_A;
+                        count <= 500;
+                    end else begin
+                        count <= count - 1;
+                    end
                 end
                 
                 GET_COEFF_A: begin
-                    is_getting_coefficients <= 1;
-                    coeff_state <= 2'b00;
-                    keypad_active <= 1;
-                    
-                    if (input_complete) begin
-                        coeff_a <= fp_value;
-                        current_state <= GET_COEFF_B;
+                    if (count == 0) begin
+                        is_getting_coefficients <= 1;
+                        coeff_state <= 2'b00;
+                        keypad_active <= 1;
                         
-                        // Need to reset the input builder!
-                        keypad_active <= 0;
+                        if (input_complete) begin
+                            coeff_a <= fp_value;
+                            current_state <= GET_COEFF_B;
+                            
+                            // Need to reset the input builder!
+                            keypad_active <= 0;
+                            count <= 500;
+                        end
+                    end else begin
+                        count <= count - 1;
                     end
                 end
                 
                 GET_COEFF_B: begin
-                    is_getting_coefficients <= 1;
-                    coeff_state <= 2'b01;
-                    
-                    if (!keypad_active) begin
-                        keypad_active <= 1;
-                    end
-                    
-                    if (input_complete) begin
-                        coeff_b <= fp_value;
-                        current_state <= GET_COEFF_C;
-                        keypad_active <= 0;
+                    if (count == 0) begin
+                        is_getting_coefficients <= 1;
+                        coeff_state <= 2'b01;
+                        
+                        if (!keypad_active) begin
+                            keypad_active <= 1;
+                        end
+                        
+                        if (input_complete) begin
+                            coeff_b <= fp_value;
+                            current_state <= GET_COEFF_C;
+                            keypad_active <= 0;
+                            count <= 500;
+                        end
+                    end else begin
+                        count <= count - 1;
                     end
                 end
                 
                 GET_COEFF_C: begin
-                    is_getting_coefficients <= 1;
-                    coeff_state <= 2'b10;
+                    if (count == 0) begin
+                        is_getting_coefficients <= 1;
+                        coeff_state <= 2'b10;
 
-                    if (!keypad_active) begin
-                        keypad_active <= 1;
-                    end
-                    
-                    if (input_complete) begin
-                        coeff_c <= fp_value;
-                        current_state <= GET_COEFF_D;
-                        keypad_active <= 0;
+                        if (!keypad_active) begin
+                            keypad_active <= 1;
+                        end
+                        
+                        if (input_complete) begin
+                            coeff_c <= fp_value;
+                            current_state <= GET_COEFF_D;
+                            keypad_active <= 0;
+                            count <= 500;
+                        end
+                    end else begin
+                        count <= count - 1;
                     end
                 end
                 
                 GET_COEFF_D: begin
-                    is_getting_coefficients <= 1;
-                    coeff_state <= 2'b11;
+                    if (count == 0) begin
+                        is_getting_coefficients <= 1;
+                        coeff_state <= 2'b11;
 
-                    if (!keypad_active) begin
-                        keypad_active <= 1;
-                    end
-                    
-                    if (input_complete) begin
-                        coeff_d <= fp_value;
-                        is_getting_coefficients <= 0;
-                        is_menu_selection <= 1;
-                        keypad_active <= 0;
-                        cursor_row <= 0; // Default to TABLE
-                        current_state <= MENU_SELECTION;
+                        if (!keypad_active) begin
+                            keypad_active <= 1;
+                        end
+                        
+                        if (input_complete) begin
+                            coeff_d <= fp_value;
+                            is_getting_coefficients <= 0;
+                            is_menu_selection <= 1;
+                            keypad_active <= 0;
+                            cursor_row <= 0; // Default to TABLE
+                            current_state <= MENU_SELECTION;
+                            count <= 500;
+                        end
+                    end else begin
+                        count <= count - 1;
                     end
                 end
                 
@@ -216,6 +244,7 @@ module phase_three_controller(
             is_table_selected <= 0;
             is_integral_selected <= 0;
             keypad_active <= 0;
+            count <= 500;
         end
         
         // Update button states

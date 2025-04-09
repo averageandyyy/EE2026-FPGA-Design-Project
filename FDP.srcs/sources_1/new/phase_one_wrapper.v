@@ -21,7 +21,8 @@
 
 
 module phase_one_wrapper(
-    input clock,
+    input clk_6p25MHz,
+    input clk_1kHz,
     input [12:0] pixel_index,
     output [15:0] oled_data,
     input btnU, btnD, btnC, btnL,
@@ -35,7 +36,7 @@ module phase_one_wrapper(
     
     // Instantiate controller
     phase_one_menu_controller controller(
-        .clock(clock),
+        .clock(clk_1kHz),
         .btnU(btnU),
         .btnD(btnD),
         .btnC(btnC),
@@ -48,7 +49,7 @@ module phase_one_wrapper(
     
     // Instantiate display
     phase_one_menu_display display(
-        .clock(clock),
+        .clock(clk_6p25MHz),
         .pixel_index(pixel_index),
         .oled_data(oled_data),
         .cursor_row(cursor_row),

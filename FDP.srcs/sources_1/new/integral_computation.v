@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-(* use_dsp = "yes" *) module integral_computation(
+module integral_computation(
     input clk,                      
     input reset,                    
     input start_computation,        
@@ -113,9 +113,9 @@
         else begin
             case (state)
                 IDLE: begin
+                    is_computation_complete <= 0;
                     if (start_computation) begin
                         state <= COMPUTE_A_SQUARED_START;
-                        is_computation_complete <= 0;
                     end
                 end
                 

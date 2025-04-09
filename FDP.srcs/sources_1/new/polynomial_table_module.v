@@ -53,7 +53,12 @@ module polynomial_table_module(
 
     // Two outgoing display data
     output [15:0] one_oled_data,
-    output [15:0] two_oled_data
+    output [15:0] two_oled_data,
+    
+    //for mouse stuff
+    input new_event,
+    input rst,
+    input zpos
     );
 
     // Internal signals and states
@@ -100,7 +105,10 @@ module polynomial_table_module(
         .cursor_col(cursor_col),
         .keypad_btn_pressed(keypad_btn_pressed),
         .keypad_selected_value(keypad_selected_value),
-        .starting_x(starting_x)
+        .starting_x(starting_x),
+        .new_event(new_event),
+        .rst(rst),
+        .zpos(zpos)
     );
 
     // Input builder
@@ -132,7 +140,7 @@ module polynomial_table_module(
         .input_index(input_index),
         .oled_data(keypad_oled_data)
     );
-
+    
     // Table display
     polynomial_table_table_display table_display(
         .clk(clk_6p25MHz),

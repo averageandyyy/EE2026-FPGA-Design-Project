@@ -21,7 +21,7 @@
 
 
 module pan_graph(
-    input basys_clk,
+    input basys_clk, //6p25MHz clock
     input is_pan,
     input left,
     input right,
@@ -29,11 +29,12 @@ module pan_graph(
     input mouse_y,
     input zpos,
     input new_event,
+    input rst,
     input btnU, btnD, btnL, btnR, btnC,
     output reg signed [15:0]pan_offset_x, 
     output reg signed [15:0]pan_offset_y,
     output reg [3:0]zoom_level_x,
-    output reg [3:0]zoom_level_y ,
+    output reg [3:0]zoom_level_y,
     output reg [15:0]led
 );
     
@@ -72,42 +73,32 @@ module pan_graph(
     reg prevBtnC = 0;
     reg prevleft = 0;
     
-    //scroll wheel debouncing
-    reg signed [3:0] zpos_prev = 0;
-    reg [19:0] cooldown_counter = 0;
-    reg cooldown_active = 0;
-    //end of scroll wheel debounce
+    wire [1:0] scroll_dir;
+    scroll_led_accum scroll_test (
+    .clk         (basys_clk),
+    .rst         (rst),
+    .new_event   (new_event),
+    .zpos        (zpos),
+    .scroll_dir (scroll_dir));
+    //scroll up is 10, scroll down is 01, no input is 00 on the next clk cycle
        
     always @ (posedge basys_clk) begin
         //Zooming
         if (~is_pan) begin
-            if (cooldown_active) begin
-                if (cooldown_counter > 0)
-                   cooldown_counter <= cooldown_counter - 1;
-                else
-                    cooldown_active <= 0;
-            end 
-//            if (new_event) begin
-            else if (new_event && $signed(zpos) != 0) begin
                 // Only trigger if scroll input is non-zero
-                if ($signed(zpos) > zpos_prev) begin
-                    if (right)
+            if (scroll_dir == 01) begin
+                if (right)
                     //scroll down = zoom out
-                        zoom_level_x = (zoom_level_x > 1) ? zoom_level_x / 2 : 1;
-                    else zoom_level_y = (zoom_level_y > 1) ? zoom_level_y / 2 : 1;
-                                
-                end
-                else if ($signed(zpos) < zpos_prev) begin
-                    //scroll up = zoom in
-                    if (right) zoom_level_x = (zoom_level_x < 8) ? zoom_level_x * 2 : 8;
-                    else zoom_level_y = (zoom_level_y < 8) ? zoom_level_y * 2 : 8;
-                end
-                zpos_prev <= $signed(zpos);
-                       
-                // Start cooldown
-                cooldown_active <= 1;
-                cooldown_counter <= 20'd1000000; // ~10ms cooldown
+                    zoom_level_x = (zoom_level_x > 1) ? zoom_level_x / 2 : 1;
+                else zoom_level_y = (zoom_level_y > 1) ? zoom_level_y / 2 : 1;
+                            
             end
+            else if (scroll_dir == 10) begin
+                //scroll up = zoom in
+                if (right) zoom_level_x = (zoom_level_x < 8) ? zoom_level_x * 2 : 8;
+                else zoom_level_y = (zoom_level_y < 8) ? zoom_level_y * 2 : 8;
+            end
+                        
         //try this logic: zoom wrt y is regular scroll
         //if want to zoom wrt x, hold down right click
             if (prevBtnU & ~btnU) begin

@@ -35,6 +35,7 @@ module phase_three_wrapper(
     input clk_100MHz,
     input clk_1kHz,
     input clk_6p25MHz,
+    input rst,
     input [12:0] one_pixel_index,
     input [12:0] two_pixel_index,
     output [15:0] one_oled_data,
@@ -46,9 +47,11 @@ module phase_three_wrapper(
     input back_switch,
     input [11:0] xpos,
     input [11:0] ypos,
+    input [3:0] zpos,
     input use_mouse,
     input mouse_left,
-    input mouse_middle
+    input mouse_middle,
+    input new_event
     );
 
     // State signals from controller
@@ -195,6 +198,7 @@ module phase_three_wrapper(
         .btnL(0),
         .btnR(0),
         .btnC(0),
+        .rst(rst),
         .pixel_index(two_pixel_index),
         .coeff_a(coeff_a),
         .coeff_b(coeff_b),
@@ -203,6 +207,7 @@ module phase_three_wrapper(
         .curr_x(xpos),
         .curr_y(ypos),
         .zoom_level(4'h5), // Default zoom level
+        .zpos(zpos),
         .mouse_left(mouse_left),
         .mouse_right(1'b0),
         .mouse_middle(mouse_middle),
@@ -238,7 +243,10 @@ module phase_three_wrapper(
         .one_pixel_index(one_pixel_index),
         .two_pixel_index(two_pixel_index),
         .one_oled_data(table_one_oled_data),
-        .two_oled_data(table_two_oled_data)
+        .two_oled_data(table_two_oled_data),
+        .new_event(new_event),
+        .rst(rst),
+        .zpos(zpos)
     );
 
     // Integral module

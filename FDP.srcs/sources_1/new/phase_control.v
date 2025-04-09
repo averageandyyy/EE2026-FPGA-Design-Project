@@ -26,8 +26,8 @@ module phase_control(
     input clk_1kHz,
     input [12:0] one_pixel_index,
     input [12:0] two_pixel_index,
-    output [15:0] one_oled_data,
-    output [15:0] two_oled_data,
+    output reg [15:0] one_oled_data,
+    output reg [15:0] two_oled_data,
     input btnU, btnD, btnC, btnL, btnR,
     input back_switch,
     input [11:0] xpos,
@@ -35,7 +35,10 @@ module phase_control(
     input use_mouse,
     input mouse_left,
     input mouse_middle,
+    input mouse_right,
+    input [3:0] zpos,
     output [15:0] led,
+    input rst,
     output [3:0] an,
     output [7:0] seg
     );
@@ -104,17 +107,19 @@ module phase_control(
         .back_switch(back_switch),
         .xpos(xpos),
         .ypos(ypos),
+        .zpos(zpos),
         .use_mouse(use_mouse),
         .mouse_left(mouse_left),
         .mouse_middle(mouse_middle)
     );
 
     // Output selection based on active phase
-    assign one_oled_data = is_phase_three ? phase_three_one_oled_data :
-                          (is_phase_two ? phase_two_oled_data : phase_one_oled_data);
-                          
-    assign two_oled_data = is_phase_three ? phase_three_two_oled_data : 16'h0000;
+    always @ (posedge clk_100MHz) begin
+        one_oled_data = is_phase_three ? phase_three_one_oled_data :
+                              (is_phase_two ? phase_two_oled_data : phase_one_oled_data);
     
+        two_oled_data = is_phase_three ? phase_three_two_oled_data : 16'h0000;
+    end
     // Controlling the seven segment display
     seven_seg_controller ssc(
         .seg(seg),

@@ -71,8 +71,8 @@ module coefficient_input_display(
     // Strings for labels
     reg [47:0] label_a = {6'd23, 6'd28, 6'd30, 6'd36, 6'd35, 6'd32, 6'd15, 6'd32}; // "INPUT A"
     reg [47:0] label_b = {6'd23, 6'd28, 6'd30, 6'd36, 6'd35, 6'd32, 6'd16, 6'd32}; // "INPUT B"
-    reg [47:0] label_b = {6'd23, 6'd28, 6'd30, 6'd36, 6'd35, 6'd32, 6'd17, 6'd32}; // "INPUT C"
-    reg [47:0] label_b = {6'd23, 6'd28, 6'd30, 6'd36, 6'd35, 6'd32, 6'd18, 6'd32}; // "INPUT C"
+    reg [47:0] label_c = {6'd23, 6'd28, 6'd30, 6'd36, 6'd35, 6'd32, 6'd17, 6'd32}; // "INPUT C"
+    reg [47:0] label_d = {6'd23, 6'd28, 6'd30, 6'd36, 6'd35, 6'd32, 6'd18, 6'd32}; // "INPUT D"
     reg [47:0] current_label;
     
     // Change detection

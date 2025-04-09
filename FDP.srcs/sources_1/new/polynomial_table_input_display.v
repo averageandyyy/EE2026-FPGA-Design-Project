@@ -155,7 +155,10 @@ module polynomial_table_input_display(
             6'b011100, // N
             6'b011110, // P
             6'b100100, // U
-            6'b100011 // T
+            6'b100011, // T
+            6'b111111, // " "
+            6'b100110,  // X
+            6'b111111, // " "
         };
 
         value_text = bcd_to_string(

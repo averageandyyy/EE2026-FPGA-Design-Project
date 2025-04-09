@@ -93,7 +93,7 @@ module phase_three_wrapper(
 
     // Controllers and modules
     phase_three_controller controller(
-        .clock(clk_6p25MHz),
+        .clock(clk_1kHz),
         .btnU(btnU),
         .btnD(btnD),
         .btnC(btnC),

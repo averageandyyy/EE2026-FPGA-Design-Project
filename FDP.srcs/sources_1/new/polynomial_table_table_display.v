@@ -65,7 +65,7 @@ module polynomial_table_table_display(
     // Control signals
     reg is_full_computation = 0;
     reg is_full_conversion = 0;
-    reg [31:0] prev_starting_x = 0;
+    reg [31:0] prev_starting_x = 1;
     
     // Computation controller
     reg requires_computation = 0;
@@ -150,6 +150,9 @@ module polynomial_table_table_display(
             is_full_conversion <= 0;
             master_state <= 1; // Start computation phase
             comp_row <= 0;
+        end
+        else if (!is_table_mode) begin
+            prev_starting_x <= 1;
         end
         
         // Main state machine

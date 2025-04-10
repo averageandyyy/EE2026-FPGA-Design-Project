@@ -162,7 +162,7 @@ module fp_to_string_sequential(
             
             EXTRACT_FRAC_DIGITS: begin
                 // Extract exactly 4 fractional digits sequentially.
-                if (i < 8 && j < 4) begin
+                if (i < 7 && j < 4) begin
                     // Store the fractional digit at position int_digits+1+i.
                     // digit_values[int_digits + 1 + j] <= temp_frac / 1000;
                     // temp_frac <= (temp_frac % 1000) * 10;

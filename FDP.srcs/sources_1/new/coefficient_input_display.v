@@ -31,7 +31,7 @@ module coefficient_input_display(
     input [3:0] input_index,
     input has_decimal,
     input has_negative,
-    input [1:0] coeff_state, // Which coefficient we're entering (0=a, 1=b, 2=c, 3=d)
+    input [2:0] coeff_state, // Which coefficient we're entering (0=a, 1=b, 2=c, 3=d)
     output reg [15:0] oled_data
     );
 
@@ -73,6 +73,7 @@ module coefficient_input_display(
     reg [47:0] label_b = {6'd23, 6'd28, 6'd30, 6'd36, 6'd35, 6'd32, 6'd16, 6'd32}; // "INPUT B"
     reg [47:0] label_c = {6'd23, 6'd28, 6'd30, 6'd36, 6'd35, 6'd32, 6'd17, 6'd32}; // "INPUT C"
     reg [47:0] label_d = {6'd23, 6'd28, 6'd30, 6'd36, 6'd35, 6'd32, 6'd18, 6'd32}; // "INPUT D"
+    reg [47:0] label_x = {6'd23, 6'd28, 6'd30, 6'd36, 6'd35, 6'd32, 6'd41, 6'd32}; // "INPUT X"
     reg [47:0] current_label;
     
     // Change detection
@@ -137,7 +138,7 @@ module coefficient_input_display(
             2'b01: current_label = label_b;
             2'b10: current_label = label_c;
             2'b11: current_label = label_d;
-            default: current_label = label_a;
+            default: current_label = label_x;
         endcase
     end
     

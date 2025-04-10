@@ -80,14 +80,10 @@ module unified_input_bcd_to_fp_builder(
 
     // Loop to update packed BCD value from individual digits
     always @ (*) begin
-        if (reset || !is_active_mode) begin
-            bcd_value = 32'b0;
-        end else begin
         bcd_value = {
             bcd_digits[7], bcd_digits[6], bcd_digits[5], bcd_digits[4],
             bcd_digits[3], bcd_digits[2], bcd_digits[1], bcd_digits[0]
         };
-        end
     end
 
     always @(posedge clk) begin
@@ -133,7 +129,7 @@ module unified_input_bcd_to_fp_builder(
                     DECIMAL: begin
                         if (!has_decimal && input_index < 8) begin
                             has_decimal <= 1;
-                            decimal_pos <= valid_digits;
+                            decimal_pos <= input_index;
                             input_index <= input_index + 1;
                         end
                     end
@@ -145,7 +141,7 @@ module unified_input_bcd_to_fp_builder(
                                 input_index <= input_index - 1;
                                 
                                 // Check if removing decimal point
-                                if (has_decimal && decimal_pos == valid_digits) begin
+                                if (has_decimal) begin
                                     has_decimal <= 0;
                                     decimal_pos <= 4'hF;
                                 end 
@@ -160,6 +156,7 @@ module unified_input_bcd_to_fp_builder(
                             // Negative sign functionality (only allow at beginning of input)
                             if (input_index == 0 && !has_negative) begin
                                 has_negative <= 1;
+                                input_index <= input_index + 1;
                             end
                         end
                     end
@@ -195,15 +192,29 @@ module unified_input_bcd_to_fp_builder(
                     end
                     else begin
                         // Process integer part (before decimal)
-                        if (digit_idx < decimal_pos) begin
-                            integer_part <= (integer_part * 10) + bcd_digits[digit_idx];
-                            digit_idx <= digit_idx + 1;
+                        if (has_negative) begin
+                            if (digit_idx < decimal_pos - 1) begin
+                                integer_part <= (integer_part * 10) + bcd_digits[digit_idx];
+                                digit_idx <= digit_idx + 1;
+                            end
+                            else begin
+                                // Finished integer part, start fractional
+                                conv_state <= PROCESS_FRACTION;
+                                // digit_idx <= decimal_pos;
+                                power_of_ten <= 1;
+                            end
                         end
                         else begin
-                            // Finished integer part, start fractional
-                            conv_state <= PROCESS_FRACTION;
-                            digit_idx <= decimal_pos;
-                            power_of_ten <= 1;
+                            if (digit_idx < decimal_pos) begin
+                                integer_part <= (integer_part * 10) + bcd_digits[digit_idx];
+                                digit_idx <= digit_idx + 1;
+                            end
+                            else begin
+                                // Finished integer part, start fractional
+                                conv_state <= PROCESS_FRACTION;
+                                digit_idx <= decimal_pos;
+                                power_of_ten <= 1;
+                            end
                         end
                     end
                 end

@@ -28,7 +28,7 @@
     input signed [31:0] coeff_b,
     input signed [31:0] coeff_c,
     input signed [31:0] coeff_d,
-    output reg signed [31:0] y_value,
+    output reg signed [47:0] y_value,
     output reg computation_complete
     );
     // State machine states
@@ -37,12 +37,12 @@
     // Intermediate calculation values
     reg signed [31:0] x_squared_val;
     reg signed [31:0] x_cubed_val;
-    reg signed [31:0] term_a_val;
-    reg signed [31:0] term_b_val;
-    reg signed [31:0] term_c_val;
+    reg signed [47:0] term_a_val;
+    reg signed [47:0] term_b_val;
+    reg signed [47:0] term_c_val;
     
     // Shared multiplier registers
-    reg signed [31:0] mult_a, mult_b;
+    reg signed [47:0] mult_a, mult_b;
     reg signed [63:0] mult_result;
 
     // Computation state machine

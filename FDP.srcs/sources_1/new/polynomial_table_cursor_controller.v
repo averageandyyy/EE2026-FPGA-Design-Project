@@ -256,6 +256,10 @@ module polynomial_table_cursor_controller(
                 end
             end
         end
+        else begin
+            starting_x <= 0;
+            is_table_input_mode <= 0;
+        end
 
         // Update previous button states
         prev_btnU <= btnU;

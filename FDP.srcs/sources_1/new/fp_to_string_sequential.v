@@ -164,32 +164,37 @@ module fp_to_string_sequential(
                     // Store the fractional digit at position int_digits+1+i.
                     // digit_values[int_digits + 1 + j] <= temp_frac / 1000;
                     // temp_frac <= (temp_frac % 1000) * 10;
-                    case (j)
-                        0: begin // Thousands place (division by 1000)
-                            product = temp_frac * DIV1000_FACTOR;
-                            quotient = product >>> SHIFT;
-                            digit <= quotient;
-                            digit_values[int_digits + 1 + j] <= digit;
-                            temp_frac <= temp_frac - (digit * 1000);
-                        end
-                        1: begin // Hundreds place (division by 100)
-                            product = temp_frac * DIV100_FACTOR;
-                            quotient = product >>> SHIFT;
-                            digit <= quotient;
-                            digit_values[int_digits + 1 + j] <= digit;
-                            temp_frac <= temp_frac - (digit * 100);
-                        end
-                        2: begin // Tens place (division by 10)
-                            product = temp_frac * DIV10_FACTOR;
-                            quotient = product >>> SHIFT;
-                            digit <= quotient;
-                            digit_values[int_digits + 1 + j] <= digit;
-                            temp_frac <= temp_frac - (digit * 10);
-                        end
-                        3: begin // Units place
-                            digit_values[int_digits + 1 + j] <= temp_frac;
-                        end
-                    endcase
+                    // case (j)
+                        // 0: begin // Thousands place (division by 1000)
+                            // product = temp_frac * DIV1000_FACTOR;
+                            // quotient = product >>> SHIFT;
+                            // digit <= quotient;
+                            // digit_values[int_digits + 1 + j] <= digit;
+                            // temp_frac <= temp_frac - (digit * 1000);
+                        // end
+                        // 1: begin // Hundreds place (division by 100)
+                            // product = temp_frac * DIV100_FACTOR;
+                            // quotient = product >>> SHIFT;
+                            // digit <= quotient;
+                            // digit_values[int_digits + 1 + j] <= digit;
+                            // temp_frac <= temp_frac - (digit * 100);
+                        // end
+                        // 2: begin // Tens place (division by 10)
+                            // product = temp_frac * DIV10_FACTOR;
+                            // quotient = product >>> SHIFT;
+                            // digit <= quotient;
+                            // digit_values[int_digits + 1 + j] <= digit;
+                            // temp_frac <= temp_frac - (digit * 10);
+                        // end
+                        // 3: begin // Units place
+                            // digit_values[int_digits + 1 + j] <= temp_frac;
+                        // end
+                    // endcase
+
+                    product = temp_frac * DIV1000_FACTOR;
+                    quotient = product >>> SHIFT;
+                    temp_frac <= (temp_frac - (quotient * 1000)) * 10;
+                    digit_values[int_digits + 1 + j] <= quotient;
                     i <= i + 1;
                     j <= j + 1;
                 end else begin

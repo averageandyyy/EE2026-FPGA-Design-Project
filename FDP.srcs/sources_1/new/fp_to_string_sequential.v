@@ -55,16 +55,18 @@ module fp_to_string_sequential(
     // Allow up to 8 digits 
     reg [3:0] digit_values[0:7]; 
     reg [5:0] char_codes[0:7];   
-    reg [3:0] i;          
-    reg [3:0] j;
-    reg [3:0] digit_count; 
-    reg [31:0] temp_frac; 
+    reg [4:0] i;          
+    reg [4:0] j;
+    reg [4:0] digit_count; 
+    reg [63:0] temp_frac; 
 
     // NEW optimization approach, use multiplication and shifting based divisions
     localparam DIV10_FACTOR =  32'd429496730;
     localparam DIV100_FACTOR = 32'd42949673;
     localparam DIV1000_FACTOR = 32'd4294967;
     localparam SHIFT = 32;
+    localparam DIV10_FACTOR_ALT = 16'd6554;
+    localparam SMALL_SHIFT = 16;
     reg [63:0] product;
     reg [31:0] quotient;
     reg [31:0] remainder;
@@ -147,7 +149,7 @@ module fp_to_string_sequential(
                     product = int_part * DIV10_FACTOR;
                     quotient = product >>> SHIFT;
                     remainder = int_part - (quotient * 10);
-                    digit_values[int_digits - i - 1] <= remainder;
+                    digit_values[int_digits - i - 1] = (i == int_digits - 1) ? int_part : remainder;
                     int_part <= quotient;
                     i <= i + 1;
                 end else begin

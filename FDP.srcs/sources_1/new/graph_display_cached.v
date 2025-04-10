@@ -50,7 +50,7 @@ module graph_display_cached(
     wire [5:0] y_pos = SCREEN_HEIGHT - (pixel_index / SCREEN_WIDTH);
 
     // Cache for computed values
-    reg signed [31:0] y_cache[0:SCREEN_WIDTH-1];
+    reg signed [47:0] y_cache[0:SCREEN_WIDTH-1];
     reg [SCREEN_WIDTH-1:0] valid_cache = 0; // Bit mask for valid cache entries
 
     // Previous graph parameters for change detection
@@ -85,7 +85,7 @@ module graph_display_cached(
     reg [6:0] current_x_index = 0;
     reg compute_request = 0;
     wire compute_complete;
-    wire signed [31:0] computed_y;
+    wire signed [47:0] computed_y;
 
     // Connect polynomial computation module
     polynomial_computation graph_compute(
@@ -224,8 +224,8 @@ module graph_display_cached(
 
     reg signed [31:0] x_math_pos;
     reg signed [31:0] y_math_pos;
-    reg signed [31:0] curr_y_val;
-    reg signed [31:0] prev_y_val;
+    reg signed [47:0] curr_y_val;
+    reg signed [47:0] prev_y_val;
     reg is_overflow;
 
     // Rendering logic - happens on every clock cycle based on cached values

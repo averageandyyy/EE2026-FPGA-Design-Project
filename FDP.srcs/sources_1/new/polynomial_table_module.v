@@ -53,11 +53,14 @@ module polynomial_table_module(
 
     // Two outgoing display data
     output [15:0] one_oled_data,
-    output [15:0] two_oled_data
+    output [15:0] two_oled_data,
+
+    output is_table_input_mode_outgoing
     );
 
     // Internal signals and states
     wire is_table_input_mode;
+    assign is_table_input_mode_outgoing = is_table_input_mode;
     wire [1:0] cursor_row;
     wire [2:0] cursor_col;
     wire keypad_btn_pressed;

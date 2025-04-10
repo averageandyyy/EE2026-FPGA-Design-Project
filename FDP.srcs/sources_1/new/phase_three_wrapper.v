@@ -57,6 +57,7 @@ module phase_three_wrapper(
     wire is_integral_selected;
     wire [1:0] coeff_state;
     wire cursor_row;
+    wire is_table_input_mode_outgoing;
 
     // Coefficient values
     wire signed [31:0] coeff_a, coeff_b, coeff_c, coeff_d;
@@ -238,7 +239,9 @@ module phase_three_wrapper(
         .one_pixel_index(one_pixel_index),
         .two_pixel_index(two_pixel_index),
         .one_oled_data(table_one_oled_data),
-        .two_oled_data(table_two_oled_data)
+        .two_oled_data(table_two_oled_data),
+
+        .is_table_input_mode_outgoing(is_table_input_mode_outgoing)
     );
 
     // Integral module
@@ -298,7 +301,8 @@ module phase_three_wrapper(
         (is_phase_three && is_arithmetic_mode) ? arithmetic_two_oled_data :
         (is_getting_coefficients) ? coeff_display_oled_data :
         (is_menu_selection) ? graph_oled_data :
-        (is_table_selected) ? table_two_oled_data :
+        (is_table_selected && is_table_input_mode_outgoing) ? table_two_oled_data :
+        (is_table_selected) ? graph_oled_data :
         (is_integral_selected) ? integral_two_oled_data :
         16'h0000;
 endmodule

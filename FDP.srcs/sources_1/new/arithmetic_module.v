@@ -24,6 +24,7 @@ module arithmetic_module(
     // Clock inputs
     input clk_6p25MHz,
     input clk_1kHz,
+    input clk_100MHz,
 
     // Button inputs
     input btnC, btnU, btnD, btnL, btnR,
@@ -33,8 +34,8 @@ module arithmetic_module(
     input is_arithmetic_mode,
 
     // Mouse inputs (for future compatibility) KIV Daniel
-    input [6:0] xpos,
-    input [6:0] ypos,
+    input [11:0] xpos,
+    input [11:0] ypos,
     input use_mouse,
     input mouse_left,
     input mouse_middle,
@@ -68,6 +69,11 @@ module arithmetic_module(
     // Cursor controller for handling user input
     arithmetic_cursor_controller cursor_ctrl(
         .clk(clk_1kHz),
+        .clk_100MHz(clk_100MHz),
+        .clk_6p25MHz(clk_6p25MHz),
+        .mouse_left(mouse_left),
+        .xpos(xpos),
+        .ypos(ypos),
         .reset(reset || !is_arithmetic_mode),
         .btnC(is_arithmetic_mode ? btnC : 1'b0),  // Only process buttons when in arithmetic mode
         .btnU(is_arithmetic_mode ? btnU : 1'b0),

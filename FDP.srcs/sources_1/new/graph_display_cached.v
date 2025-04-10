@@ -22,14 +22,16 @@
 
 module graph_display_cached(
     input clk, //6p25MHz clock
+    input clk_100MHz,
     input btnU, btnD, btnL, btnR, btnC,
     input [12:0] pixel_index,
     input signed [31:0] coeff_a, coeff_b, coeff_c, coeff_d,
     input [11:0] curr_x, curr_y,
     input [3:0] zoom_level,
     input rst,
-    input [3:0] zpos,
-    input mouse_left, mouse_right, mouse_middle, new_event,
+    input [3:0] zpos, 
+    input new_event,
+    input mouse_left, mouse_right, mouse_middle,
     input [31:0] colour,
     input is_graphing_mode,
     input is_integrate,
@@ -107,6 +109,7 @@ module graph_display_cached(
     // Connect pan_graph module for pan and zoom functionality
     pan_graph panning_unit(
         .basys_clk(clk),
+        .clk_100MHz(clk_100MHz),
         .btnU(btnU),
         .btnD(btnD),
         .btnL(btnL),

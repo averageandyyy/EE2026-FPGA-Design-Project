@@ -23,7 +23,14 @@ module Top_Student (
     output [7:0] seg,
     output [3:0] an
     );
-
+        // 6.25MHz clock for OLED displays
+    wire clk_6p25MHz;
+    flexible_clock_divider clk_6p25MHz_gen(
+        .main_clock(basys_clock),
+        .ticks(7),
+        .output_clock(clk_6p25MHz)
+    );
+     //end of mouse part
     //mouse part
    // Default input values for the mouse_module
       wire [11:0] value;
@@ -48,9 +55,8 @@ module Top_Student (
       wire        right;
       wire        new_event;
       wire        rst;        // Reset signal
-      assign rst = sw[0];
       mouse_module unit_0 (
-         .clk       (basys_clock),
+         .clk       (clk_6p25MHz),
          .rst       (rst),
          .value     (value),
          .setmax_x  (setmax_x),
@@ -67,24 +73,17 @@ module Top_Student (
          .right     (right),
          .new_event (new_event)
      );
-     //end of mouse part
+  
+
      //part that tracks the number of scroll wheel inputs
-    wire [3:0] scroll_leds;
+    wire [1:0] scroll_leds;
          scroll_led_accum scroll_test (
-              .clk         (basys_clock),
+              .clk         (clk_6p25MHz),
               .rst         (rst),
               .new_event   (new_event),
               .zpos        (zpos),
-              .scroll_dir (scroll_leds));
+              .wow (scroll_leds));
    //end of part that tracks the number of scroll wheel inputs, shift this around if needed
-  
-    // 6.25MHz clock for OLED displays
-    wire clk_6p25MHz;
-    flexible_clock_divider clk_6p25MHz_gen(
-        .main_clock(basys_clock),
-        .ticks(7),
-        .output_clock(clk_6p25MHz)
-    );
 
     // 1kHz clock for cursor_controller
     wire clk_1kHz;
@@ -166,6 +165,7 @@ module Top_Student (
         .mouse_left(left),
         .mouse_middle(middle),
         .mouse_right(right),
+        .new_event(new_event),
         .zpos(zpos) //here, scroll_leds starts at 0, then if we scroll up is 0001,
         //then 0011, 0111, 1111, scroll back down is 1111, 0111, 0011, 0001, 0000
     );

@@ -21,6 +21,7 @@
 
 
 module phase_one_wrapper(
+    input clk_100MHz,
     input clk_6p25MHz,
     input clk_1kHz,
     input [12:0] pixel_index,
@@ -28,7 +29,10 @@ module phase_one_wrapper(
     input btnU, btnD, btnC, btnL,
     output is_phase_two,
     input is_phase_three,
-    input back_switch
+    input back_switch,
+    input [11:0] xpos, ypos,
+    input use_mouse,
+    input mouse_left
     );
     
     // Internal connection between controller and display
@@ -37,6 +41,8 @@ module phase_one_wrapper(
     // Instantiate controller
     phase_one_menu_controller controller(
         .clock(clk_1kHz),
+        .clk_100MHz(clk_100MHz),
+        .clk_6p25MHz(clk_6p25MHz),
         .btnU(btnU),
         .btnD(btnD),
         .btnC(btnC),
@@ -44,7 +50,11 @@ module phase_one_wrapper(
         .cursor_row(cursor_row),
         .is_phase_two(is_phase_two),
         .is_phase_three(is_phase_three),
-        .back_switch(back_switch)
+        .back_switch(back_switch),
+        .xpos(xpos),
+        .ypos(ypos),
+        .use_mouse(1), //change to use_mouse, for now permanently on
+        .mouse_left(mouse_left)
     );
     
     // Instantiate display
@@ -53,7 +63,11 @@ module phase_one_wrapper(
         .pixel_index(pixel_index),
         .oled_data(oled_data),
         .cursor_row(cursor_row),
-        .btnC(btnC)
+        .btnC(btnC), 
+        .xpos(xpos),
+        .ypos(ypos),
+        .clk_100MHz(clk_100MHz),
+        .mouse_left(mouse_left)
     );
     
 endmodule

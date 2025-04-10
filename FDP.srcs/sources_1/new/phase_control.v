@@ -40,7 +40,8 @@ module phase_control(
     output [15:0] led,
     input rst,
     output [3:0] an,
-    output [7:0] seg
+    output [7:0] seg,
+    input new_event
     );
 
     // Phase state signals
@@ -57,6 +58,7 @@ module phase_control(
 
     // Instantiate phase one wrapper
     phase_one_wrapper phase_one(
+        .clk_100MHz(clk_100MHz),
         .clk_6p25MHz(clk_6p25MHz),
         .clk_1kHz(clk_1kHz),
         .pixel_index(one_pixel_index),
@@ -67,7 +69,11 @@ module phase_control(
         .btnL(btnL),
         .is_phase_two(is_phase_two),
         .is_phase_three(is_phase_three),
-        .back_switch(back_switch)
+        .back_switch(back_switch),
+        .xpos(xpos),
+        .ypos(ypos),
+        .use_mouse(use_mouse),
+        .mouse_left(mouse_left)
     );
 
     // Instantiate phase two wrapper
@@ -84,7 +90,11 @@ module phase_control(
         .is_phase_three(is_phase_three),
         .is_arithmetic_mode(is_arithmetic_mode),
         .is_getting_coefficients(is_getting_coefficients),
-        .back_switch(back_switch)
+        .back_switch(back_switch),
+        .xpos(xpos),
+        .ypos(ypos),
+        .mouse_left(mouse_left),
+        .clk_100MHz(clk_100MHz)
     );
 
     // Instantiate phase three wrapper
@@ -110,7 +120,8 @@ module phase_control(
         .zpos(zpos),
         .use_mouse(use_mouse),
         .mouse_left(mouse_left),
-        .mouse_middle(mouse_middle)
+        .mouse_middle(mouse_middle),
+        .new_event(new_event)
     );
 
     // Output selection based on active phase

@@ -141,6 +141,11 @@ module phase_three_wrapper(
     // Coefficient input cursor controller (reused from integral), interfaces with the input builder
     integral_cursor_controller coeff_cursor_ctrl(
         .clk(clk_1kHz),
+        .clk_6p25MHz(clk_6p25MHz),
+        .clk_100MHz(clk_100MHz),
+        .xpos(xpos),
+        .ypos(ypos),
+        .mouse_left(mouse_left),
         .reset(!is_getting_coefficients || !is_phase_three),
         .btnC((is_getting_coefficients && keypad_active) ? btnC : 1'b0),
         .btnU((is_getting_coefficients && keypad_active) ? btnU : 1'b0),
@@ -192,6 +197,7 @@ module phase_three_wrapper(
     // Graph display for showing function
     graph_display_cached graph_display(
         .clk(clk_6p25MHz),
+        .clk_100MHz(clk_100MHz),
         // I disabled the buttons for now to make sure it doesnt intefere with other stuff
         .btnU(0),
         .btnD(0),
@@ -211,7 +217,7 @@ module phase_three_wrapper(
         .mouse_left(mouse_left),
         .mouse_right(1'b0),
         .mouse_middle(mouse_middle),
-        .new_event(1'b0),
+        .new_event(new_event),
         .colour(16'hF800), // Red line for graph
         .is_graphing_mode(is_menu_selection || is_table_selected || is_integral_selected),
         .is_integrate(is_integral_selected),
@@ -253,6 +259,10 @@ module phase_three_wrapper(
     integral_module integral_module(
         .clk_6p25MHz(clk_6p25MHz),
         .clk_1kHz(clk_1kHz),
+        .clk_100MHz(clk_100MHz),
+        .xpos(xpos),
+        .ypos(ypos),
+        .mouse_left(mouse_left),
         .btnC(btnC),
         .btnU(btnU),
         .btnD(btnD),
@@ -273,6 +283,7 @@ module phase_three_wrapper(
     // Arithmetic module (the simplest module lol)
     arithmetic_module arithmetic_module(
         .clk_6p25MHz(clk_6p25MHz),
+        .clk_100MHz(clk_100MHz),
         .clk_1kHz(clk_1kHz),
         .btnC(btnC),
         .btnU(btnU),

@@ -22,11 +22,12 @@
 
 module pan_graph(
     input basys_clk, //6p25MHz clock
+    input clk_100MHz,
     input is_pan,
     input left,
     input right,
-    input mouse_x,
-    input mouse_y,
+    input [11:0] mouse_x,
+    input [11:0] mouse_y,
     input zpos,
     input new_event,
     input rst,
@@ -75,11 +76,11 @@ module pan_graph(
     
     wire [1:0] scroll_dir;
     scroll_led_accum scroll_test (
-    .clk         (basys_clk),
-    .rst         (rst),
+    .clk        (clk_6p25MHz),
+    .rst         (0),
     .new_event   (new_event),
     .zpos        (zpos),
-    .scroll_dir (scroll_dir));
+    .wow (scroll_dir));
     //scroll up is 10, scroll down is 01, no input is 00 on the next clk cycle
        
     always @ (posedge basys_clk) begin

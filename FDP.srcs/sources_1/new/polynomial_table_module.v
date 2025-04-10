@@ -32,8 +32,8 @@ module polynomial_table_module(
     input btnD,
     input btnL,
     input btnR,
-    input [6:0] xpos,
-    input [6:0] ypos,
+    input [11:0] xpos,
+    input [11:0] ypos,
     input use_mouse,
     input mouse_left,
     input mouse_middle,
@@ -60,6 +60,16 @@ module polynomial_table_module(
     input rst,
     input zpos
     );
+    
+    //for mouse: to find the current coordinates of the mouse
+    wire [6:0] curr_x;
+        wire [6:0] curr_y;
+        mouse_coordinate_extractor unit_t (clk_6p25MHz,
+        xpos,    // 12-bit mouse x position
+        ypos,    // 12-bit mouse y position
+        curr_x,
+        curr_y
+        );
 
     // Internal signals and states
     wire is_table_input_mode;
@@ -85,13 +95,14 @@ module polynomial_table_module(
 
     // Cursor controller
     polynomial_table_cursor_controller cursor_controller(
-        .mouse_xpos(xpos),
-        .mouse_ypos(ypos),
+        .mouse_xpos(curr_x),
+        .mouse_ypos(curr_y),
         .mouse_left(mouse_left),
         .mouse_middle(mouse_middle),
         .use_mouse(use_mouse),
         .clk_100MHz(clk_100MHz),
         .clk(clk_1kHz),
+        .clk_6p25MHz(clk_6p25MHz),
         .btnC(btnC),
         .btnU(btnU),
         .btnD(btnD),

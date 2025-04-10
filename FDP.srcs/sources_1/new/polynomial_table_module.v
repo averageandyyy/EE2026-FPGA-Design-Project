@@ -54,13 +54,11 @@ module polynomial_table_module(
     // Two outgoing display data
     output [15:0] one_oled_data,
     output [15:0] two_oled_data,
-    
     //for mouse stuff
     input new_event,
     input rst,
     input zpos
     );
-    
     //for mouse: to find the current coordinates of the mouse
     wire [6:0] curr_x;
         wire [6:0] curr_y;
@@ -70,9 +68,9 @@ module polynomial_table_module(
         curr_x,
         curr_y
         );
-
     // Internal signals and states
     wire is_table_input_mode;
+    assign is_table_input_mode_outgoing = is_table_input_mode;
     wire [1:0] cursor_row;
     wire [2:0] cursor_col;
     wire keypad_btn_pressed;
@@ -166,16 +164,29 @@ module polynomial_table_module(
     );
 
     // Input display
-    polynomial_table_input_display input_display(
+    // polynomial_table_input_display input_display(
+        // .clk(clk_6p25MHz),
+        // .pixel_index(two_pixel_index),
+        // .is_table_input_mode(is_table_input_mode),
+        // .bcd_value(bcd_value),
+        // .has_decimal(has_decimal),
+        // .has_negative(has_negative),
+        // .input_index(input_index),
+        // .decimal_pos(decimal_pos),
+        // .oled_data(two_oled_data)
+    // );
+
+    // Input display
+    coefficient_input_display input_display(
         .clk(clk_6p25MHz),
         .pixel_index(two_pixel_index),
-        .is_table_input_mode(is_table_input_mode),
         .bcd_value(bcd_value),
+        .decimal_pos(decimal_pos),
+        .input_index(input_index),
         .has_decimal(has_decimal),
         .has_negative(has_negative),
-        .input_index(input_index),
-        .decimal_pos(decimal_pos),
-        .oled_data(two_oled_data)
+        .coeff_state(3'b111),
+        .oled_data(input_oled_data)
     );
 
     // Keypad/Table renderer
@@ -186,4 +197,6 @@ module polynomial_table_module(
         .table_oled_data(table_oled_data),
         .oled_data(one_oled_data)
     );
+
+    assign two_oled_data = is_table_input_mode ? input_oled_data : 16'b0;
 endmodule

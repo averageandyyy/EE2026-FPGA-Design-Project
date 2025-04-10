@@ -113,7 +113,7 @@ module polynomial_table_input_display(
             for (i = 0; i < inp_idx; i = i + 1) begin
                 if (char_idx < 8) begin
                     // Add decimal point if needed
-                    if (has_dec && i == dec_pos) begin
+                    if (has_dec && i == dec_pos+1) begin
                         char_codes[char_idx] = 6'b001110; // Decimal point (14)
                         char_idx = char_idx + 1;
                     end

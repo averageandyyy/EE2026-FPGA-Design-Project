@@ -71,6 +71,7 @@ module graph_display_cached(
     wire [15:0] zoom_level_y;
     reg is_pan = 1;
     reg prev_btnC = 0;
+    reg [47:0] tolerance;
 
     // Control state machine
     reg [2:0] computation_state = 0;
@@ -239,6 +240,7 @@ module graph_display_cached(
                                            (pan_offset_x << FP_SHIFT);
             y_math_pos = (((y_pos - (SCREEN_HEIGHT >> 1)) << FP_SHIFT) / zoom_level_y) + 
                                            (pan_offset_y << FP_SHIFT);
+            tolerance = (1 << (FP_SHIFT-1)) / zoom_level_y;
             
             // Draw grid lines
             if ((x_math_pos % (10 << FP_SHIFT)) == 0 || (y_math_pos % (10 << FP_SHIFT)) == 0) begin
@@ -257,16 +259,25 @@ module graph_display_cached(
                 curr_y_val = y_cache[x_pos];
                 prev_y_val = y_cache[x_pos-1];
 
-                if (curr_y_val > 32'h7FFF0000 || curr_y_val < 32'h80000000) begin
+                if (curr_y_val > 48'sh00007FFF0000|| curr_y_val < -48'sh000080000000) begin
                     is_overflow = 1;
                 end
 
-                // Direct comparison in mathematical coordinate space
-                if ((curr_y_val >= y_math_pos && prev_y_val <= y_math_pos) || 
-                    (curr_y_val <= y_math_pos && prev_y_val >= y_math_pos) || 
-                    (curr_y_val == y_math_pos) && !is_overflow) 
+                // Check if the line crosses or comes close to the current y_math_pos
+                if (
+                    (
+                        (curr_y_val >= y_math_pos && prev_y_val <= y_math_pos) || 
+                        (curr_y_val <= y_math_pos && prev_y_val >= y_math_pos)
+                    ) || 
+                    (
+                        (curr_y_val >= (y_math_pos - tolerance)) && 
+                        (curr_y_val <  (y_math_pos + tolerance))
+                    )
+                )
                 begin
-                    oled_data <= colour;
+                    if (!is_overflow) begin
+                        oled_data <= colour;
+                    end
                 end
                 
                 // Fill area for integration

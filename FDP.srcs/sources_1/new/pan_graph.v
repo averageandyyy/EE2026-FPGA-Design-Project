@@ -21,19 +21,23 @@
 
 
 module pan_graph(
-    input basys_clk,
+    input basys_clk, //6p25MHz clock
+    input clk_100MHz,
     input is_pan,
+    input is_pan_mouse,
     input left,
     input right,
-    input mouse_x,
-    input mouse_y,
+    input [11:0] mouse_x,
+    input [11:0] mouse_y,
+    input use_mouse,
     input zpos,
     input new_event,
+    input rst,
     input btnU, btnD, btnL, btnR, btnC,
     output reg signed [15:0]pan_offset_x, 
     output reg signed [15:0]pan_offset_y,
     output reg [3:0]zoom_level_x,
-    output reg [3:0]zoom_level_y ,
+    output reg [3:0]zoom_level_y,
     output reg [15:0]led
 );
     
@@ -72,42 +76,32 @@ module pan_graph(
     reg prevBtnC = 0;
     reg prevleft = 0;
     
-    //scroll wheel debouncing
-    reg signed [3:0] zpos_prev = 0;
-    reg [19:0] cooldown_counter = 0;
-    reg cooldown_active = 0;
-    //end of scroll wheel debounce
+    wire [1:0] scroll_dir;
+    scroll_led_accum scroll_test (
+    .clk        (clk_6p25MHz),
+    .rst         (0),
+    .new_event   (new_event),
+    .zpos        (zpos),
+    .wow (scroll_dir));
+    //scroll up is 10, scroll down is 01, no input is 00 on the next clk cycle
        
     always @ (posedge basys_clk) begin
         //Zooming
         if (~is_pan) begin
-            if (cooldown_active) begin
-                if (cooldown_counter > 0)
-                   cooldown_counter <= cooldown_counter - 1;
-                else
-                    cooldown_active <= 0;
-            end 
-//            if (new_event) begin
-            else if (new_event && $signed(zpos) != 0) begin
                 // Only trigger if scroll input is non-zero
-                if ($signed(zpos) > zpos_prev) begin
-                    if (right)
+            if (scroll_dir == 01) begin
+                if (right)
                     //scroll down = zoom out
-                        zoom_level_x = (zoom_level_x > 1) ? zoom_level_x / 2 : 1;
-                    else zoom_level_y = (zoom_level_y > 1) ? zoom_level_y / 2 : 1;
-                                
-                end
-                else if ($signed(zpos) < zpos_prev) begin
-                    //scroll up = zoom in
-                    if (right) zoom_level_x = (zoom_level_x < 8) ? zoom_level_x * 2 : 8;
-                    else zoom_level_y = (zoom_level_y < 8) ? zoom_level_y * 2 : 8;
-                end
-                zpos_prev <= $signed(zpos);
-                       
-                // Start cooldown
-                cooldown_active <= 1;
-                cooldown_counter <= 20'd1000000; // ~10ms cooldown
+                    zoom_level_x = (zoom_level_x > 1) ? zoom_level_x / 2 : 1;
+                else zoom_level_y = (zoom_level_y > 1) ? zoom_level_y / 2 : 1;
+                            
             end
+            else if (scroll_dir == 10) begin
+                //scroll up = zoom in
+                if (right) zoom_level_x = (zoom_level_x < 8) ? zoom_level_x * 2 : 8;
+                else zoom_level_y = (zoom_level_y < 8) ? zoom_level_y * 2 : 8;
+            end
+                        
         //try this logic: zoom wrt y is regular scroll
         //if want to zoom wrt x, hold down right click
             if (prevBtnU & ~btnU) begin
@@ -132,25 +126,25 @@ module pan_graph(
 //                        pan_offset_y <= {9'b0, mouse_y};
 //             end 
                         // Otherwise, if the left mouse button is not held, use button inputs.
-                        if (prevBtnU && ~btnU || ((curr_x >= 19) && (curr_x <= 76) && (curr_y >= 0) && (curr_y<= 12) && (~left && prevleft))) begin
+                        if (prevBtnU && ~btnU || ((is_pan_mouse) && (use_mouse) && (curr_x >= 19) && (curr_x <= 76) && (curr_y >= 0) && (curr_y<= 12) && (~left && prevleft))) begin
                             if (pan_offset_y >= 90)
                                 pan_offset_y <= 90;
                             else
                                 pan_offset_y <= pan_offset_y + 2;
                         end
-                        if (prevBtnD && ~btnD || ((curr_x >= 19) && (curr_x <= 76) && (curr_y >= 51) && (curr_y <= 63) && (~left && prevleft) )) begin
+                        if (prevBtnD && ~btnD || ((is_pan_mouse) && (use_mouse) && (curr_x >= 19) && (curr_x <= 76) && (curr_y >= 51) && (curr_y <= 63) && (~left && prevleft) )) begin
                             if (pan_offset_y <= -90)
                                 pan_offset_y <= -90;
                             else
                                 pan_offset_y <= pan_offset_y - 2;
                         end
-                        if (prevBtnL && ~btnL || ((curr_x >= 0) && (curr_x <= 18) && (curr_y >= 0) && (curr_y <= 63) && (~left && prevleft) )) begin
+                        if (prevBtnL && ~btnL || ((is_pan_mouse) && (use_mouse) && (curr_x >= 0) && (curr_x <= 18) && (curr_y >= 0) && (curr_y <= 63) && (~left && prevleft) )) begin
                             if (pan_offset_x <= -90)
                                 pan_offset_x <= -90;
                             else
                                 pan_offset_x <= pan_offset_x - 2;
                         end
-                        if (prevBtnR && ~btnR || ((curr_x >= 77) && (curr_x <= 95) && (curr_y >= 0) && (curr_y <= 63) && (~left && prevleft) )) begin
+                        if (prevBtnR && ~btnR || ((is_pan_mouse) && (use_mouse) && (curr_x >= 77) && (curr_x <= 95) && (curr_y >= 0) && (curr_y <= 63) && (~left && prevleft) )) begin
                             if (pan_offset_x >= 90)
                                 pan_offset_x <= 90;
                             else

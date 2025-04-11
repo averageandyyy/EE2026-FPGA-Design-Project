@@ -24,7 +24,11 @@ This module is merely responsible for showing the 2 button menu
 for choosing between Table and Integration
 */
 module phase_three_menu_display(
-    input clock,
+    input clock, //clk is 6p25MHz
+    input [11:0] xpos, ypos,
+    input mouse_left,
+    input use_mouse, //use sw[0]
+    input clk_100MHz,
     input [12:0] pixel_index,
     input cursor_row, // 0 = TABLE, 1 = INTG
     input btnC,
@@ -33,7 +37,25 @@ module phase_three_menu_display(
 
     wire [6:0] x = pixel_index % 96;
     wire [6:0] y = pixel_index / 96;
-    
+        //debouncing for left mouse button
+    parameter DEBOUNCE_DELAY = 2000000;
+    reg [21:0] counter;    // Counter for debounce delay (needs enough bits)
+    reg debounced;         // Stores the debounced state
+    initial begin
+        counter   = 0;
+        debounced = 1'b0;
+    end
+    always @(posedge clk_100MHz) begin
+            if (mouse_left == debounced) 
+                counter <= 0;
+            else begin
+                counter <= counter + 1;
+                if (counter >= DEBOUNCE_DELAY) debounced <= mouse_left;
+            
+            end
+    end
+    reg mouse_left_prev;
+    initial begin mouse_left_prev = 1'b0; end
     // Drawing the menu
     always @(posedge clock) begin
         // Set default background
@@ -127,7 +149,7 @@ module phase_three_menu_display(
         
         // TABLE button (top option)
         if ((y >= 20 && y <= 30) && (x >= 30 && x <= 66)) begin
-            if (btnC && cursor_row == 0) begin
+            if ((btnC || (use_mouse && debounced && !mouse_left_prev)) && cursor_row == 0) begin
                 oled_data <= 16'b00000_111111_00000; // Green when selected
             end
             else begin
@@ -174,7 +196,7 @@ module phase_three_menu_display(
         
         // INTG button (bottom option)
         if ((y >= 35 && y <= 45) && (x >= 30 && x <= 66)) begin
-            if (btnC && cursor_row == 1) begin
+            if ((btnC || (use_mouse && debounced && !mouse_left_prev)) && cursor_row == 1) begin
                 oled_data <= 16'b00000_111111_00000; // Green when selected
             end
             else begin
@@ -229,5 +251,6 @@ module phase_three_menu_display(
                     oled_data <= 16'b11111_111111_11111;
             end
         end
+        mouse_left_prev <= debounced;
     end
 endmodule

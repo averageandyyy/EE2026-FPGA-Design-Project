@@ -181,7 +181,12 @@ module polynomial_table_table_display(
             2: begin // Wait for computation to complete
                 if (computation_complete) begin
                     // Store computed y value
-                    y_values[comp_row] <= computed_y;
+                    if (computed_y > 48'sh00007FFF0000|| computed_y < -48'sh000080000000) begin
+                        y_values[comp_row] <= (computed_y < 0) ? 32'h80000000 : 32'h7FFF0000;
+                    end
+                    else begin
+                        y_values[comp_row] <= computed_y;
+                    end
                     
                     // Move to next row or finish computation
                     if (comp_row < TABLE_ROWS-1) begin

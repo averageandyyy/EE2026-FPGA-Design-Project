@@ -53,7 +53,8 @@ module phase_three_wrapper(
     input mouse_left,
     input middle,
     input mouseonJB,
-    input new_event
+    input new_event,
+    output overflow_flag
     );
 
     // State signals from controller
@@ -330,7 +331,8 @@ module phase_three_wrapper(
         .one_pixel_index(one_pixel_index),
         .two_pixel_index(two_pixel_index),
         .one_oled_data(arithmetic_one_oled_data),
-        .two_oled_data(arithmetic_two_oled_data)
+        .two_oled_data(arithmetic_two_oled_data),
+        .overflow_flag(overflow_flag)
     );
 
     // Output multiplexing for the first OLED

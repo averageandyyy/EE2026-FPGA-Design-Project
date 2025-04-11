@@ -98,12 +98,12 @@ module polynomial_table_cursor_controller(
     wire on_checkmark = (cursor_col == 3'd3 && is_table_input_mode);
    
     wire [1:0] scroll_state;
-    scroll_led_accum scroll_status (
-    .clk         (clk_100MHz),
-    .rst         (!is_table_mode),
-    .new_event   (new_event),
-    .zpos        (zpos),
-    .wow (scroll_state));
+//    scroll_led_accum scroll_status (
+//    .clk         (clk_100MHz),
+//    .rst         (!is_table_mode),
+//    .new_event   (new_event),
+//    .zpos        (zpos),
+//    .wow (scroll_state));
     //scroll up is 10, scroll down is 01, no input is 00 on the next clk cycle
     reg [1:0] scroll_dir;
     reg [16:0] ctr = 17'd0;

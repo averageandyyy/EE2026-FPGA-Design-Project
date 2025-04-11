@@ -76,13 +76,13 @@ module Top_Student (
   
 
      //part that tracks the number of scroll wheel inputs
-    wire [1:0] scroll_leds;
-         scroll_led_accum scroll_test (
-              .clk         (clk_6p25MHz),
-              .rst         (rst),
-              .new_event   (new_event),
-              .zpos        (zpos),
-              .wow (scroll_leds));
+//    wire [1:0] scroll_leds;
+//         scroll_led_accum scroll_test (
+//              .clk         (clk_6p25MHz),
+//              .rst         (rst),
+//              .new_event   (new_event),
+//              .zpos        (zpos),
+//              .wow (scroll_leds));
    //end of part that tracks the number of scroll wheel inputs, shift this around if needed
 
     // 1kHz clock for cursor_controller

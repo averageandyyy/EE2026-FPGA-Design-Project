@@ -77,12 +77,12 @@ module pan_graph(
     reg prevleft = 0;
     
     wire [1:0] scroll_dir;
-    scroll_led_accum scroll_test (
-    .clk        (clk_6p25MHz),
-    .rst         (0),
-    .new_event   (new_event),
-    .zpos        (zpos),
-    .wow (scroll_dir));
+//    scroll_led_accum scroll_test (
+//    .clk        (clk_6p25MHz),
+//    .rst         (0),
+//    .new_event   (new_event),
+//    .zpos        (zpos),
+//    .wow (scroll_dir));
     //scroll up is 10, scroll down is 01, no input is 00 on the next clk cycle
        
     always @ (posedge basys_clk) begin

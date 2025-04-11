@@ -31,27 +31,40 @@ module seven_seg_controller(
     // Letters for display
     parameter [7:0] A = 8'b10001000;
     parameter [7:0] R = 8'b10101111;
-    parameter [7:0] T = 8'b10001111;
+    parameter [7:0] T = 8'b10000111;
     parameter [7:0] H = 8'b10001011;
     parameter [7:0] O = 8'b11000000;
     parameter [7:0] L = 8'b11000111;
     parameter [7:0] D = 8'b10100001;
     parameter [7:0] N = 8'b10101011;
-    parameter [7:0] F = 8'b10101111;
-    parameter [7:0] U = 8'b11000001;
+    parameter [7:0] F = 8'b10001110;
+    parameter [7:0] U = 8'b11100011;
     parameter [7:0] C = 8'b10100111;
+    parameter [7:0] S = 8'b10010010;
+    parameter [7:0] E = 8'b10000110;
+
     parameter [7:0] BLANK = 8'b11111111;
 
     // States
     parameter [3:0] STATE_1_2 = 4'b0000;
     parameter [3:0] STATE_ARITHMETIC = 4'b0001;
     parameter [3:0] STATE_FUNCTION = 4'b0010;
+    parameter [3:0] STATE_MOUSE = 4'b1111;
+    parameter [3:0] STATE_ARITH_OVERFLOW = 4'b0011;
     
     reg toggle_state = 0;
     reg [19:0] counter = 0; 
     reg [1:0] mux_count = 0;
+
+    // For overflow
+    reg is_still_overflow_display = 0;
+    reg [8:0] count_for_overflow = 0;
+
     
     always @(posedge my_1_khz_clk) begin
+        // reset the anodes
+        an <= 4'b0000;
+
         // always increment counter every clock cycle
         counter <= counter + 1;
         if (counter == 750) begin
@@ -61,6 +74,17 @@ module seven_seg_controller(
 
         // Anoding
         mux_count <= mux_count + 1;
+
+        // When the arithmetic backend overflows
+        if (seven_segment_mode == STATE_ARITH_OVERFLOW) begin
+            is_still_overflow_display <= 1;
+            count_for_overflow <= 750;
+        end
+
+        // Reset overflow Flag
+        if (count_for_overflow == 0) begin
+            is_still_overflow_display <= 0;
+        end
         
         if (seven_segment_mode == STATE_1_2) begin
             case (mux_count)
@@ -124,7 +148,7 @@ module seven_seg_controller(
                     end
                 end
             endcase
-        end else if (seven_segment_mode == STATE_ARITHMETIC) begin
+        end else if (seven_segment_mode == STATE_ARITHMETIC && !is_still_overflow_display) begin
             case (mux_count)
                 2'b00: begin 
                     if (toggle_state) begin
@@ -248,6 +272,92 @@ module seven_seg_controller(
                     end
                 end
             endcase
+        end else if (seven_segment_mode == STATE_MOUSE) begin
+            case (mux_count)
+                2'b00: begin 
+                    if (toggle_state) begin
+                        seg <= C;
+                        an <= 4'b0111;
+                    end else begin
+                        if (~back_switch) begin
+                            seg <= C;
+                            an <= 4'b0111;
+                        end else begin
+                            seg <= BLANK;
+                            an <= 4'b0111;
+                        end
+                    end
+                end
+                
+                2'b01: begin
+                    if (toggle_state) begin
+                        seg <= U;
+                        an <= 4'b1011;
+                    end else begin
+                        if (~back_switch) begin
+                            seg <= U;
+                            an <= 4'b1011;
+                        end else begin
+                            seg <= O;
+                            an <= 4'b1011;
+                        end
+                    end
+                end
+                
+                2'b10: begin
+                    if (toggle_state) begin
+                        seg <= R;
+                        an <= 4'b1101;
+                    end else begin
+                        if (~back_switch) begin
+                            seg <= R;
+                            an <= 4'b1101;
+                        end else begin
+                            seg <= F;
+                            an <= 4'b1101;
+                        end
+                    end
+                end
+                
+                2'b11: begin  
+                    if (toggle_state) begin
+                        seg <= S;
+                        an <= 4'b1110;
+                    end else begin
+                        if (~back_switch) begin
+                            seg <= S;
+                            an <= 4'b1110;
+                        end else begin
+                            seg <= F;
+                            an <= 4'b1110;
+                        end
+                    end
+                end
+            endcase        
+        end else if (is_still_overflow_display) begin
+            case (mux_count)
+                2'b00: begin 
+                        seg <= E;
+                        an <= 4'b0111;
+                end
+                
+                2'b01: begin
+                        seg <= R;
+                        an <= 4'b1011;
+                end
+                
+                2'b10: begin
+                        seg <= R;
+                        an <= 4'b1101;
+                end
+                
+                2'b11: begin 
+                        seg <= BLANK;
+                        an <= 4'b1110;
+                end
+            endcase
+
+            count_for_overflow <= count_for_overflow - 1;
         end
     end    
     

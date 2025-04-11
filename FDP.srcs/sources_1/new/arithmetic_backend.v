@@ -30,14 +30,15 @@
     output reg is_operand_mode = 0,
     output reg signed [31:0] result = 0,
     output reg [1:0] current_operation = 0,
-    output reg [1:0] operation_done = 0
+    output reg [1:0] operation_done = 0,
+    output overflow_flag
     );
 
     // Operation constants
     parameter ADD = 2'd0;
     parameter SUBTRACT = 2'd1;
     parameter MULTIPLY = 2'd2;
-    parameter DIVIDE = 2'd3;
+    parameter DIVIDE = 2'd3; 
 
     // Flag for first calculation
     reg is_first_calc = 1;
@@ -49,6 +50,9 @@
     // Overflow detection flags
     reg overflow;
     reg [31:0] temp_result;
+
+    // Assignment of overflow flag
+    assign overflow_flag = overflow;
 
     always @ (posedge clk) begin
         // Reset operation_done and overflow

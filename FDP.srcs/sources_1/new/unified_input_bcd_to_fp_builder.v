@@ -76,6 +76,8 @@ module unified_input_bcd_to_fp_builder(
     reg [31:0] power_of_ten;
     reg [3:0] digit_idx;
 
+    localparam MAX_Q16_INT = 32767;
+
     integer i;
 
     // Loop to update packed BCD value from individual digits
@@ -232,6 +234,11 @@ module unified_input_bcd_to_fp_builder(
                 end
                 
                 APPLY_SIGN: begin
+                    // Clamp to maximum value
+                    if (integer_part > MAX_Q16_INT) begin
+                        integer_part = MAX_Q16_INT;
+                    end
+
                     // Combine integer and fractional parts
                     fp_value <= (integer_part << 16) + fractional_part;
                     

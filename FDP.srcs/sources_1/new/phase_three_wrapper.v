@@ -62,9 +62,15 @@ module phase_three_wrapper(
     wire is_integral_selected;
     wire [1:0] coeff_state;
     wire cursor_row;
+    wire is_table_input_mode_outgoing;
+    wire is_integral_complete_outgoing;
 
     // Coefficient values
     wire signed [31:0] coeff_a, coeff_b, coeff_c, coeff_d;
+
+    // Integration bounds
+    wire signed [31:0] integration_lower_bound;
+    wire signed [31:0] integration_upper_bound;
 
     // Keypad and input signals
     wire keypad_active;
@@ -239,9 +245,10 @@ module phase_three_wrapper(
         .colour(16'hF800), // Red line for graph
         .is_graphing_mode(is_menu_selection || is_table_selected || is_integral_selected),
         .is_integrate(is_integral_selected),
-        .integration_lower_bound(32'hFFFFE000), // Default -2.0
-        .integration_upper_bound(32'h00002000), // Default 2.0
-        .oled_data(graph_oled_data)
+        .integration_lower_bound(integration_lower_bound), // Default -2.0
+        .integration_upper_bound(integration_upper_bound), // Default 2.0
+        .oled_data(graph_oled_data),
+        .is_integral_complete_outgoing(is_integral_complete_outgoing)
     );
 
     // Polynomial table module
@@ -296,7 +303,11 @@ module phase_three_wrapper(
         .one_pixel_index(one_pixel_index),
         .two_pixel_index(two_pixel_index),
         .one_oled_data(integral_one_oled_data),
-        .two_oled_data(integral_two_oled_data)
+        .two_oled_data(integral_two_oled_data),
+        .integration_lower_bound(integration_lower_bound),
+        .integration_upper_bound(integration_upper_bound),
+        .is_complete_outgoing(is_integral_complete_outgoing),
+        .graph_oled_data(graph_oled_data)
     );
 
     // Arithmetic module (the simplest module lol)

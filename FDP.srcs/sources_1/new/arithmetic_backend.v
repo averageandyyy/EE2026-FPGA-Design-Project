@@ -45,11 +45,15 @@
     // Temporary variable for multiplication
     reg signed [63:0] product;
     reg signed [63:0] dividend;
-
+    
+    // Overflow detection flags
+    reg overflow;
+    reg [31:0] temp_result;
 
     always @ (posedge clk) begin
-        // Reset operation_done
+        // Reset operation_done and overflow
         operation_done <= 0;
+        overflow <= 0;
 
         // System reset
         if (reset) begin
@@ -76,17 +80,27 @@
                         // Perform calculation using current operation (or last registered operand)
                         case (current_operation)
                             ADD: begin
-                                result <= result + input_fp_value;
+                                temp_result = result + input_fp_value;
+                                // Overflow check: if both inputs positive but result negative, or both negative but result positive
+                                overflow = ((result[31] == 0 && input_fp_value[31] == 0 && temp_result[31] == 1) || 
+                                           (result[31] == 1 && input_fp_value[31] == 1 && temp_result[31] == 0));
+                                result <= overflow ? 0 : temp_result;
                             end
 
                             SUBTRACT: begin
-                                result <= result - input_fp_value;
+                                temp_result = result - input_fp_value;
+                                // Overflow check: if first positive, second negative but result negative, or first negative, second positive but result positive
+                                overflow = ((result[31] == 0 && input_fp_value[31] == 1 && temp_result[31] == 1) || 
+                                           (result[31] == 1 && input_fp_value[31] == 0 && temp_result[31] == 0));
+                                result <= overflow ? 0 : temp_result;
                             end
 
                             MULTIPLY: begin
                                 // For Q16.16 multiplication, we need to shift right by 16
                                 product = result * input_fp_value;
-                                result <= (product) >>> 16;
+                                // Check for overflow: if high bits are not sign extension of low 32 bits
+                                overflow = ((product[63:31] != {33{product[31]}}) && (product[63:31] != 33'h0));
+                                result <= overflow ? 0 : (product >>> 16);
                             end
 
                             DIVIDE: begin
@@ -94,7 +108,17 @@
                                 if (input_fp_value != 0) begin
                                     // Extend the sign bit and result to 64-bits, then shift fractional part into integer part
                                     dividend = { {32{result[31]}}, result } <<< 16;
-                                    result <= dividend / input_fp_value;
+                                    temp_result = dividend / input_fp_value;
+                                    // Check for overflow in division result
+                                    overflow = ((temp_result[31] == 0 && dividend[63] == 1 && input_fp_value[31] == 0) ||
+                                               (temp_result[31] == 1 && dividend[63] == 0 && input_fp_value[31] == 0) ||
+                                               (temp_result[31] == 0 && dividend[63] == 0 && input_fp_value[31] == 1) ||
+                                               (temp_result[31] == 1 && dividend[63] == 1 && input_fp_value[31] == 1));
+                                    result <= overflow ? 0 : temp_result;
+                                end
+                                else begin
+                                    // Division by zero case
+                                    result <= 0;
                                 end
                             end
                         endcase

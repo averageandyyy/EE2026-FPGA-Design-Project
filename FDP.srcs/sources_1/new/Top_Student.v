@@ -104,6 +104,7 @@ module Top_Student (
     wire two_frame_begin;
     wire two_sample_pixel;
     wire [12:0]JA_pixel_index;
+    wire [12:0] JA_rotated_pixel_index;
     wire two_sending_pixels;
     wire [15:0]JA_oled_data;
 
@@ -146,7 +147,7 @@ module Top_Student (
         .clk_1kHz(clk_1kHz),
         .clk_6p25MHz(clk_6p25MHz),
         .one_pixel_index(JB_pixel_index),
-        .two_pixel_index(JA_pixel_index),
+        .two_pixel_index(JA_rotated_pixel_index),
         .one_oled_data(JB_bg_data),
         .two_oled_data(JA_oled_data),
         .btnU(btnU),
@@ -161,7 +162,7 @@ module Top_Student (
         .seg(seg),
         .xpos(xpos),
         .ypos(ypos),
-        .use_mouse(sw[0]),
+        .use_mouse(sw[3]),
         .mouse_left(left),
         .mouse_middle(middle),
         .mouse_right(right),
@@ -170,6 +171,8 @@ module Top_Student (
         //then 0011, 0111, 1111, scroll back down is 1111, 0111, 0011, 0001, 0000
     );
     wire [6:0] curr_x, curr_y;
+    rotate_180_for_JA rotate180(JA_pixel_index, JA_rotated_pixel_index);
+
     on_screen_cursor unit_1 (.basys_clock(clk_6p25MHz),
              .pixel_index(JB_pixel_index),
              .graph_mode_check(1), //change this if ncessary, when to use the mouse and wben not to use the mouse

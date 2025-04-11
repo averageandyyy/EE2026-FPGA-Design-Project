@@ -125,7 +125,6 @@ module phase_control(
         .mouse_middle(mouse_middle),
         .new_event(new_event)
     );
-
     // Output selection based on active phase
     always @ (posedge clk_100MHz) begin
         one_oled_data = is_phase_three ? phase_three_one_oled_data :

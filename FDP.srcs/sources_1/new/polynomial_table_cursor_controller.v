@@ -79,7 +79,9 @@ module polynomial_table_cursor_controller(
         counter   = 0;
         debounced = 1'b0;
     end
-
+    //for scroll wheel
+    //scroll up is 10, scroll down is 01, no input is 00 on the next clk cycle
+    //end of scroll wheel part
     always @(posedge clk_100MHz) begin
             if (mouse_left == debounced) 
                 counter <= 0;
@@ -95,7 +97,6 @@ module polynomial_table_cursor_controller(
     // Flag to track if on the checkmark
     wire on_checkmark = (cursor_col == 3'd3 && is_table_input_mode);
    
-   //scroll wheel part
     wire [1:0] scroll_state;
     scroll_led_accum scroll_status (
     .clk         (clk_6p25MHz),

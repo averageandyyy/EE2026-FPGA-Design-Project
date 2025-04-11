@@ -46,6 +46,14 @@ module phase_control(
     wire is_arithmetic_mode;
     wire is_getting_coefficients;
 
+    // Note:
+    // Phase 1/2: 4'b0000
+    // Phase 3: 
+    //      1. arithmetic: 4'b0001
+    //      2. function: 4'b0010 
+    // mousemode: 4'b1111;
+    wire [3:0] seven_segment_mode;
+
     // OLED data from each phase
     wire [15:0] phase_one_oled_data;
     wire [15:0] phase_two_oled_data;
@@ -114,13 +122,16 @@ module phase_control(
                           (is_phase_two ? phase_two_oled_data : phase_one_oled_data);
                           
     assign two_oled_data = is_phase_three ? phase_three_two_oled_data : 16'h0000;
-    
+
+    assign seven_segment_mode = is_phase_three ? (is_arithmetic_mode ? 4'b0001 : 4'b0010) : () ? : 4'b0000;
+
     // Controlling the seven segment display
     seven_seg_controller ssc(
         .seg(seg),
         .an(an),
         .back_switch(back_switch),
-        .my_1_khz_clk(clk_1kHz)
+        .my_1_khz_clk(clk_1kHz),
+        .seven_segment_mode(seven_segment_mode)
     );
 
     // Debug LEDs

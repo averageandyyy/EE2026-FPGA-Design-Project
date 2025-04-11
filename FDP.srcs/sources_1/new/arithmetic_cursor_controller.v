@@ -32,7 +32,7 @@ module arithmetic_cursor_controller(
     reg [7:0] debounce_R = 0;
 
     // Waiting counter
-    reg [8:0] counter = 9'd500;
+    reg [8:0] counter = 350;
 
     // Flag to track if on the checkmark
     wire on_checkmark = (cursor_col_keypad == 3'd3 && !is_operand_mode);
@@ -61,7 +61,7 @@ module arithmetic_cursor_controller(
             debounce_D <= 0;
             debounce_L <= 0;
             debounce_R <= 0;
-            counter <= 500;
+            counter <= 350;
         end
         else begin
             // Reset button pressed signal each cycle
@@ -117,7 +117,7 @@ module arithmetic_cursor_controller(
                     // Center (Selection)
                     if (btnC && !prev_btnC && debounce_C == 0) begin
                         keypad_btn_pressed <= 1;
-                        counter <= 500;
+                        counter <= 350;
                         if (on_checkmark) begin
                             // Checkmark selected
                             keypad_selected_value <= 4'd12;  // Special value for checkmark
@@ -141,7 +141,7 @@ module arithmetic_cursor_controller(
                     end
                 end
                 else begin
-                    counter <= counter -1;
+                    counter <= counter - 1;
                 end
             end
             else begin

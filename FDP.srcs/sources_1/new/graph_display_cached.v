@@ -33,7 +33,8 @@ module graph_display_cached(
     input is_integrate,
     input signed [31:0] integration_lower_bound,
     input signed [31:0] integration_upper_bound,
-    output reg [15:0] oled_data
+    output reg [15:0] oled_data,
+    input is_integral_complete_outgoing
     );
 
     // Constants
@@ -43,7 +44,7 @@ module graph_display_cached(
     parameter COLOR_AXIS = 16'h0000;      // Black for axes
     parameter COLOR_GRID = 16'h7777;      // Light gray for grid
     parameter COLOR_BG = 16'hFFFF;        // White for background
-    parameter COLOR_FILL = 16'h841F;      // Area fill for integration
+    parameter COLOR_FILL = 16'h001F;      // Area fill for integration
 
     // Pixel position
     wire [6:0] x_pos = pixel_index % SCREEN_WIDTH;
@@ -286,6 +287,26 @@ module graph_display_cached(
 //                begin
 //                    oled_data <= COLOR_FILL;
 //                end
+
+                if ( 
+                    (
+                        ((y_math_pos < curr_y_val ) && (y_math_pos >= 0))
+                        ||
+                        ((y_math_pos > curr_y_val ) && (y_math_pos <= 0))
+                    )
+                    &&
+                    (
+                        (x_math_pos >= integration_lower_bound)
+                        &&
+                        (x_math_pos <= integration_upper_bound)
+                    )
+                    &&
+                    is_integral_complete_outgoing
+                ) begin
+                    oled_data <= COLOR_FILL;
+                end
+
+
             end
         end
     end

@@ -38,6 +38,9 @@ module integral_module(
     input signed [31:0] coeff_c,   
     input signed [31:0] coeff_d,   
 
+    //Graph integral display
+    input [15:0] graph_oled_data,
+
     // OLED outputs
     input [12:0] one_pixel_index,
     input [12:0] two_pixel_index,
@@ -46,7 +49,8 @@ module integral_module(
 
     // Expose user input bounds for use in graph module (KIV WeiHao)       
     output signed [31:0] integration_lower_bound,
-    output signed [31:0] integration_upper_bound
+    output signed [31:0] integration_upper_bound,
+    output is_complete_outgoing
     );
 
     // Internal signals for module coordination
@@ -56,7 +60,8 @@ module integral_module(
     wire is_complete;
     wire input_complete;
     wire is_computation_complete;
-    
+    assign is_complete_outgoing = is_complete;
+
     // Integration bounds
     wire signed [31:0] a_lower;
     wire signed [31:0] b_upper;
@@ -198,5 +203,5 @@ module integral_module(
                           (is_complete ? result_display_oled_data : 16'hFFFF);
     
     // Output for the second OLED
-    assign two_oled_data = is_integral_input_mode ? input_display_oled_data : 16'hFFFF;
+    assign two_oled_data = is_integral_input_mode ? input_display_oled_data : graph_oled_data;
 endmodule

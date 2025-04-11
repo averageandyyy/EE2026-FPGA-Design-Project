@@ -58,7 +58,7 @@ module polynomial_table_table_display(
     
     // Table data storage
     reg signed [31:0] x_values[0:TABLE_ROWS-1];
-    reg signed [31:0] y_values[0:TABLE_ROWS-1];
+    reg signed [47:0] y_values[0:TABLE_ROWS-1];
     reg [47:0] x_string_cache[0:TABLE_ROWS-1];
     reg [47:0] y_string_cache[0:TABLE_ROWS-1];
     
@@ -70,7 +70,7 @@ module polynomial_table_table_display(
     // Computation controller
     reg requires_computation = 0;
     reg [2:0] comp_row = 0;
-    wire signed [31:0] computed_y;
+    wire signed [47:0] computed_y;
     wire computation_complete;
     
     // Conversion controller

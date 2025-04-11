@@ -25,6 +25,12 @@ and SELECTED_FUNCTION, accounting for backwards transitions as well.
 */
 module phase_three_controller(
     input clock,
+    input use_mouse,
+    input mouse_left,
+    input clk_100MHz,
+    input clk_6p25MHz,
+    input [11:0] xpos,
+    input [11:0] ypos,
     input btnU, btnD, btnC, btnL, btnR,
     input back_switch,
     input is_phase_three,
@@ -45,6 +51,34 @@ module phase_three_controller(
     input signed [31:0] fp_value,
     output reg keypad_active = 0
     );
+                    //debouncing for left mouse button
+    parameter DEBOUNCE_DELAY = 2000000;
+    reg [21:0] ctr;    // Counter for debounce delay (needs enough bits)
+    reg debounced;         // Stores the debounced state
+    initial begin
+    ctr   = 0;
+    debounced = 1'b0;
+    end
+    always @(posedge clk_100MHz) begin
+    if (mouse_left == debounced) 
+    ctr <= 0;
+    else begin
+    ctr <= ctr + 1;
+    if (ctr >= DEBOUNCE_DELAY) debounced <= mouse_left; 
+    end
+    end
+    reg mouse_left_prev;
+    initial begin mouse_left_prev = 1'b0; end
+    wire [6:0] mouse_xpos, mouse_ypos;
+
+    //get current coordinates of the mouse
+    mouse_coordinate_extractor coord_extr(
+    clk_6p25MHz, //6p25MHz clock
+    xpos,    // 12-bit mouse x position
+    ypos,    // 12-bit mouse y position
+    mouse_xpos, mouse_ypos);
+    //end of getting current coordinates of the mouse
+
 
     // Previous button states for debouncing
     reg prev_btnC = 0;
@@ -186,6 +220,12 @@ module phase_three_controller(
                     keypad_active <= 0;
                     
                     // Handle cursor movement
+                    if (use_mouse && mouse_xpos >= 30 && mouse_xpos <= 66 && mouse_ypos <= 30 && mouse_ypos >= 20) begin
+                        cursor_row <= 0;
+                    end
+                    else if (use_mouse && mouse_xpos >= 30 && mouse_xpos <= 66 && mouse_ypos <= 45 && mouse_ypos >= 35) begin
+                        cursor_row <= 1;
+                    end
                     if (btnU && !prev_btnU && debounce_U == 0) begin
                         cursor_row <= 0; // TABLE option
                         debounce_U <= 200;
@@ -197,7 +237,7 @@ module phase_three_controller(
                     end
                     
                     // Handle selection
-                    if (btnC && !prev_btnC && debounce_C == 0) begin
+                    if (btnC && !prev_btnC && debounce_C == 0 || (use_mouse && debounced && !mouse_left_prev)) begin
                         is_menu_selection <= 0;
                         
                         if (cursor_row == 0) begin
@@ -252,5 +292,6 @@ module phase_three_controller(
         prev_btnD <= btnD;
         prev_btnC <= btnC;
         prev_btnL <= btnL;
+        mouse_left_prev <= debounced;
     end
 endmodule

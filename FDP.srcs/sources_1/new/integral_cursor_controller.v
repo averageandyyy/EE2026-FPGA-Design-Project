@@ -24,6 +24,7 @@ module integral_cursor_controller(
     input clk,
     input clk_6p25MHz,
     input clk_100MHz,
+    input use_mouse,
     input reset,
     input btnC,
     input btnU,
@@ -132,55 +133,55 @@ module integral_cursor_controller(
                     debounce_U <= 200;
                 end
                 
-                if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 0 && mouse_ypos <= 15) begin // for 7
+                if (use_mouse && mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 0 && mouse_ypos <= 15) begin // for 7
                     cursor_row <= 0;
                     cursor_col <= 0; 
                 end
-                else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 0 && mouse_ypos <= 15) begin //for 8
+                else if (use_mouse && mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 0 && mouse_ypos <= 15) begin //for 8
                     cursor_row <= 0;
                     cursor_col <= 1;
                 end
-                else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 0 && mouse_ypos <= 15) begin //for 9
+                else if (use_mouse && mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 0 && mouse_ypos <= 15) begin //for 9
                     cursor_row <= 0; 
                     cursor_col <= 2;
                 end
-                else if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 16 && mouse_ypos <= 31) begin //for 4
+                else if (use_mouse && mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 16 && mouse_ypos <= 31) begin //for 4
                     cursor_row <= 1;
                     cursor_col <= 0;
                 end
-                else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 16 && mouse_ypos <= 31) begin //for 5
+                else if (use_mouse && mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 16 && mouse_ypos <= 31) begin //for 5
                     cursor_row <= 1;
                     cursor_col <= 1;
                 end
-                else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 16 && mouse_ypos <= 31) begin //for 6
+                else if (use_mouse && mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 16 && mouse_ypos <= 31) begin //for 6
                     cursor_row <= 1;
                     cursor_col <= 2;
                 end
-                else if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 32 && mouse_ypos <= 47) begin //for 1
+                else if (use_mouse && mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 32 && mouse_ypos <= 47) begin //for 1
                     cursor_row <= 2;
                     cursor_col <= 0;
                 end
-                else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 32 && mouse_ypos <= 47) begin //for 2
+                else if (use_mouse && mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 32 && mouse_ypos <= 47) begin //for 2
                     cursor_row <= 2;
                     cursor_col <= 1;
                 end
-                else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 32 && mouse_ypos <= 47) begin //for 3
+                else if (use_mouse && mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 32 && mouse_ypos <= 47) begin //for 3
                     cursor_row <= 2;
                     cursor_col <= 2;
                 end
-                else if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 48 && mouse_ypos <= 63) begin //for 0
+                else if (use_mouse && mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 48 && mouse_ypos <= 63) begin //for 0
                     cursor_row <= 3;
                     cursor_col <= 0;
                 end 
-                else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 48 && mouse_ypos <= 63) begin //for .
+                else if (use_mouse && mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 48 && mouse_ypos <= 63) begin //for .
                     cursor_row <= 3;
                     cursor_col <= 1;
                 end
-                else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 48 && mouse_ypos <= 63) begin //for -
+                else if (use_mouse && mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 48 && mouse_ypos <= 63) begin //for -
                     cursor_row <= 3;
                     cursor_col <= 2;
                 end
-                else begin //on equal sign/checkmark
+                else if (use_mouse) begin //on equal sign/checkmark
                     cursor_col <= 3'd3;
                 end
                     
@@ -218,7 +219,7 @@ module integral_cursor_controller(
                 end
 
                 // Center (Selection)
-                if (btnC && !prev_btnC && debounce_C == 0 || (debounced && !mouse_left_prev)) begin
+                if (btnC && !prev_btnC && debounce_C == 0 || (use_mouse && debounced && !mouse_left_prev)) begin
                     keypad_btn_pressed <= 1;
 
                     if (on_checkmark) begin

@@ -93,6 +93,7 @@ module phase_control(
         .back_switch(back_switch),
         .xpos(xpos),
         .ypos(ypos),
+        .use_mouse(use_mouse),
         .mouse_left(mouse_left),
         .clk_100MHz(clk_100MHz)
     );

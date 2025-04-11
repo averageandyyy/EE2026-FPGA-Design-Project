@@ -33,6 +33,7 @@ module phase_two_wrapper(
     input is_getting_coefficients,
     input back_switch,
     input [11:0] xpos, ypos,
+    input use_mouse,
     input mouse_left
     );
     
@@ -64,6 +65,7 @@ module phase_two_wrapper(
         .back_switch(back_switch),
         .curr_x(curr_x),
         .curr_y(curr_y),
+        .use_mouse(use_mouse),
         .mouse_left(mouse_left),
         .clk_100MHz(clk_100MHz),
         .clk_6p25MHz(clk_6p25MHz)
@@ -78,6 +80,7 @@ module phase_two_wrapper(
         .btnC(btnC),
         .curr_x(curr_x),
         .curr_y(curr_y),
+        .use_mouse(use_mouse),
         .mouse_left(mouse_left),
         .clk_100MHz(clk_100MHz)
     );

@@ -71,6 +71,7 @@ module arithmetic_module(
         .clk(clk_1kHz),
         .clk_100MHz(clk_100MHz),
         .clk_6p25MHz(clk_6p25MHz),
+        .use_mouse(use_mouse),
         .mouse_left(mouse_left),
         .xpos(xpos),
         .ypos(ypos),

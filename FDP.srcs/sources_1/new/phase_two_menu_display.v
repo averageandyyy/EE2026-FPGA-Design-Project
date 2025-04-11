@@ -33,6 +33,7 @@ module phase_two_menu_display(
     input btnC,
     input [6:0] curr_x, curr_y,
     input mouse_left,
+    input use_mouse,
     input clk_100MHz
     );
 
@@ -101,7 +102,7 @@ module phase_two_menu_display(
             
         // function button
         if ((y >= 15 && y <= 25) && (x >= 32 && x <= 66)) begin 
-            if ((btnC || (debounced && !mouse_left_prev && curr_x >= 32 && curr_x <= 66 & curr_y >= 15 && curr_y <= 24)) && cursor_row == 0) begin
+            if ((btnC || (use_mouse && debounced && !mouse_left_prev && curr_x >= 32 && curr_x <= 66 & curr_y >= 15 && curr_y <= 24)) && cursor_row == 0) begin
                 oled_data <= 16'b00000_111111_00000; // Green when selected   
             end
             else begin
@@ -162,7 +163,7 @@ module phase_two_menu_display(
             
         // Arithmetic button
         if ((y >= 26 && y <= 35) && (x >= 30 && x <= 70)) begin 
-            if ((btnC || (debounced && !mouse_left_prev &&curr_x >= 30 && curr_x <= 68 && curr_y >= 26 && curr_y <= 35)) && cursor_row == 1) begin
+            if ((btnC || (use_mouse && debounced && !mouse_left_prev &&curr_x >= 30 && curr_x <= 68 && curr_y >= 26 && curr_y <= 35)) && cursor_row == 1) begin
                 oled_data <= 16'b00000_111111_00000; // Green when selected   
             end
             else begin

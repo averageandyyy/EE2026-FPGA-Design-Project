@@ -53,7 +53,7 @@ module phase_one_wrapper(
         .back_switch(back_switch),
         .xpos(xpos),
         .ypos(ypos),
-        .use_mouse(1), //change to use_mouse, for now permanently on
+        .use_mouse(use_mouse), //change to use_mouse, for now permanently on
         .mouse_left(mouse_left)
     );
     
@@ -67,6 +67,7 @@ module phase_one_wrapper(
         .xpos(xpos),
         .ypos(ypos),
         .clk_100MHz(clk_100MHz),
+        .use_mouse(use_mouse),
         .mouse_left(mouse_left)
     );
     

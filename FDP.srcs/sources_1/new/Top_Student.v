@@ -161,7 +161,7 @@ module Top_Student (
         .seg(seg),
         .xpos(xpos),
         .ypos(ypos),
-        .use_mouse(1),
+        .use_mouse(sw[0]),
         .mouse_left(left),
         .mouse_middle(middle),
         .mouse_right(right),

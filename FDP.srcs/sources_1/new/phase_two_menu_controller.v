@@ -33,6 +33,7 @@ module phase_two_menu_controller(
     input back_switch,
     input [6:0] curr_x, curr_y,
     input mouse_left,
+    input use_mouse,
     input clk_100MHz,
     input clk_6p25MHz
     );
@@ -86,9 +87,9 @@ module phase_two_menu_controller(
             // Only listen iff phase_two
             START: begin
                 if (is_phase_two && !is_phase_three) begin
-                    if (curr_x >= 32 && curr_x <= 66 & curr_y >= 15 && curr_y <= 24) begin
+                    if (use_mouse && curr_x >= 32 && curr_x <= 66 & curr_y >= 15 && curr_y <= 24) begin
                         cursor_row <= 0;
-                        if ((debounced && !mouse_left_prev)) begin
+                        if ((use_mouse && debounced && !mouse_left_prev)) begin
                             if (cursor_row) begin
                                 is_phase_three <= 1;
                                 is_arithmetic_mode <= 1;
@@ -101,9 +102,9 @@ module phase_two_menu_controller(
                         end
                     end
                         
-                    else if (curr_x >= 30 && curr_x <= 68 && curr_y >= 26 && curr_y <= 35) begin
+                    else if (use_mouse && curr_x >= 30 && curr_x <= 68 && curr_y >= 26 && curr_y <= 35) begin
                         cursor_row <= 1;
-                        if ((debounced && !mouse_left_prev)) begin
+                        if ((use_mouse && debounced && !mouse_left_prev)) begin
                             if (cursor_row) begin
                                 is_phase_three <= 1;
                                 is_arithmetic_mode <= 1;
@@ -130,7 +131,7 @@ module phase_two_menu_controller(
 
                     // Arithmetic Selection or Function Selection
                     // Only supports transition to phase two i.e. click start
-                    if (btnC && !prev_btnC && debounce_C == 0 || (debounced && !mouse_left_prev)) begin
+                    if (btnC && !prev_btnC && debounce_C == 0 || (use_mouse && debounced && !mouse_left_prev)) begin
                         if (cursor_row) begin
                             is_phase_three <= 1;
                             is_arithmetic_mode <= 1;

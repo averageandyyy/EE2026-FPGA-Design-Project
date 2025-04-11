@@ -22,6 +22,7 @@
 
 module graph_display_cached(
     input clk, //6p25MHz clock
+    input use_mouse,
     input clk_100MHz,
     input btnU, btnD, btnL, btnR, btnC,
     input [12:0] pixel_index,
@@ -115,6 +116,7 @@ module graph_display_cached(
         .btnL(btnL),
         .btnR(btnR),
         .btnC(btnC),
+        .use_mouse(use_mouse),
         .rst(rst),
         .is_pan(is_pan),
         .mouse_x(curr_x),

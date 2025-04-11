@@ -3,6 +3,7 @@ module arithmetic_cursor_controller(
     input clk_100MHz,
     input clk_6p25MHz,
     input mouse_left,
+    input use_mouse,
     input [11:0]xpos,
     input [11:0]ypos,
     input reset,
@@ -110,55 +111,55 @@ module arithmetic_cursor_controller(
 
             if (!is_operand_mode) begin
                 if (counter == 0) begin
-                    if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 0 && mouse_ypos <= 15) begin
+                    if (use_mouse && mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 0 && mouse_ypos <= 15) begin
                         cursor_row_keypad <= 0;
                         cursor_col_keypad <= 0;
                     end
-                    else if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 16 && mouse_ypos <= 31) begin
+                    else if (use_mouse && mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 16 && mouse_ypos <= 31) begin
                         cursor_row_keypad <= 1;
                         cursor_col_keypad <= 0;
                     end
-                    else if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 32 && mouse_ypos <= 47) begin
+                    else if (use_mouse && mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 32 && mouse_ypos <= 47) begin
                         cursor_row_keypad <= 2;
                         cursor_col_keypad <= 0;
                     end
-                    else if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 48 && mouse_ypos <= 63) begin
+                    else if (use_mouse && mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 48 && mouse_ypos <= 63) begin
                         cursor_row_keypad <= 3;
                         cursor_col_keypad <= 0;
                     end
-                    else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 0 && mouse_ypos <= 15) begin
+                    else if (use_mouse && mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 0 && mouse_ypos <= 15) begin
                         cursor_row_keypad <= 0;
                         cursor_col_keypad <= 1;
                     end
-                    else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 16 && mouse_ypos <= 31) begin
+                    else if (use_mouse && mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 16 && mouse_ypos <= 31) begin
                         cursor_row_keypad <= 1;
                         cursor_col_keypad <= 1;
                     end
-                    else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 32 && mouse_ypos <= 47) begin
+                    else if (use_mouse && mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 32 && mouse_ypos <= 47) begin
                         cursor_row_keypad <= 2;
                         cursor_col_keypad <= 1;
                     end
-                    else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 48 && mouse_ypos <= 63) begin
+                    else if (use_mouse && mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 48 && mouse_ypos <= 63) begin
                         cursor_row_keypad <= 3;
                         cursor_col_keypad <= 1;
                     end
-                    else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 0 && mouse_ypos <= 15) begin
+                    else if (use_mouse && mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 0 && mouse_ypos <= 15) begin
                         cursor_row_keypad <= 0;
                         cursor_col_keypad <= 2;
                     end
-                    else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 16 && mouse_ypos <= 31) begin
+                    else if (use_mouse && mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 16 && mouse_ypos <= 31) begin
                         cursor_row_keypad <= 1;
                         cursor_col_keypad <= 2;
                     end
-                    else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 32 && mouse_ypos <= 47) begin
+                    else if (use_mouse && mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 32 && mouse_ypos <= 47) begin
                         cursor_row_keypad <= 2;
                         cursor_col_keypad <= 2;
                     end
-                    else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 48 && mouse_ypos <= 63) begin
+                    else if (use_mouse && mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 48 && mouse_ypos <= 63) begin
                         cursor_row_keypad <= 3;
                         cursor_col_keypad <= 2;
                     end
-                    else begin //this is the checkmark side
+                    else if (use_mouse) begin //this is the checkmark side
                         cursor_col_keypad <= 3;
                     end
                     // Up button processing
@@ -199,7 +200,7 @@ module arithmetic_cursor_controller(
                     end
 
                     // Center (Selection)
-                    if (btnC && !prev_btnC && debounce_C == 0 || (debounced && !mouse_left_prev)) begin
+                    if (btnC && !prev_btnC && debounce_C == 0 || (use_mouse && debounced && !mouse_left_prev)) begin
                         keypad_btn_pressed <= 1;
                         counter <= 500;
                         if (on_checkmark) begin
@@ -231,19 +232,19 @@ module arithmetic_cursor_controller(
             else begin
                 // OPERAND MODE
                 
-                if (mouse_xpos >= 0 && mouse_xpos <= 47 && mouse_ypos <= 31 && mouse_ypos >= 0) begin //for +
+                if (use_mouse && mouse_xpos >= 0 && mouse_xpos <= 47 && mouse_ypos <= 31 && mouse_ypos >= 0) begin //for +
                     cursor_row_operand <= 0;
                     cursor_col_operand <= 0;
                 end
-                else if (mouse_xpos >= 48 && mouse_xpos <= 95 && mouse_ypos <= 31 && mouse_ypos >= 0) begin //for -
+                else if (use_mouse && mouse_xpos >= 48 && mouse_xpos <= 95 && mouse_ypos <= 31 && mouse_ypos >= 0) begin //for -
                     cursor_row_operand <= 0;
                     cursor_col_operand <= 1;
                 end
-                else if (mouse_xpos >= 0 && mouse_xpos <= 47 && mouse_ypos <= 63 && mouse_ypos >= 32) begin //for x
+                else if (use_mouse && mouse_xpos >= 0 && mouse_xpos <= 47 && mouse_ypos <= 63 && mouse_ypos >= 32) begin //for x
                     cursor_row_operand <= 1;
                     cursor_col_operand <= 0;
                 end
-                else begin //for divide
+                else if (use_mouse) begin //for divide
                     cursor_row_operand <= 1;
                     cursor_col_operand <= 1;
                 end
@@ -281,7 +282,7 @@ module arithmetic_cursor_controller(
                 end
             
                 // Center button handling (selection)
-                if (btnC && !prev_btnC && debounce_C == 0 || (debounced && !mouse_left_prev)) begin
+                if (btnC && !prev_btnC && debounce_C == 0 || (use_mouse && debounced && !mouse_left_prev)) begin
                     operand_btn_pressed <= 1;
                 
                     // Determine selected operand based on cursor position

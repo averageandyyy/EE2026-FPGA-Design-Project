@@ -49,6 +49,7 @@ module phase_control(
     wire is_phase_three;
     wire is_arithmetic_mode;
     wire is_getting_coefficients;
+    wire [3:0] curr_mode;
 
     // OLED data from each phase
     wire [15:0] phase_one_oled_data;
@@ -69,7 +70,7 @@ module phase_control(
         .btnL(btnL),
         .is_phase_two(is_phase_two),
         .is_phase_three(is_phase_three),
-        .back_switch(back_switch),
+        .back_switch(~back_switch),
         .xpos(xpos),
         .ypos(ypos),
         .use_mouse(use_mouse),
@@ -90,7 +91,7 @@ module phase_control(
         .is_phase_three(is_phase_three),
         .is_arithmetic_mode(is_arithmetic_mode),
         .is_getting_coefficients(is_getting_coefficients),
-        .back_switch(back_switch),
+        .back_switch(~back_switch),
         .xpos(xpos),
         .ypos(ypos),
         .use_mouse(use_mouse),
@@ -115,7 +116,7 @@ module phase_control(
         .is_phase_three(is_phase_three),
         .is_arithmetic_mode(is_arithmetic_mode),
         .is_getting_coefficients(is_getting_coefficients),
-        .back_switch(back_switch),
+        .back_switch(~back_switch),
         .xpos(xpos),
         .ypos(ypos),
         .zpos(zpos),
@@ -132,12 +133,15 @@ module phase_control(
     
         two_oled_data = is_phase_three ? phase_three_two_oled_data : 16'h0000;
     end
+    
+    assign curr_mode = (is_phase_two && !is_phase_three) ? 4'b0001 : (is_arithmetic_mode ? 4'b0010 : 4'b0011);
     // Controlling the seven segment display
     seven_seg_controller ssc(
         .seg(seg),
         .an(an),
-        .back_switch(back_switch),
-        .my_1_khz_clk(clk_1kHz)
+        .back_switch(~back_switch),
+        .my_1_khz_clk(clk_1kHz), 
+        .mode(curr_mode)
     );
 
     // Debug LEDs

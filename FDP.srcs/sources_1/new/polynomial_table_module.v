@@ -57,7 +57,8 @@ module polynomial_table_module(
     //for mouse stuff
     input new_event,
     input rst,
-    input zpos
+    input zpos,
+    input is_table_input_mode_outgoing
     );
     //for mouse: to find the current coordinates of the mouse
     wire [6:0] curr_x;

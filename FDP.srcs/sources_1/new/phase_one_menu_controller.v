@@ -33,7 +33,8 @@ module phase_one_menu_controller(
     input back_switch,
     input [11:0] xpos, ypos,
     input use_mouse,
-    input mouse_left
+    input mouse_left,
+    input middle
     );
 
     // Previous button states for debouncing
@@ -54,7 +55,27 @@ module phase_one_menu_controller(
     reg debounced;         // Stores the debounced state
     
     reg mouse_left_prev;
+     //debouncing for middle mouse button
+        reg [21:0] middle_counter;    // Counter for debounce delay (needs enough bits)
+        reg debounced_middle;         // Stores the debounced state
+        initial begin
+            middle_counter   = 0;
+            debounced_middle = 1'b0;
+        end
+        always @(posedge clk_100MHz) begin
+                if (middle == debounced_middle) 
+                    middle_counter <= 0;
+                else begin
+                    middle_counter <= middle_counter + 1;
+                    if (middle_counter >= DEBOUNCE_DELAY) debounced_middle <= middle;
+                
+                end
+        end
+        reg mouse_middle_prev;
+        initial begin mouse_middle_prev = 1'b0; end
+    
     wire [6:0] curr_x, curr_y;
+    
     
     //get current coordinates of the mouse
    mouse_coordinate_extractor coord_extr(
@@ -142,7 +163,7 @@ module phase_one_menu_controller(
             WAIT_TO_GO_BACK: begin
                 // Check for conditions that flip is_phase_two to false
                 // We can only go back iff we are at phase two
-                if (is_phase_two && btnL && back_switch && !is_phase_three) begin
+                if (is_phase_two && (btnL || (use_mouse && debounced_middle && !mouse_middle_prev)) && back_switch && !is_phase_three) begin
                     is_phase_two <= 0;
                     cursor_row <= 0;
                     current_state <= START;
@@ -154,5 +175,6 @@ module phase_one_menu_controller(
         prev_btnC <= btnC;
         prev_btnD <= btnD;
         mouse_left_prev <= debounced;
+        mouse_middle_prev <= debounced_middle;
     end
 endmodule

@@ -31,6 +31,7 @@ module integral_cursor_controller(
     input btnD,
     input btnL,
     input btnR,
+    input middle,
     input [11:0] xpos,
     input [11:0] ypos,
     input mouse_left,

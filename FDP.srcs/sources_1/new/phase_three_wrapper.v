@@ -42,6 +42,7 @@ module phase_three_wrapper(
     output [15:0] two_oled_data,
     input btnU, btnD, btnC, btnL, btnR,
     input is_phase_three,
+    input is_pan_mouse,
     input is_arithmetic_mode,
     output is_getting_coefficients,
     input back_switch,
@@ -50,7 +51,8 @@ module phase_three_wrapper(
     input [3:0] zpos,
     input use_mouse,
     input mouse_left,
-    input mouse_middle,
+    input middle,
+    input mouseonJB,
     input new_event
     );
 
@@ -100,6 +102,7 @@ module phase_three_wrapper(
         .use_mouse(use_mouse),
         .clk_6p25MHz(clk_6p25MHz),
         .mouse_left(mouse_left),
+        .middle(middle),
         .clk_100MHz(clk_100MHz),
         .xpos(xpos),
         .ypos(ypos),
@@ -123,7 +126,8 @@ module phase_three_wrapper(
         .coeff_d(coeff_d),
         .input_complete(input_complete),
         .fp_value(fp_value),
-        .keypad_active(keypad_active)
+        .keypad_active(keypad_active),
+        .mouseonJB(1)
     );
 
     // Unified input builder for coefficients
@@ -226,10 +230,11 @@ module phase_three_wrapper(
         .curr_y(ypos),
         .zoom_level(4'h5), // Default zoom level
         .zpos(zpos),
+        .is_pan_mouse(is_pan_mouse),
         .use_mouse(use_mouse),
         .mouse_left(mouse_left),
         .mouse_right(1'b0),
-        .mouse_middle(mouse_middle),
+        .mouse_middle(middle),
         .new_event(new_event),
         .colour(16'hF800), // Red line for graph
         .is_graphing_mode(is_menu_selection || is_table_selected || is_integral_selected),
@@ -253,7 +258,7 @@ module phase_three_wrapper(
         .ypos(ypos),
         .use_mouse(use_mouse),
         .mouse_left(mouse_left),
-        .mouse_middle(mouse_middle),
+        .mouse_middle(middle),
         .is_table_mode(is_table_selected),
         .coeff_a(coeff_a),
         .coeff_b(coeff_b),
@@ -310,7 +315,7 @@ module phase_three_wrapper(
         .ypos(ypos),
         .use_mouse(use_mouse),
         .mouse_left(mouse_left),
-        .mouse_middle(mouse_middle),
+        .middle(middle),
         .one_pixel_index(one_pixel_index),
         .two_pixel_index(two_pixel_index),
         .one_oled_data(arithmetic_one_oled_data),

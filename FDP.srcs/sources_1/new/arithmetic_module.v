@@ -38,7 +38,7 @@ module arithmetic_module(
     input [11:0] ypos,
     input use_mouse,
     input mouse_left,
-    input mouse_middle,
+    input middle,
 
     // OLED outputs
     input [12:0] one_pixel_index,
@@ -73,6 +73,7 @@ module arithmetic_module(
         .clk_6p25MHz(clk_6p25MHz),
         .use_mouse(use_mouse),
         .mouse_left(mouse_left),
+        .middle(middle),
         .xpos(xpos),
         .ypos(ypos),
         .reset(reset || !is_arithmetic_mode),

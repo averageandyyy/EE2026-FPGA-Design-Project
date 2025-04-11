@@ -37,11 +37,13 @@ module phase_control(
     input mouse_middle,
     input mouse_right,
     input [3:0] zpos,
+    input mouseonJB,
     output [15:0] led,
     input rst,
     output [3:0] an,
     output [7:0] seg,
-    input new_event
+    input new_event,
+    input is_pan_mouse
     );
 
     // Phase state signals
@@ -74,7 +76,8 @@ module phase_control(
         .xpos(xpos),
         .ypos(ypos),
         .use_mouse(use_mouse),
-        .mouse_left(mouse_left)
+        .mouse_left(mouse_left),
+        .middle(mouse_middle)
     );
 
     // Instantiate phase two wrapper
@@ -96,7 +99,8 @@ module phase_control(
         .ypos(ypos),
         .use_mouse(use_mouse),
         .mouse_left(mouse_left),
-        .clk_100MHz(clk_100MHz)
+        .clk_100MHz(clk_100MHz),
+        .middle(mouse_middle)
     );
 
     // Instantiate phase three wrapper
@@ -120,9 +124,11 @@ module phase_control(
         .xpos(xpos),
         .ypos(ypos),
         .zpos(zpos),
+        .mouseonJB(mouseonJB),
+        .is_pan_mouse(is_pan_mouse),
         .use_mouse(use_mouse),
         .mouse_left(mouse_left),
-        .mouse_middle(mouse_middle),
+        .middle(mouse_middle),
         .new_event(new_event)
     );
     // Output selection based on active phase

@@ -31,7 +31,7 @@ module polynomial_table_cursor_controller(
     input [6:0] mouse_ypos,
     input mouse_left,        //used to click
     input mouse_middle,     //used only in table mode, want to switch back to the keypad
-    input clk,
+    input clk, //1kHz clock
     input clk_6p25MHz,
     input clk_100MHz,
     input btnC,
@@ -99,16 +99,32 @@ module polynomial_table_cursor_controller(
    
     wire [1:0] scroll_state;
     scroll_led_accum scroll_status (
-    .clk         (clk_6p25MHz),
+    .clk         (clk_100MHz),
     .rst         (!is_table_mode),
     .new_event   (new_event),
     .zpos        (zpos),
     .wow (scroll_state));
     //scroll up is 10, scroll down is 01, no input is 00 on the next clk cycle
+    reg [1:0] scroll_dir;
+    reg [16:0] ctr = 17'd0;
+    always @(posedge clk_100MHz) begin
+        if (ctr == 17'd0) begin
+             scroll_dir <= scroll_state;
+        end else begin 
+             scroll_dir <= scroll_dir;
+        end
+    
+        if (ctr == 17'd99999) begin
+             ctr <= 17'd0;
+        end else begin
+             ctr <= ctr + 1;
+        end
+    end
 
     
-    
+    reg reset = 0;
     always @ (posedge clk) begin
+      reset = ~reset;
       if (!use_mouse) begin
         // Resetting button pressed on each cycle
         keypad_btn_pressed <= 0;
@@ -373,11 +389,11 @@ module polynomial_table_cursor_controller(
                     end
                     else begin //else for (is_table_input_mode)
                         // Navigation Mode
-                        if (scroll_state == 10) begin
+                        if (scroll_dir == 10) begin
                             starting_x <= starting_x + 32'h00010000; // Add 1.0 in fixed point
                         end
                         
-                        if (scroll_state == 01) begin
+                        if (scroll_dir == 01) begin
                             starting_x <= starting_x - 32'h00010000; // Subtract 1.0 in fixed point
                         end
                     end

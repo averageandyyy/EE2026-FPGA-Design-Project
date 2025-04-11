@@ -4,6 +4,7 @@ module arithmetic_cursor_controller(
     input clk_6p25MHz,
     input mouse_left,
     input use_mouse,
+    input middle,
     input [11:0]xpos,
     input [11:0]ypos,
     input reset,

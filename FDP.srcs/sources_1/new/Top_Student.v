@@ -162,7 +162,9 @@ module Top_Student (
         .seg(seg),
         .xpos(xpos),
         .ypos(ypos),
+        .mouseonJB(~sw[5]),
         .use_mouse(sw[3]),
+        .is_pan_mouse(sw[5]),
         .mouse_left(left),
         .mouse_middle(middle),
         .mouse_right(right),
@@ -173,9 +175,9 @@ module Top_Student (
     wire [6:0] curr_x, curr_y;
     rotate_180_for_JA rotate180(JA_pixel_index, JA_rotated_pixel_index);
 
-    on_screen_cursor unit_1 (.basys_clock(clk_6p25MHz),
+     on_screen_cursor unit_1 (.basys_clock(clk_6p25MHz),
              .pixel_index(JB_pixel_index),
-             .graph_mode_check(1), //change this if ncessary, when to use the mouse and wben not to use the mouse
+             .graph_mode_check(sw[3]), //change this if ncessary, when to use the mouse and wben not to use the mouse
              .value(value),.setx(setx),
              .sety(sety),
              .setmax_x(setmax_x),.setmax_y(setmax_y),

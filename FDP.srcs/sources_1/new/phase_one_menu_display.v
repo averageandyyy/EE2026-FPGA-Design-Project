@@ -34,7 +34,8 @@ module phase_one_menu_display(
     input cursor_row, // Only has 2 rows
     input btnC,
     input use_mouse,
-    input [11:0] xpos, ypos
+    input [11:0] xpos, ypos,
+    input middle
     );
 
     wire [6:0] x = pixel_index % 96;

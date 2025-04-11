@@ -33,6 +33,7 @@ module phase_two_menu_display(
     input btnC,
     input [6:0] curr_x, curr_y,
     input mouse_left,
+    input middle,
     input use_mouse,
     input clk_100MHz
     );

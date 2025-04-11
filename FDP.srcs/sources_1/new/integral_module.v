@@ -28,6 +28,7 @@ module integral_module(
     input [11:0] ypos, xpos,
     input mouse_left,
     input use_mouse,
+    input middle,
     // Button inputs
     input btnC, btnU, btnD, btnL, btnR,
 
@@ -121,6 +122,7 @@ module integral_module(
         .ypos(ypos),
         .mouse_left(mouse_left),
         .use_mouse(use_mouse),
+        .middle(middle),
         .reset(reset || !is_integral_mode),
         .btnC(is_integral_mode ? btnC : 1'b0),
         .btnU(is_integral_mode ? btnU : 1'b0),

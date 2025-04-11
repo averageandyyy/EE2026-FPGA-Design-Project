@@ -34,7 +34,8 @@ module phase_two_wrapper(
     input back_switch,
     input [11:0] xpos, ypos,
     input use_mouse,
-    input mouse_left
+    input mouse_left,
+    input middle
     );
     
     wire [6:0] curr_x, curr_y;
@@ -68,7 +69,8 @@ module phase_two_wrapper(
         .use_mouse(use_mouse),
         .mouse_left(mouse_left),
         .clk_100MHz(clk_100MHz),
-        .clk_6p25MHz(clk_6p25MHz)
+        .clk_6p25MHz(clk_6p25MHz),
+        .middle(middle)
     );
     
     // Instantiate display
@@ -82,7 +84,8 @@ module phase_two_wrapper(
         .curr_y(curr_y),
         .use_mouse(use_mouse),
         .mouse_left(mouse_left),
-        .clk_100MHz(clk_100MHz)
+        .clk_100MHz(clk_100MHz),
+        .middle(middle)
     );
     
 endmodule

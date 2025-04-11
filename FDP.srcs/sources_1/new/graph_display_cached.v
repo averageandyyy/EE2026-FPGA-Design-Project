@@ -32,6 +32,7 @@ module graph_display_cached(
     input rst,
     input [3:0] zpos, 
     input new_event,
+    input is_pan_mouse,
     input mouse_left, mouse_right, mouse_middle,
     input [31:0] colour,
     input is_graphing_mode,
@@ -126,6 +127,7 @@ module graph_display_cached(
         .new_event(new_event),
         .left(mouse_left),
         .right(mouse_right),
+        .is_pan_mouse(is_pan_mouse),    //assign this to sw[4]
         .pan_offset_x(pan_offset_x),
         .pan_offset_y(pan_offset_y),
         .zoom_level_x(zoom_level_x),

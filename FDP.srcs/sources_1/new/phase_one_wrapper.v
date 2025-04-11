@@ -32,7 +32,8 @@ module phase_one_wrapper(
     input back_switch,
     input [11:0] xpos, ypos,
     input use_mouse,
-    input mouse_left
+    input mouse_left,
+    input middle
     );
     
     // Internal connection between controller and display
@@ -54,7 +55,8 @@ module phase_one_wrapper(
         .xpos(xpos),
         .ypos(ypos),
         .use_mouse(use_mouse),
-        .mouse_left(mouse_left)
+        .mouse_left(mouse_left),
+        .middle(middle)
     );
     
     // Instantiate display
@@ -68,7 +70,8 @@ module phase_one_wrapper(
         .ypos(ypos),
         .clk_100MHz(clk_100MHz),
         .use_mouse(use_mouse),
-        .mouse_left(mouse_left)
+        .mouse_left(mouse_left),
+        .middle(middle)
     );
     
 endmodule

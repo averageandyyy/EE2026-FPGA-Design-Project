@@ -162,6 +162,7 @@ module Top_Student (
         .seg(seg),
         .xpos(xpos),
         .ypos(ypos),
+        .pan_zoom_toggle(sw[14]),
         .mouseonJB(~sw[5]),
         .use_mouse(sw[3]),
         .is_pan_mouse(sw[5]),

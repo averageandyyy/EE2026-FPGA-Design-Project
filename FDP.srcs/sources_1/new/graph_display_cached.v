@@ -21,13 +21,19 @@
 
 
 module graph_display_cached(
-    input clk,
+    input clk, //6p25MHz clock
+    input use_mouse,
+    input clk_100MHz,
     input btnU, btnD, btnL, btnR, btnC,
     input [12:0] pixel_index,
     input signed [31:0] coeff_a, coeff_b, coeff_c, coeff_d,
     input [11:0] curr_x, curr_y,
     input [3:0] zoom_level,
-    input mouse_left, mouse_right, mouse_middle, new_event,
+    input rst,
+    input [3:0] zpos, 
+    input new_event,
+    input is_pan_mouse,
+    input mouse_left, mouse_right, mouse_middle,
     input [31:0] colour,
     input is_graphing_mode,
     input is_integrate,
@@ -37,6 +43,7 @@ module graph_display_cached(
     input is_integral_complete_outgoing
     );
 
+    
     // Constants
     parameter SCREEN_WIDTH = 96;
     parameter SCREEN_HEIGHT = 64;
@@ -57,7 +64,8 @@ module graph_display_cached(
     // Previous graph parameters for change detection
     reg signed [15:0] prev_pan_x = 0;
     reg signed [15:0] prev_pan_y = 0;
-    reg [3:0] prev_zoom_level = 0;
+    reg [3:0] prev_zoom_level_x = 0;
+    reg [3:0] prev_zoom_level_y = 0;
     reg signed [31:0] prev_coeff_a = 0;
     reg signed [31:0] prev_coeff_b = 0;
     reg signed [31:0] prev_coeff_c = 0;
@@ -68,10 +76,9 @@ module graph_display_cached(
     // Pan/zoom control
     wire signed [15:0] pan_offset_x;
     wire signed [15:0] pan_offset_y;
-    wire [15:0] zoom_level_x;
-    wire [15:0] zoom_level_y;
+    wire signed [4:0] zoom_level_x;
+    wire signed [4:0] zoom_level_y;
     reg is_pan = 1;
-    reg prev_btnC = 0;
     reg [47:0] tolerance;
 
     // Control state machine
@@ -93,8 +100,8 @@ module graph_display_cached(
     polynomial_computation graph_compute(
         .clk(clk),
         .requires_computation(compute_request),
-        .x_value((((current_x_index - (SCREEN_WIDTH >> 1)) << FP_SHIFT) / zoom_level_x) + 
-                 (pan_offset_x << FP_SHIFT)),
+        .x_value(($signed((current_x_index - (SCREEN_WIDTH >> 1)) << FP_SHIFT) >>> zoom_level_x) + 
+                 (pan_offset_x <<< FP_SHIFT)),
         .coeff_a(coeff_a),
         .coeff_b(coeff_b),
         .coeff_c(coeff_c),
@@ -105,19 +112,13 @@ module graph_display_cached(
 
     // Connect pan_graph module for pan and zoom functionality
     pan_graph panning_unit(
-        .basys_clk(clk),
+        .clk(clk),
         .btnU(btnU),
         .btnD(btnD),
         .btnL(btnL),
         .btnR(btnR),
         .btnC(btnC),
-        .is_pan(is_pan),
-        .mouse_x(curr_x),
-        .mouse_y(curr_y),
-        .zpos(zoom_level),
-        .new_event(new_event),
-        .left(mouse_left),
-        .right(mouse_right),
+        .is_graphing_mode(is_graphing_mode),
         .pan_offset_x(pan_offset_x),
         .pan_offset_y(pan_offset_y),
         .zoom_level_x(zoom_level_x),
@@ -128,12 +129,6 @@ module graph_display_cached(
     always @(posedge clk) begin
         // Default: clear computation request
         compute_request <= 0;
-        
-        // Toggle pan/zoom mode on center button press
-        if (btnC && !prev_btnC) begin
-            is_pan <= ~is_pan;
-        end
-        prev_btnC <= btnC;
         
         if (is_graphing_mode) begin
             case (computation_state)
@@ -146,7 +141,8 @@ module graph_display_cached(
                     // Check if any parameters changed
                     if (pan_offset_x != prev_pan_x || 
                         pan_offset_y != prev_pan_y || 
-                        zoom_level != prev_zoom_level ||
+                        zoom_level_x != prev_zoom_level_x ||
+                        zoom_level_y != prev_zoom_level_y ||
                         coeff_a != prev_coeff_a || 
                         coeff_b != prev_coeff_b ||
                         coeff_c != prev_coeff_c || 
@@ -159,7 +155,8 @@ module graph_display_cached(
                         // Update stored parameters
                         prev_pan_x <= pan_offset_x;
                         prev_pan_y <= pan_offset_y;
-                        prev_zoom_level <= zoom_level;
+                        prev_zoom_level_x <= zoom_level_x;
+                        prev_zoom_level_y <= zoom_level_y;
                         prev_coeff_a <= coeff_a;
                         prev_coeff_b <= coeff_b;
                         prev_coeff_c <= coeff_c;
@@ -169,13 +166,6 @@ module graph_display_cached(
                         current_x_index <= 0;
                         computation_state <= COMPUTE_VALUES;
                         
-                        // Calculate integration bounds in pixels
-                        // if (is_integrate) begin
-                            // lower_bound_px <= (((integration_lower_bound - (pan_offset_x << FP_SHIFT)) * 
-                                             // zoom_level_x) >> FP_SHIFT) + (SCREEN_WIDTH >> 1);
-                            // upper_bound_px <= (((integration_upper_bound - (pan_offset_x << FP_SHIFT)) * 
-                                             // zoom_level_x) >> FP_SHIFT) + (SCREEN_WIDTH >> 1);
-                        // end
                     end
                     else if (!cache_valid) begin
                         // Cache is invalid but parameters haven't changed, continue computation
@@ -228,7 +218,7 @@ module graph_display_cached(
     reg signed [31:0] y_math_pos;
     reg signed [47:0] curr_y_val;
     reg signed [47:0] prev_y_val;
-    reg is_overflow;
+    reg is_overflow = 0;
 
     // Rendering logic - happens on every clock cycle based on cached values
     always @(posedge clk) begin
@@ -237,11 +227,11 @@ module graph_display_cached(
             oled_data <= COLOR_BG;
             
             // Calculate transformed x position for grid
-            x_math_pos = (((x_pos - (SCREEN_WIDTH >> 1)) << FP_SHIFT) / zoom_level_x) + 
-                                           (pan_offset_x << FP_SHIFT);
-            y_math_pos = (((y_pos - (SCREEN_HEIGHT >> 1)) << FP_SHIFT) / zoom_level_y) + 
-                                           (pan_offset_y << FP_SHIFT);
-            tolerance = (1 << (FP_SHIFT-1)) / zoom_level_y;
+            x_math_pos = ( $signed((x_pos - (SCREEN_WIDTH >> 1)) << FP_SHIFT) >>> zoom_level_x) + 
+                                           (pan_offset_x <<< FP_SHIFT);
+            y_math_pos = ( $signed((y_pos - (SCREEN_HEIGHT >> 1)) << FP_SHIFT) >>> zoom_level_y) + 
+                                           (pan_offset_y <<< FP_SHIFT);
+            tolerance = (1 << (FP_SHIFT-1)) >>> zoom_level_y;
             
             // Draw grid lines
             if ((x_math_pos % (10 << FP_SHIFT)) == 0 || (y_math_pos % (10 << FP_SHIFT)) == 0) begin
@@ -260,9 +250,9 @@ module graph_display_cached(
                 curr_y_val = y_cache[x_pos];
                 prev_y_val = y_cache[x_pos-1];
 
-                if (curr_y_val > 48'sh00007FFF0000|| curr_y_val < -48'sh000080000000) begin
-                    is_overflow = 1;
-                end
+                // if (curr_y_val > 48'sh00007FFF0000|| curr_y_val < -48'sh000080000000) begin
+                    // is_overflow = 1;
+                // end
 
                 // Check if the line crosses or comes close to the current y_math_pos
                 if (

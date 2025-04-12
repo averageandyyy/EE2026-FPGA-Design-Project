@@ -30,14 +30,15 @@
     output reg is_operand_mode = 0,
     output reg signed [31:0] result = 0,
     output reg [1:0] current_operation = 0,
-    output reg [1:0] operation_done = 0
+    output reg [1:0] operation_done = 0,
+    output reg overflow_flag = 0
     );
 
     // Operation constants
     parameter ADD = 2'd0;
     parameter SUBTRACT = 2'd1;
     parameter MULTIPLY = 2'd2;
-    parameter DIVIDE = 2'd3;
+    parameter DIVIDE = 2'd3; 
 
     // Flag for first calculation
     reg is_first_calc = 1;
@@ -54,6 +55,7 @@
         // Reset operation_done and overflow
         operation_done <= 0;
         overflow <= 0;
+        overflow_flag <= 0;
 
         // System reset
         if (reset) begin
@@ -62,6 +64,7 @@
             current_operation <= ADD;
             operation_done <= 0;
             is_first_calc <= 1;
+            overflow_flag <= 0;
         end
         else begin
             // Mode transitions and operations
@@ -85,6 +88,7 @@
                                 overflow = ((result[31] == 0 && input_fp_value[31] == 0 && temp_result[31] == 1) || 
                                            (result[31] == 1 && input_fp_value[31] == 1 && temp_result[31] == 0));
                                 result <= overflow ? 0 : temp_result;
+                                overflow_flag <= overflow;
                             end
 
                             SUBTRACT: begin
@@ -93,6 +97,7 @@
                                 overflow = ((result[31] == 0 && input_fp_value[31] == 1 && temp_result[31] == 1) || 
                                            (result[31] == 1 && input_fp_value[31] == 0 && temp_result[31] == 0));
                                 result <= overflow ? 0 : temp_result;
+                                overflow_flag <= overflow;
                             end
 
                             MULTIPLY: begin
@@ -103,6 +108,7 @@
                                 // overflow = ((product >= 0) && (|product[63:48])) || ((product < 0) && (|(product[63:48] & 16'h7FFF)));
                                 overflow = ((product[63] == 0) && (|product[63:47])) || ((product[63] == 1) && (|(~product[63:47])));
                                 result <= overflow ? 0 : (product >>> 16);
+                                overflow_flag <= overflow;
                             end
 
                             DIVIDE: begin
@@ -117,6 +123,7 @@
                                                (temp_result[31] == 0 && dividend[63] == 0 && input_fp_value[31] == 1) ||
                                                (temp_result[31] == 1 && dividend[63] == 1 && input_fp_value[31] == 1));
                                     result <= overflow ? 0 : temp_result;
+                                    overflow_flag <= overflow;
                                 end
                                 else begin
                                     // Division by zero case

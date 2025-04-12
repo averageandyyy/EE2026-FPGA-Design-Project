@@ -22,12 +22,19 @@
 
 module integral_cursor_controller(
     input clk,
+    input clk_6p25MHz,
+    input clk_100MHz,
+    input use_mouse,
     input reset,
     input btnC,
     input btnU,
     input btnD,
     input btnL,
     input btnR,
+    input middle,
+    input [11:0] xpos,
+    input [11:0] ypos,
+    input mouse_left,
     input is_integral_mode,
     input is_integral_input_mode,
     output reg [1:0] cursor_row = 0,
@@ -42,6 +49,36 @@ module integral_cursor_controller(
     reg prev_btnD = 0;
     reg prev_btnL = 0;
     reg prev_btnR = 0;
+    
+            //debouncing for left mouse button
+    parameter DEBOUNCE_DELAY = 2000000;
+    reg [21:0] counter;    // Counter for debounce delay (needs enough bits)
+    reg debounced;         // Stores the debounced state
+    initial begin
+        counter   = 0;
+        debounced = 1'b0;
+    end
+    always @(posedge clk_100MHz) begin
+         if (mouse_left == debounced) 
+             counter <= 0;
+         else begin
+             counter <= counter + 1;
+             if (counter >= DEBOUNCE_DELAY) debounced <= mouse_left;
+         
+         end
+    end
+    reg mouse_left_prev;
+    initial begin mouse_left_prev = 1'b0; end
+        wire [6:0] mouse_xpos, mouse_ypos;
+ 
+ //get current coordinates of the mouse
+    mouse_coordinate_extractor coord_extr(
+     clk_6p25MHz, //6p25MHz clock
+     xpos,    // 12-bit mouse x position
+     ypos,    // 12-bit mouse y position
+     mouse_xpos, mouse_ypos);
+ //end of getting current coordinates of the mouse
+
 
     // Debouncing counters
     reg [7:0] debounce_C = 0;
@@ -50,7 +87,7 @@ module integral_cursor_controller(
     reg [7:0] debounce_L = 0;
     reg [7:0] debounce_R = 0;
 
-    reg [8:0] count = 500;
+    reg [8:0] count = 350;
 
     // Flag to track if on the checkmark
     wire on_checkmark = (cursor_col == 3'd3);
@@ -75,7 +112,7 @@ module integral_cursor_controller(
             debounce_D <= 0;
             debounce_L <= 0;
             debounce_R <= 0;
-            count <= 500;
+            count <= 350;
         end
         else if (is_integral_input_mode) begin
             if (count == 0) begin
@@ -96,7 +133,63 @@ module integral_cursor_controller(
                     end
                     debounce_U <= 200;
                 end
-
+                
+                if (use_mouse && mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 0 && mouse_ypos <= 15) begin // for 7
+                    cursor_row <= 0;
+                    cursor_col <= 0; 
+                end
+                else if (use_mouse && mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 0 && mouse_ypos <= 15) begin //for 8
+                    cursor_row <= 0;
+                    cursor_col <= 1;
+                end
+                else if (use_mouse && mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 0 && mouse_ypos <= 15) begin //for 9
+                    cursor_row <= 0; 
+                    cursor_col <= 2;
+                end
+                else if (use_mouse && mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 16 && mouse_ypos <= 31) begin //for 4
+                    cursor_row <= 1;
+                    cursor_col <= 0;
+                end
+                else if (use_mouse && mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 16 && mouse_ypos <= 31) begin //for 5
+                    cursor_row <= 1;
+                    cursor_col <= 1;
+                end
+                else if (use_mouse && mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 16 && mouse_ypos <= 31) begin //for 6
+                    cursor_row <= 1;
+                    cursor_col <= 2;
+                end
+                else if (use_mouse && mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 32 && mouse_ypos <= 47) begin //for 1
+                    cursor_row <= 2;
+                    cursor_col <= 0;
+                end
+                else if (use_mouse && mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 32 && mouse_ypos <= 47) begin //for 2
+                    cursor_row <= 2;
+                    cursor_col <= 1;
+                end
+                else if (use_mouse && mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 32 && mouse_ypos <= 47) begin //for 3
+                    cursor_row <= 2;
+                    cursor_col <= 2;
+                end
+                else if (use_mouse && mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 48 && mouse_ypos <= 63) begin //for 0
+                    cursor_row <= 3;
+                    cursor_col <= 0;
+                end 
+                else if (use_mouse && mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 48 && mouse_ypos <= 63) begin //for .
+                    cursor_row <= 3;
+                    cursor_col <= 1;
+                end
+                else if (use_mouse && mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 48 && mouse_ypos <= 63) begin //for -
+                    cursor_row <= 3;
+                    cursor_col <= 2;
+                end
+                else if (use_mouse) begin //on equal sign/checkmark
+                    cursor_col <= 3'd3;
+                end
+                    
+                    
+                
+                
+                
                 // Down
                 if (btnD && !prev_btnD && debounce_D == 0) begin
                     if (cursor_row < 3 && !on_checkmark) begin
@@ -127,7 +220,7 @@ module integral_cursor_controller(
                 end
 
                 // Center (Selection)
-                if (btnC && !prev_btnC && debounce_C == 0) begin
+                if (btnC && !prev_btnC && debounce_C == 0 || (use_mouse && debounced && !mouse_left_prev)) begin
                     keypad_btn_pressed <= 1;
 
                     if (on_checkmark) begin
@@ -162,6 +255,8 @@ module integral_cursor_controller(
                 prev_btnL <= btnL;
                 prev_btnR <= btnR;
                 prev_btnC <= btnC;
+                mouse_left_prev <= debounced;
+
             end
             else begin
                 count <= count - 1;

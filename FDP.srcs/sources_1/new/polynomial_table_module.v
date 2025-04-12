@@ -32,8 +32,8 @@ module polynomial_table_module(
     input btnD,
     input btnL,
     input btnR,
-    input [6:0] xpos,
-    input [6:0] ypos,
+    input [11:0] xpos,
+    input [11:0] ypos,
     input use_mouse,
     input mouse_left,
     input mouse_middle,
@@ -54,10 +54,21 @@ module polynomial_table_module(
     // Two outgoing display data
     output [15:0] one_oled_data,
     output [15:0] two_oled_data,
-
-    output is_table_input_mode_outgoing
+    //for mouse stuff
+    input new_event,
+    input rst,
+    input zpos,
+    input is_table_input_mode_outgoing
     );
-
+    //for mouse: to find the current coordinates of the mouse
+    wire [6:0] curr_x;
+        wire [6:0] curr_y;
+        mouse_coordinate_extractor unit_t (clk_6p25MHz,
+        xpos,    // 12-bit mouse x position
+        ypos,    // 12-bit mouse y position
+        curr_x,
+        curr_y
+        );
     // Internal signals and states
     wire is_table_input_mode;
     assign is_table_input_mode_outgoing = is_table_input_mode;
@@ -83,13 +94,14 @@ module polynomial_table_module(
 
     // Cursor controller
     polynomial_table_cursor_controller cursor_controller(
-        .mouse_xpos(xpos),
-        .mouse_ypos(ypos),
+        .mouse_xpos(curr_x),
+        .mouse_ypos(curr_y),
         .mouse_left(mouse_left),
         .mouse_middle(mouse_middle),
         .use_mouse(use_mouse),
         .clk_100MHz(clk_100MHz),
         .clk(clk_1kHz),
+        .clk_6p25MHz(clk_6p25MHz),
         .btnC(btnC),
         .btnU(btnU),
         .btnD(btnD),
@@ -103,7 +115,10 @@ module polynomial_table_module(
         .cursor_col(cursor_col),
         .keypad_btn_pressed(keypad_btn_pressed),
         .keypad_selected_value(keypad_selected_value),
-        .starting_x(starting_x)
+        .starting_x(starting_x),
+        .new_event(new_event),
+        .rst(rst),
+        .zpos(zpos)
     );
 
     // Input builder
@@ -135,7 +150,7 @@ module polynomial_table_module(
         .input_index(input_index),
         .oled_data(keypad_oled_data)
     );
-
+    
     // Table display
     polynomial_table_table_display table_display(
         .clk(clk_6p25MHz),

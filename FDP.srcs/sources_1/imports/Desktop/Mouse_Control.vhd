@@ -257,11 +257,15 @@ constant SAMPLE_RATE      : std_logic_vector(7 downto 0) := x"28";
                                                   -- (40 samples/s)
 
 -- default maximum value for the horizontal mouse position
-constant DEFAULT_MAX_X : std_logic_vector(11 downto 0) := x"3C0";
+--constant DEFAULT_MAX_X : std_logic_vector(11 downto 0) := x"3C0";
                                                       -- 1279
+constant DEFAULT_MAX_X : std_logic_vector(11 downto 0) := x"063";
+-- 99 MAX_X
 -- default maximum value for the vertical mouse position
-constant DEFAULT_MAX_Y : std_logic_vector(11 downto 0) := x"280";
+--constant DEFAULT_MAX_Y : std_logic_vector(11 downto 0) := x"280";
                                                       -- 1023
+constant DEFAULT_MAX_Y : std_logic_vector(11 downto 0) := x"041";
+-- 65 MAX_Y
 
 -- Mouse check tick constants
 constant CHECK_PERIOD_CLOCKS   : integer := ((CHECK_PERIOD_MS*1000000)/(1000000000/SYSCLK_FREQUENCY_HZ));

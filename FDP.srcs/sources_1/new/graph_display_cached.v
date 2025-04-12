@@ -21,13 +21,19 @@
 
 
 module graph_display_cached(
-    input clk,
+    input clk, //6p25MHz clock
+    input use_mouse,
+    input clk_100MHz,
     input btnU, btnD, btnL, btnR, btnC,
     input [12:0] pixel_index,
     input signed [31:0] coeff_a, coeff_b, coeff_c, coeff_d,
     input [11:0] curr_x, curr_y,
     input [3:0] zoom_level,
-    input mouse_left, mouse_right, mouse_middle, new_event,
+    input rst,
+    input [3:0] zpos, 
+    input new_event,
+    input is_pan_mouse,
+    input mouse_left, mouse_right, mouse_middle,
     input [31:0] colour,
     input is_graphing_mode,
     input is_integrate,
@@ -37,6 +43,7 @@ module graph_display_cached(
     input is_integral_complete_outgoing
     );
 
+    
     // Constants
     parameter SCREEN_WIDTH = 96;
     parameter SCREEN_HEIGHT = 64;
@@ -102,22 +109,26 @@ module graph_display_cached(
         .y_value(computed_y),
         .computation_complete(compute_complete)
     );
-
+    
     // Connect pan_graph module for pan and zoom functionality
     pan_graph panning_unit(
         .basys_clk(clk),
+        .clk_100MHz(clk_100MHz),
         .btnU(btnU),
         .btnD(btnD),
         .btnL(btnL),
         .btnR(btnR),
         .btnC(btnC),
+        .use_mouse(use_mouse),
+        .rst(rst),
         .is_pan(is_pan),
         .mouse_x(curr_x),
         .mouse_y(curr_y),
-        .zpos(zoom_level),
+        .zpos(zpos),
         .new_event(new_event),
         .left(mouse_left),
         .right(mouse_right),
+        .is_pan_mouse(is_pan_mouse),    //assign this to sw[4]
         .pan_offset_x(pan_offset_x),
         .pan_offset_y(pan_offset_y),
         .zoom_level_x(zoom_level_x),

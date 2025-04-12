@@ -27,14 +27,48 @@ Listens on phase_one_menu_controller for cursor_row
 
 module phase_one_menu_display(
     input clock,
+    input mouse_left,
+    input clk_100MHz,
     input [12:0] pixel_index,
     output reg [15:0] oled_data,
     input cursor_row, // Only has 2 rows
-    input btnC
+    input btnC,
+    input use_mouse,
+    input [11:0] xpos, ypos,
+    input middle
     );
 
     wire [6:0] x = pixel_index % 96;
     wire [6:0] y = pixel_index / 96;
+        //debouncing for left mouse button
+     parameter DEBOUNCE_DELAY = 2000000;
+     reg [21:0] counter;    // Counter for debounce delay (needs enough bits)
+     reg debounced;         // Stores the debounced state
+     initial begin
+         counter   = 0;
+         debounced = 1'b0;
+     end
+     always @(posedge clk_100MHz) begin
+             if (mouse_left == debounced) 
+                 counter <= 0;
+             else begin
+                 counter <= counter + 1;
+                 if (counter >= DEBOUNCE_DELAY) debounced <= mouse_left;
+             
+             end
+     end
+     reg mouse_left_prev;
+     initial begin mouse_left_prev = 1'b0; end
+         wire [6:0] curr_x, curr_y;
+     
+     //get current coordinates of the mouse
+    mouse_coordinate_extractor coord_extr(
+         clock, //6p25MHz clock
+         xpos,    // 12-bit mouse x position
+         ypos,    // 12-bit mouse y position
+         curr_x, curr_y);
+     //end of getting current coordinates of the mouse
+
 
     // Drawing the menu
     always @ (posedge clock) begin
@@ -86,12 +120,14 @@ module phase_one_menu_display(
         // start "button"
         // the dimensions for the characters are: 3 bits wide, 5 bits tall
         if ((y >= 34 && y <= 44) && (x >= 35 && x <= 60)) begin 
-            if (btnC && cursor_row == 0) begin
+            if ((btnC || (use_mouse && debounced && !mouse_left_prev && curr_x >= 35 && curr_x <= 60 && curr_y >= 34 && curr_y <= 44)) && cursor_row == 0) begin
                 oled_data <= 16'b00000_111111_00000; // Green when selected
             end else begin
                 // Draw the borders first
+                //draw the horizontal borders
                 if ((x >= 35 && x <= 60 && y == 34) || (x >= 35 && x <= 60 && y == 44))
                     oled_data <= 16'b11111_111111_11111;
+                //draw the vertical borders
                 if ((y >= 34 && y <= 44 && x == 35) || (y >= 34 && y <= 44 && x == 60))
                     oled_data <= 16'b11111_111111_11111;
                 
@@ -136,7 +172,7 @@ module phase_one_menu_display(
         // help "button"
         // the dimensions for the characters are: 3 bits wide, 5 bits tall
         if ((y >= 46 && y <= 56) && (x >= 35 && x <= 60)) begin
-            if (btnC && cursor_row == 1) begin
+            if ((btnC || (use_mouse && debounced && !mouse_left_prev && curr_x >= 35 && curr_x <= 60 && curr_y <= 56 && curr_y >= 46))&& cursor_row == 1) begin
                 oled_data <= 16'b00000_111111_00000; // Green when selected
             end else begin
             // Draw the borders first
@@ -185,5 +221,6 @@ module phase_one_menu_display(
                     oled_data <= 16'b11111_111111_11111;
             end
         end
+        mouse_left_prev <= debounced;
     end
 endmodule

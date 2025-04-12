@@ -30,12 +30,36 @@ module phase_two_menu_display(
     input [12:0] pixel_index,
     output reg [15:0] oled_data,
     input cursor_row, // Only 2 options
-    input btnC
+    input btnC,
+    input [6:0] curr_x, curr_y,
+    input mouse_left,
+    input middle,
+    input use_mouse,
+    input clk_100MHz
     );
 
     wire [6:0] x = pixel_index % 96;
     wire [6:0] y = pixel_index / 96;
-
+            //debouncing for left mouse button
+    parameter DEBOUNCE_DELAY = 2000000;
+    reg [21:0] counter;    // Counter for debounce delay (needs enough bits)
+    reg debounced;         // Stores the debounced state
+    initial begin
+        counter   = 0;
+        debounced = 1'b0;
+    end
+    always @(posedge clk_100MHz) begin
+         if (mouse_left == debounced) 
+             counter <= 0;
+         else begin
+             counter <= counter + 1;
+             if (counter >= DEBOUNCE_DELAY) debounced <= mouse_left;
+         
+         end
+    end
+    reg mouse_left_prev;
+    initial begin mouse_left_prev = 1'b0; end
+     
     // Drawing the menu
     always @ (posedge clock) begin
         oled_data <= 16'b0;
@@ -79,7 +103,7 @@ module phase_two_menu_display(
             
         // function button
         if ((y >= 15 && y <= 25) && (x >= 32 && x <= 66)) begin 
-            if (btnC && cursor_row == 0) begin
+            if ((btnC || (use_mouse && debounced && !mouse_left_prev && curr_x >= 32 && curr_x <= 66 & curr_y >= 15 && curr_y <= 24)) && cursor_row == 0) begin
                 oled_data <= 16'b00000_111111_00000; // Green when selected   
             end
             else begin
@@ -140,7 +164,7 @@ module phase_two_menu_display(
             
         // Arithmetic button
         if ((y >= 26 && y <= 35) && (x >= 30 && x <= 70)) begin 
-            if (btnC && cursor_row == 1) begin
+            if ((btnC || (use_mouse && debounced && !mouse_left_prev &&curr_x >= 30 && curr_x <= 68 && curr_y >= 26 && curr_y <= 35)) && cursor_row == 1) begin
                 oled_data <= 16'b00000_111111_00000; // Green when selected   
             end
             else begin
@@ -230,6 +254,7 @@ module phase_two_menu_display(
                 if (y == 31 && x == 28)
                     oled_data <= 16'b11111_111111_11111;
             end
-        end                       
+        end
+        mouse_left_prev <= debounced;
     end
 endmodule

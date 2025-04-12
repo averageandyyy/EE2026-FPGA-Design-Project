@@ -112,10 +112,10 @@ module seven_seg_controller(
                         an <= 4'b1101;
                     end else begin
                         if (~back_switch) begin
-                            seg <= N;
+                            seg <= F;
                             an <= 4'b1101;
                         end else begin
-                            seg <= F;
+                            seg <= N;
                             an <= 4'b1101;
                         end
                     end
@@ -127,10 +127,10 @@ module seven_seg_controller(
                         an <= 4'b1110;
                     end else begin
                         if (~back_switch) begin
-                            seg <= BLANK;
+                            seg <= F;
                             an <= 4'b1110;
                         end else begin
-                            seg <= F;
+                            seg <= BLANK;
                             an <= 4'b1110;
                         end
                     end

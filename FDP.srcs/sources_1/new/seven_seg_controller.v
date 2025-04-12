@@ -25,7 +25,8 @@ module seven_seg_controller(
     output reg [3:0] an,
     input back_switch,
     input my_1_khz_clk,
-    input [3:0] seven_segment_mode
+    input [3:0] seven_segment_mode,
+    input overflow_flag
     );
     
     // Letters for display
@@ -55,6 +56,8 @@ module seven_seg_controller(
     reg toggle_state = 0;
     reg [19:0] counter = 0; 
     reg [1:0] mux_count = 0;
+
+    reg [12:0] overflow_counter = 0;
 
     
     always @(posedge my_1_khz_clk) begin
@@ -134,67 +137,78 @@ module seven_seg_controller(
                 end
             endcase
         end else if (seven_segment_mode == STATE_ARITHMETIC) begin
-            case (mux_count)
-                2'b00: begin 
-                    if (toggle_state) begin
-                        seg <= A;
-                        an <= 4'b0111;
-                    end else begin
-                        if (~back_switch) begin
+            if (overflow_flag && overflow_counter == 0) begin
+                overflow_counter <= 4000;
+            end
+            else if (overflow_counter != 0) begin
+                // Render SSD for Error
+                an <= 4'b0000;
+                seg <= E;
+                overflow_counter <= overflow_counter - 1;
+            end
+            else begin
+                case (mux_count)
+                    2'b00: begin 
+                        if (toggle_state) begin
                             seg <= A;
                             an <= 4'b0111;
                         end else begin
-                            seg <= BLANK;
-                            an <= 4'b0111;
+                            if (~back_switch) begin
+                                seg <= A;
+                                an <= 4'b0111;
+                            end else begin
+                                seg <= BLANK;
+                                an <= 4'b0111;
+                            end
                         end
                     end
-                end
                 
-                2'b01: begin
-                    if (toggle_state) begin
-                        seg <= R;
-                        an <= 4'b1011;
-                    end else begin
-                        if (~back_switch) begin
+                    2'b01: begin
+                        if (toggle_state) begin
                             seg <= R;
                             an <= 4'b1011;
                         end else begin
-                            seg <= O;
-                            an <= 4'b1011;
+                            if (~back_switch) begin
+                                seg <= R;
+                                an <= 4'b1011;
+                            end else begin
+                                seg <= O;
+                                an <= 4'b1011;
+                            end
                         end
                     end
-                end
                 
-                2'b10: begin
-                    if (toggle_state) begin
-                        seg <= T;
-                        an <= 4'b1101;
-                    end else begin
-                        if (~back_switch) begin
+                    2'b10: begin
+                        if (toggle_state) begin
                             seg <= T;
                             an <= 4'b1101;
                         end else begin
-                            seg <= N;
-                            an <= 4'b1101;
+                            if (~back_switch) begin
+                                seg <= T;
+                                an <= 4'b1101;
+                            end else begin
+                                seg <= N;
+                                an <= 4'b1101;
+                            end
                         end
                     end
-                end
                 
-                2'b11: begin  
-                    if (toggle_state) begin
-                        seg <= H;
-                        an <= 4'b1110;
-                    end else begin
-                        if (~back_switch) begin
+                    2'b11: begin  
+                        if (toggle_state) begin
                             seg <= H;
                             an <= 4'b1110;
                         end else begin
-                            seg <= BLANK;
-                            an <= 4'b1110;
+                            if (~back_switch) begin
+                                seg <= H;
+                                an <= 4'b1110;
+                            end else begin
+                                seg <= BLANK;
+                                an <= 4'b1110;
+                            end
                         end
                     end
-                end
-            endcase            
+                endcase
+            end
         end else if (seven_segment_mode == STATE_FUNCTION) begin
             case (mux_count)
                 2'b00: begin 

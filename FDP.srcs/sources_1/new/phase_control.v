@@ -158,19 +158,19 @@ module phase_control(
     end
 
     // handle overflow state
-    always @ (posedge clk_1kHz) begin
-        if (count_for_overflow == 500) begin
-            count_for_overflow <= 0;
-            overflow_signal <= 0;
-        end else begin
-            count_for_overflow <= count_for_overflow + 1;
-        end
-        if (overflow_flag && count_for_overflow < 500) begin
-            overflow_signal <= 1;
-        end
-    end
+    // always @ (posedge clk_1kHz) begin
+        // if (count_for_overflow == 500) begin
+            // count_for_overflow <= 0;
+            // overflow_signal <= 0;
+        // end else begin
+            // count_for_overflow <= count_for_overflow + 1;
+        // end
+        // if (overflow_flag && count_for_overflow < 500) begin
+            // overflow_signal <= 1;
+        // end
+    // end
 
-    assign seven_segment_mode = is_phase_three ? (is_arithmetic_mode ? (overflow_signal ? 4'b0011 : 4'b0001) : 4'b0010) : (use_mouse ? 4'b1111 : 4'b0000);
+    assign seven_segment_mode = is_phase_three ? (is_arithmetic_mode ? (4'b0001) : 4'b0010) : (use_mouse ? 4'b1111 : 4'b0000);
 
     // Controlling the seven segment display
     seven_seg_controller ssc(
@@ -178,7 +178,8 @@ module phase_control(
         .an(an),
         .back_switch(back_switch),
         .my_1_khz_clk(clk_1kHz),
-        .seven_segment_mode(seven_segment_mode)
+        .seven_segment_mode(seven_segment_mode),
+        .overflow_flag(overflow_flag)
     );
 
     // Debug LEDs

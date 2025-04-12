@@ -229,7 +229,7 @@ module phase_three_wrapper(
         .btnL(btnL),
         .btnR(btnR),
         .pan_zoom_toggle(pan_zoom_toggle),
-        .btnC(btnC || ~back_switch),
+        .btnC(btnC || back_switch),
         .rst(rst),
         .pixel_index(two_pixel_index),
         .coeff_a(coeff_a),

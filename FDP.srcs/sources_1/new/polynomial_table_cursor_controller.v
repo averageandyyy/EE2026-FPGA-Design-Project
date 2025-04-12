@@ -31,7 +31,7 @@ module polynomial_table_cursor_controller(
     input [6:0] mouse_ypos,
     input mouse_left,        //used to click
     input mouse_middle,     //used only in table mode, want to switch back to the keypad
-    input clk, //1kHz clock
+    input clk,
     input clk_6p25MHz,
     input clk_100MHz,
     input btnC,
@@ -40,9 +40,6 @@ module polynomial_table_cursor_controller(
     input btnL,
     input btnR,
     input is_table_mode,
-    input new_event,
-    input rst,
-    input zpos,
     input use_mouse,        //flip sw[0] if want to use mouse
 
     // From input_bcd_to_fp_builder_table
@@ -54,7 +51,10 @@ module polynomial_table_cursor_controller(
     output reg [2:0] cursor_col = 0,
     output reg keypad_btn_pressed = 0,
     output reg [3:0] keypad_selected_value = 0,
-    output reg signed [31:0] starting_x = 0
+    output reg signed [31:0] starting_x = 0,
+    input new_event,
+    input rst,
+    input zpos
     );
 
     // Previous button states for debouncing
@@ -79,9 +79,6 @@ module polynomial_table_cursor_controller(
         counter   = 0;
         debounced = 1'b0;
     end
-    //for scroll wheel
-    //scroll up is 10, scroll down is 01, no input is 00 on the next clk cycle
-    //end of scroll wheel part
     always @(posedge clk_100MHz) begin
             if (mouse_left == debounced) 
                 counter <= 0;
@@ -97,34 +94,9 @@ module polynomial_table_cursor_controller(
     // Flag to track if on the checkmark
     wire on_checkmark = (cursor_col == 3'd3 && is_table_input_mode);
    
-    wire [1:0] scroll_state;
-//    scroll_led_accum scroll_status (
-//    .clk         (clk_100MHz),
-//    .rst         (!is_table_mode),
-//    .new_event   (new_event),
-//    .zpos        (zpos),
-//    .wow (scroll_state));
-    //scroll up is 10, scroll down is 01, no input is 00 on the next clk cycle
-    reg [1:0] scroll_dir;
-    reg [16:0] ctr = 17'd0;
-    always @(posedge clk_100MHz) begin
-        if (ctr == 17'd0) begin
-             scroll_dir <= scroll_state;
-        end else begin 
-             scroll_dir <= scroll_dir;
-        end
     
-        if (ctr == 17'd99999) begin
-             ctr <= 17'd0;
-        end else begin
-             ctr <= ctr + 1;
-        end
-    end
-
     
-    reg reset = 0;
     always @ (posedge clk) begin
-      reset = ~reset;
       if (!use_mouse) begin
         // Resetting button pressed on each cycle
         keypad_btn_pressed <= 0;
@@ -138,8 +110,9 @@ module polynomial_table_cursor_controller(
 
         // Only processing buttons if in table mode
         if (is_table_mode) begin
+
             // Switching between table navigation mode and input mode
-            if ((btnC && !prev_btnC && debounce_C == 0) || (use_mouse && mouse_middle)) begin
+            if (btnC && !prev_btnC && debounce_C == 0 || mouse_middle) begin
             //it will also switch if you press the scroll wheel btn
                 debounce_C <= 200;
 
@@ -250,9 +223,11 @@ module polynomial_table_cursor_controller(
                     end
                 end
             end
-            else begin //else for (is_table_input_mode)
+            else begin
+                
+
                 // Navigation Mode
-                if ((btnU && !prev_btnU && debounce_U == 0)) begin
+                if (btnU && !prev_btnU && debounce_U == 0) begin
                     debounce_U <= 200;
                     starting_x <= starting_x + 32'h00010000; // Add 1.0 in fixed point
                 end
@@ -275,137 +250,113 @@ module polynomial_table_cursor_controller(
         prev_btnR <= btnR;
         prev_btnC <= btnC;
         end
-    else if (use_mouse) begin
-                // Resetting button pressed on each cycle
-                keypad_btn_pressed <= 0;
-                if (debounce_C > 0) debounce_C <= debounce_C - 1;
-        
-                // Only processing buttons if in table mode
-                if (is_table_mode) begin
-        
-                    // Switching between table navigation mode and input mode
-                    if ((btnC && !prev_btnC && debounce_C == 0) || (use_mouse && mouse_middle)) begin
-                    //it will also switch if you press the scroll wheel btn
-                        debounce_C <= 200;
-        
-                        // Transition to table input mode
-                        if (!is_table_input_mode) begin
-                            is_table_input_mode <= 1;
-                            
-                            // Resetting cursor positions
-                            cursor_row <= 0;
-                            cursor_col <= 0;
-                        end
-        
-                        // Switching from input mode to table navigation mode requires checkmark input
-                    end
-        
-                    // Cursor movement and input selection logic
-                    if (is_table_input_mode) begin
-                        
-                        // Updating starting_x when input is complete (to check)
-                        if (input_complete) begin
-                            starting_x <= fp_input_value;
-                            is_table_input_mode <= 0;
-                        end
-                        
-                        if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 0 && mouse_ypos <= 15) begin
-                            cursor_row <= 0;
-                            cursor_col <= 0;
-                        end
-                        else if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 16 && mouse_ypos <= 31) begin
-                            cursor_row <= 1;
-                            cursor_col <= 0;
-                        end
-                        else if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 32 && mouse_ypos <= 47) begin
-                            cursor_row <= 2;
-                            cursor_col <= 0;
-                       end
-                        else if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 48 && mouse_ypos <= 63) begin
-                            cursor_row <= 3;
-                            cursor_col <= 0;
-                        end
-                        else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 0 && mouse_ypos <= 15) begin
-                            cursor_row <= 0;
-                            cursor_col <= 1;
-                        end
-                        else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 16 && mouse_ypos <= 31) begin
-                            cursor_row <= 1;
-                            cursor_col <= 1;
-                        end
-                        else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 32 && mouse_ypos <= 47) begin
-                            cursor_row <= 2;
-                            cursor_col <= 1;
-                        end
-                        else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 48 && mouse_ypos <= 63) begin
-                            cursor_row <= 3;
-                            cursor_col <= 1;
-                        end
-                        else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 0 && mouse_ypos <= 15) begin
-                            cursor_row <= 0;
-                            cursor_col <= 2;
-                        end
-                        else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 16 && mouse_ypos <= 31) begin
-                            cursor_row <= 1;
-                            cursor_col <= 2;
-                        end
-                        else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 32 && mouse_ypos <= 47) begin
-                            cursor_row <= 2;
-                            cursor_col <= 2;
-                       end
-                        else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 48 && mouse_ypos <= 63) begin
-                            cursor_row <= 3;
-                            cursor_col <= 2;
-                        end
-                      else begin //this is the checkmark side
-                            cursor_col <= 3;
+      else if (use_mouse) begin
+      
+      keypad_btn_pressed <= 0;
+      if (debounce_C > 0) debounce_C <= debounce_C - 1;
+      if (btnC && !prev_btnC && debounce_C == 0 || mouse_middle) begin
+                  //it will also switch if you press the scroll wheel btn
+                      debounce_C <= 200;
+      
+                      // Transition to table input mode
+                      if (!is_table_input_mode) begin
+                          is_table_input_mode <= 1;
+                          
+                          // Resetting cursor positions
+                          cursor_row <= 0;
+                          cursor_col <= 0;
                       end
-                      if (debounced && !mouse_left_prev) begin
-                            keypad_btn_pressed <= 1;
-                            if (on_checkmark) begin
-                        // is_table_input_mode <= 0;                   
-                            keypad_selected_value <= 4'd12;
-                        end
-                        else begin
-                        // Determine selected value based on cursor position
-                            case ({cursor_row, cursor_col})
-                                {2'd0, 3'd0}: keypad_selected_value <= 4'd7; // 7
-                                {2'd0, 3'd1}: keypad_selected_value <= 4'd8; // 8
-                                {2'd0, 3'd2}: keypad_selected_value <= 4'd9; // 9
-                                {2'd1, 3'd0}: keypad_selected_value <= 4'd4; // 4
-                                {2'd1, 3'd1}: keypad_selected_value <= 4'd5; // 5
-                                {2'd1, 3'd2}: keypad_selected_value <= 4'd6; // 6
-                                {2'd2, 3'd0}: keypad_selected_value <= 4'd1; // 1
-                                {2'd2, 3'd1}: keypad_selected_value <= 4'd2; // 2
-                                {2'd2, 3'd2}: keypad_selected_value <= 4'd3; // 3
-                                {2'd3, 3'd0}: keypad_selected_value <= 4'd0; // 0
-                                {2'd3, 3'd1}: keypad_selected_value <= 4'd10; // Decimal point
-                                {2'd3, 3'd2}: keypad_selected_value <= 4'd11; // Negative sign
-                                default: keypad_btn_pressed <= 0; // Invalid position
-                            endcase
-                    end
-                    end
-                    end
-                    else begin //else for (is_table_input_mode)
-                        // Navigation Mode
-                        if ((use_mouse) && (mouse_ypos >= 0) && (mouse_ypos <= 12) && (debounced && !mouse_left_prev)) begin
-                            starting_x <= starting_x + 32'h00010000; // Add 1.0 in fixed point
-                        end
-                        
-                        if ((use_mouse) && (mouse_ypos >= 51) && (mouse_ypos <= 63) && (debounced && !mouse_left_prev)) begin
-                            starting_x <= starting_x - 32'h00010000; // Subtract 1.0 in fixed point
-                        end
-                    end
-                end
-                else begin
-                    starting_x <= 0;
-                    is_table_input_mode <= 0;
-                end
-        
-                // Update previous button states
-                mouse_left_prev <= debounced;
-                prev_btnC <= btnC;
-                end
+      
+                      // Switching from input mode to table navigation mode requires checkmark input
+                  end
+         if (is_table_input_mode) begin
+            if (input_complete) begin
+                starting_x <= fp_input_value;
+                is_table_input_mode <= 0;
+            end
+            if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 0 && mouse_ypos <= 15) begin
+                cursor_row <= 0;
+                cursor_col <= 0;
+            end
+            else if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 16 && mouse_ypos <= 31) begin
+                cursor_row <= 1;
+                cursor_col <= 0;
+            end
+            else if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 32 && mouse_ypos <= 47) begin
+                cursor_row <= 2;
+                cursor_col <= 0;
+            end
+            else if (mouse_xpos >= 0 && mouse_xpos <= 23 && mouse_ypos >= 48 && mouse_ypos <= 63) begin
+                cursor_row <= 3;
+                cursor_col <= 0;
+            end
+            else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 0 && mouse_ypos <= 15) begin
+                cursor_row <= 0;
+                cursor_col <= 1;
+            end
+            else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 16 && mouse_ypos <= 31) begin
+                cursor_row <= 1;
+                cursor_col <= 1;
+            end
+            else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 32 && mouse_ypos <= 47) begin
+                cursor_row <= 2;
+                cursor_col <= 1;
+            end
+            else if (mouse_xpos >= 24 && mouse_xpos <= 47 && mouse_ypos >= 48 && mouse_ypos <= 63) begin
+                cursor_row <= 3;
+                cursor_col <= 1;
+            end
+            else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 0 && mouse_ypos <= 15) begin
+                cursor_row <= 0;
+                cursor_col <= 2;
+            end
+            else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 16 && mouse_ypos <= 31) begin
+                cursor_row <= 1;
+                cursor_col <= 2;
+            end
+            else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 32 && mouse_ypos <= 47) begin
+                cursor_row <= 2;
+                cursor_col <= 2;
+            end
+            else if (mouse_xpos >= 48 && mouse_xpos <= 71 && mouse_ypos >= 48 && mouse_ypos <= 63) begin
+                cursor_row <= 3;
+                cursor_col <= 2;
+            end
+          else begin //this is the checkmark side
+                cursor_col <= 3;
+          end
+          if (debounced && !mouse_left_prev) begin
+            keypad_btn_pressed <= 1;
+            if (on_checkmark) begin
+                // is_table_input_mode <= 0;                   
+                keypad_selected_value <= 4'd12;
+            end
+            else begin
+                // Determine selected value based on cursor position
+                    case ({cursor_row, cursor_col})
+                        {2'd0, 3'd0}: keypad_selected_value <= 4'd7; // 7
+                        {2'd0, 3'd1}: keypad_selected_value <= 4'd8; // 8
+                        {2'd0, 3'd2}: keypad_selected_value <= 4'd9; // 9
+                        {2'd1, 3'd0}: keypad_selected_value <= 4'd4; // 4
+                        {2'd1, 3'd1}: keypad_selected_value <= 4'd5; // 5
+                        {2'd1, 3'd2}: keypad_selected_value <= 4'd6; // 6
+                        {2'd2, 3'd0}: keypad_selected_value <= 4'd1; // 1
+                        {2'd2, 3'd1}: keypad_selected_value <= 4'd2; // 2
+                        {2'd2, 3'd2}: keypad_selected_value <= 4'd3; // 3
+                        {2'd3, 3'd0}: keypad_selected_value <= 4'd0; // 0
+                        {2'd3, 3'd1}: keypad_selected_value <= 4'd10; // Decimal point
+                        {2'd3, 3'd2}: keypad_selected_value <= 4'd11; // Negative sign
+                        default: keypad_btn_pressed <= 0; // Invalid position
+                    endcase
+            end
+          end
+          end //this end is for table input mode
+         else begin
+                //fill this up later when figured how to use the scroll wheel, navigating the polynomial table
+         end
+         prev_btnC <= btnC;
+         mouse_left_prev <= debounced;
+      end //this end is for use mouse
        
     end //this end is for the always block
 endmodule

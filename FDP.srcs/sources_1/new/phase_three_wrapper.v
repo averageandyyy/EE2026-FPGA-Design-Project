@@ -278,7 +278,8 @@ module phase_three_wrapper(
         .two_oled_data(table_two_oled_data),
         .new_event(new_event),
         .rst(rst),
-        .zpos(zpos)
+        .zpos(zpos),
+        .is_table_input_mode_outgoing(is_table_input_mode_outgoing)
     );
 
     // Integral module
@@ -349,6 +350,7 @@ module phase_three_wrapper(
         (is_phase_three && is_arithmetic_mode) ? arithmetic_two_oled_data :
         (is_getting_coefficients) ? coeff_display_oled_data :
         (is_menu_selection) ? graph_oled_data :
+        (is_table_selected && is_table_input_mode_outgoing) ? table_two_oled_data :
         (is_table_selected) ? table_two_oled_data :
         (is_integral_selected) ? integral_two_oled_data :
         16'h0000;

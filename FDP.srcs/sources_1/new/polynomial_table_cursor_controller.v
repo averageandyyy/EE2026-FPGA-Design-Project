@@ -389,11 +389,11 @@ module polynomial_table_cursor_controller(
                     end
                     else begin //else for (is_table_input_mode)
                         // Navigation Mode
-                        if (scroll_dir == 10) begin
+                        if ((use_mouse) && (mouse_ypos >= 0) && (mouse_ypos <= 12) && (debounced && !mouse_left_prev)) begin
                             starting_x <= starting_x + 32'h00010000; // Add 1.0 in fixed point
                         end
                         
-                        if (scroll_dir == 01) begin
+                        if ((use_mouse) && (mouse_ypos >= 51) && (mouse_ypos <= 63) && (debounced && !mouse_left_prev)) begin
                             starting_x <= starting_x - 32'h00010000; // Subtract 1.0 in fixed point
                         end
                     end

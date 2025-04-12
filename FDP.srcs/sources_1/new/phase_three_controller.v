@@ -258,7 +258,9 @@ module phase_three_controller(
                     end
                     
                     // Handle selection
-                    if (btnC && !prev_btnC && debounce_C == 0 || (use_mouse && debounced && !mouse_left_prev)) begin
+                    if ((btnC && !prev_btnC && debounce_C == 0) || ((use_mouse && debounced && !mouse_left_prev) && 
+                    ((mouseonJB && use_mouse && mouse_xpos >= 30 && mouse_xpos <= 66 && mouse_ypos <= 45 && mouse_ypos >= 35) || 
+                    (mouseonJB && use_mouse && mouse_xpos >= 30 && mouse_xpos <= 66 && mouse_ypos <= 30 && mouse_ypos >= 20)) )) begin
                         is_menu_selection <= 0;
                         
                         if (cursor_row == 0) begin

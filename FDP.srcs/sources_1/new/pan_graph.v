@@ -76,7 +76,7 @@ module pan_graph(
     reg prevBtnC = 0;
     reg prevleft = 0;
     
-    wire [1:0] scroll_dir;
+    reg [1:0] scroll_dir = 2'b11;
 //    scroll_led_accum scroll_test (
 //    .clk        (clk_6p25MHz),
 //    .rst         (0),
@@ -89,14 +89,14 @@ module pan_graph(
         //Zooming
         if (~is_pan) begin
                 // Only trigger if scroll input is non-zero
-            if (scroll_dir == 01) begin
+            if (0) begin
                 if (right)
                     //scroll down = zoom out
                     zoom_level_x = (zoom_level_x > 1) ? zoom_level_x / 2 : 1;
                 else zoom_level_y = (zoom_level_y > 1) ? zoom_level_y / 2 : 1;
                             
             end
-            else if (scroll_dir == 10) begin
+            else if (0) begin
                 //scroll up = zoom in
                 if (right) zoom_level_x = (zoom_level_x < 8) ? zoom_level_x * 2 : 8;
                 else zoom_level_y = (zoom_level_y < 8) ? zoom_level_y * 2 : 8;

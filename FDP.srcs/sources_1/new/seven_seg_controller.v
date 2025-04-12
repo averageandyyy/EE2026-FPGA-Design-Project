@@ -145,6 +145,28 @@ module seven_seg_controller(
                 an <= 4'b0000;
                 seg <= E;
                 overflow_counter <= overflow_counter - 1;
+
+                case (mux_count)
+                    2'b00: begin 
+                            seg <= E;
+                            an <= 4'b0111;
+                    end
+                
+                    2'b01: begin
+                            seg <= R;
+                            an <= 4'b1011;
+                    end
+                
+                    2'b10: begin
+                            seg <= R;
+                            an <= 4'b1101;
+                    end
+                
+                    2'b11: begin  
+                            seg <= BLANK;
+                            an <= 4'b1110;
+                    end
+                endcase
             end
             else begin
                 case (mux_count)
@@ -332,30 +354,7 @@ module seven_seg_controller(
                         end
                     end
                 end
-            endcase        
-        end else if (STATE_ARITH_OVERFLOW) begin
-            case (mux_count)
-                2'b00: begin 
-                        seg <= E;
-                        an <= 4'b0111;
-                end
-                
-                2'b01: begin
-                        seg <= R;
-                        an <= 4'b1011;
-                end
-                
-                2'b10: begin
-                        seg <= R;
-                        an <= 4'b1101;
-                end
-                
-                2'b11: begin 
-                        seg <= BLANK;
-                        an <= 4'b1110;
-                end
-            endcase
-        end
+          endcase
+       end        
     end    
-
 endmodule

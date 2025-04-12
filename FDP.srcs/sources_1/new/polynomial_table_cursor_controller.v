@@ -138,9 +138,8 @@ module polynomial_table_cursor_controller(
 
         // Only processing buttons if in table mode
         if (is_table_mode) begin
-
             // Switching between table navigation mode and input mode
-            if (btnC && !prev_btnC && debounce_C == 0 || mouse_middle) begin
+            if ((btnC && !prev_btnC && debounce_C == 0) || (use_mouse && mouse_middle)) begin
             //it will also switch if you press the scroll wheel btn
                 debounce_C <= 200;
 
@@ -285,7 +284,7 @@ module polynomial_table_cursor_controller(
                 if (is_table_mode) begin
         
                     // Switching between table navigation mode and input mode
-                    if (btnC && !prev_btnC && debounce_C == 0 || mouse_middle) begin
+                    if ((btnC && !prev_btnC && debounce_C == 0) || (use_mouse && mouse_middle)) begin
                     //it will also switch if you press the scroll wheel btn
                         debounce_C <= 200;
         

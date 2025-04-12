@@ -121,6 +121,14 @@
                     calc_state <= 0; // Reset for next computation
                 end
             endcase
+
+            if (
+                (mult_result >  64'sh00007FFF00000000) 
+                || 
+                (mult_result < -64'sh0000800000000000) 
+            ) begin
+                mult_result <= (mult_result < 64'sd0) ? -64'sh0000800000000000 : 64'sh00007FFF00000000;
+            end
         end
         else begin
             // Reset when not computing

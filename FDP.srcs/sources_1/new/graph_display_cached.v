@@ -133,6 +133,8 @@ module graph_display_cached(
         if (btnC && !prev_btnC) begin
             is_pan <= ~is_pan;
         end
+
+        //Store previous button mode
         prev_btnC <= btnC;
         
         if (is_graphing_mode) begin

@@ -39,8 +39,7 @@ module pan_graph(
     
     parameter SCREEN_WIDTH = 96;
     parameter SCREEN_HEIGHT = 64;
-    parameter MAX_PAN_X = 100;
-    parameter MAX_PAN_y = 100;
+    parameter MAX_PAN = 200;
     wire [6:0] curr_x;
     wire [6:0] curr_y;
     mouse_coordinate_extractor unit_b (basys_clk,
@@ -133,26 +132,26 @@ module pan_graph(
 //             end 
                         // Otherwise, if the left mouse button is not held, use button inputs.
                         if (prevBtnU && ~btnU || ((curr_x >= 19) && (curr_x <= 76) && (curr_y >= 0) && (curr_y<= 12) && (~left && prevleft))) begin
-                            if (pan_offset_y >= 90)
-                                pan_offset_y <= 90;
+                            if (pan_offset_y >= MAX_PAN)
+                                pan_offset_y <= MAX_PAN;
                             else
                                 pan_offset_y <= pan_offset_y + 2;
                         end
                         if (prevBtnD && ~btnD || ((curr_x >= 19) && (curr_x <= 76) && (curr_y >= 51) && (curr_y <= 63) && (~left && prevleft) )) begin
-                            if (pan_offset_y <= -90)
-                                pan_offset_y <= -90;
+                            if (pan_offset_y <= -MAX_PAN)
+                                pan_offset_y <= -MAX_PAN;
                             else
                                 pan_offset_y <= pan_offset_y - 2;
                         end
                         if (prevBtnL && ~btnL || ((curr_x >= 0) && (curr_x <= 18) && (curr_y >= 0) && (curr_y <= 63) && (~left && prevleft) )) begin
-                            if (pan_offset_x <= -90)
-                                pan_offset_x <= -90;
+                            if (pan_offset_x <= -MAX_PAN)
+                                pan_offset_x <= -MAX_PAN;
                             else
                                 pan_offset_x <= pan_offset_x - 2;
                         end
                         if (prevBtnR && ~btnR || ((curr_x >= 77) && (curr_x <= 95) && (curr_y >= 0) && (curr_y <= 63) && (~left && prevleft) )) begin
-                            if (pan_offset_x >= 90)
-                                pan_offset_x <= 90;
+                            if (pan_offset_x >= MAX_PAN)
+                                pan_offset_x <= MAX_PAN;
                             else
                                 pan_offset_x <= pan_offset_x + 2;
                         end

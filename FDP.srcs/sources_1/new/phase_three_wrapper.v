@@ -196,11 +196,11 @@ module phase_three_wrapper(
     graph_display_cached graph_display(
         .clk(clk_6p25MHz),
         // I disabled the buttons for now to make sure it doesnt intefere with other stuff
-        .btnU(0),
-        .btnD(0),
-        .btnL(0),
-        .btnR(0),
-        .btnC(0),
+        .btnU(btnU),
+        .btnD(btnD),
+        .btnL(btnL),
+        .btnR(btnR),
+        .btnC(btnC),
         .pixel_index(two_pixel_index),
         .coeff_a(coeff_a),
         .coeff_b(coeff_b),

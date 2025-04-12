@@ -156,6 +156,7 @@ module Top_Student (
         .btnL(btnL),
         .btnR(btnR),
         .back_switch(sw[15]),
+        .pan_zoom_toggle(sw[14]),
         .rst(rst),
         .led(led),
         .an(an),

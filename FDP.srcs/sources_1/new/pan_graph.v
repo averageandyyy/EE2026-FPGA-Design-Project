@@ -24,6 +24,7 @@ module pan_graph(
     input clk, //6p25MHz clock
     input is_graphing_mode,
     input btnU, btnD, btnL, btnR, btnC,
+    input pan_zoom_toggle,
     output reg signed [15:0]pan_offset_x, 
     output reg signed [15:0]pan_offset_y,
     output reg signed  [3:0]zoom_level_x,
@@ -110,10 +111,12 @@ module pan_graph(
         end 
 
        // In all cases, update the previous mouse position.
-        prevBtnU <= btnU;
-        prevBtnD <= btnD;
-        prevBtnL <= btnL;
-        prevBtnR <= btnR;
-        prevBtnC <= btnC;
+       if (pan_zoom_toggle) begin
+            prevBtnU <= btnU;
+            prevBtnD <= btnD;
+            prevBtnL <= btnL;
+            prevBtnR <= btnR;
+            prevBtnC <= btnC;
+        end
     end
 endmodule

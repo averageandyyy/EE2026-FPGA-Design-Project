@@ -104,7 +104,9 @@
                                 // For Q16.16 multiplication, we need to shift right by 16
                                 product = result * input_fp_value;
                                 // Check for overflow: if high bits are not sign extension of low 32 bits
-                                overflow = ((product[63:31] != {33{product[31]}}) && (product[63:31] != 33'h0));
+                                // overflow = ((product[63:31] != {33{product[31]}}) && (product[63:31] != 33'h0));
+                                // overflow = ((product >= 0) && (|product[63:48])) || ((product < 0) && (|(product[63:48] & 16'h7FFF)));
+                                overflow = ((product[63] == 0) && (|product[63:47])) || ((product[63] == 1) && (|(~product[63:47])));
                                 result <= overflow ? 0 : (product >>> 16);
                                 overflow_flag <= overflow;
                             end

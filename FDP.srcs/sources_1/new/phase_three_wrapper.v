@@ -349,7 +349,7 @@ module phase_three_wrapper(
         (is_table_selected) ? table_one_oled_data :
         (is_integral_selected) ? integral_one_oled_data :
         16'h0000;
-
+ 
     // Output multiplexing for the second OLED
     assign two_oled_data = 
         (is_phase_three && is_arithmetic_mode) ? arithmetic_two_oled_data :

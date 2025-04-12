@@ -61,6 +61,7 @@ module phase_control(
     //         
     //      2. function: 4'b0010 
     //          integration mode: 4'b0011
+    //          plot mode: 4'b0100
     // mousemode: 4'b1111;
     wire [3:0] seven_segment_mode;
 
@@ -89,7 +90,7 @@ module phase_control(
         .btnL(btnL),
         .is_phase_two(is_phase_two),
         .is_phase_three(is_phase_three),
-        .back_switch(~back_switch),
+        .back_switch(back_switch),
         .xpos(xpos),
         .ypos(ypos),
         .use_mouse(use_mouse),
@@ -111,7 +112,7 @@ module phase_control(
         .is_phase_three(is_phase_three),
         .is_arithmetic_mode(is_arithmetic_mode),
         .is_getting_coefficients(is_getting_coefficients),
-        .back_switch(~back_switch),
+        .back_switch(back_switch),
         .xpos(xpos),
         .ypos(ypos),
         .use_mouse(use_mouse),
@@ -137,7 +138,7 @@ module phase_control(
         .is_phase_three(is_phase_three),
         .is_arithmetic_mode(is_arithmetic_mode),
         .is_getting_coefficients(is_getting_coefficients),
-        .back_switch(~back_switch),
+        .back_switch(back_switch),
         .xpos(xpos),
         .ypos(ypos),
         .zpos(zpos),
@@ -148,7 +149,7 @@ module phase_control(
         .middle(mouse_middle),
         .new_event(new_event),
         .overflow_flag(overflow_flag),
-        .integration_mode(is_integral_mode),
+        .integration_mode(is_integration_mode),
         .plot_mode(is_plot_mode)
     );
 
@@ -161,7 +162,7 @@ module phase_control(
     end
 
     assign seven_segment_mode = is_phase_three ? 
-    (is_arithmetic_mode ? 4'b0001 : (is_integration_mode ? (is_plot_mode ? 4'b0100 : 4'b0011) : 4'b0010))
+    (is_arithmetic_mode ? 4'b0001 : (is_integration_mode ? 4'b0011 : (is_plot_mode ? 4'b0100 : 4'b0010)))
     : (use_mouse ? 4'b1111 : 4'b0000);
 
     // Controlling the seven segment display

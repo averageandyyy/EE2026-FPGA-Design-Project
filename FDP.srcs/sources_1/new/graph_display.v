@@ -58,19 +58,14 @@ module graph_display (
     reg is_pan = 1;
     
     pan_graph panning_unit (
-        .basys_clk(clk),
+        .clk(clk),
         .btnU(btnU), 
         .btnD(btnD), 
         .btnL(btnL), 
         .btnR(btnR),
         .btnC(btnC),
         .is_pan(is_pan),
-        .mouse_x(curr_x),
-        .mouse_y(curr_y),
-        .zpos(zoom_level),
-        .new_event(new_event),
-        .left(mouse_left),
-        .right(mouse_right),
+        .is_graphing_mode(is_graphing_mode),
         .pan_offset_x(pan_offset_x), 
         .pan_offset_y(pan_offset_y),
         .zoom_level_x(zoom_level_x),

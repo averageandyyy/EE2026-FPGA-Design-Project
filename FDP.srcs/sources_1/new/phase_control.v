@@ -26,8 +26,8 @@ module phase_control(
     input clk_1kHz,
     input [12:0] one_pixel_index,
     input [12:0] two_pixel_index,
-    output reg [15:0] one_oled_data,
-    output reg [15:0] two_oled_data,
+    output [15:0] one_oled_data,
+    output [15:0] two_oled_data,
     input btnU, btnD, btnC, btnL, btnR,
     input back_switch,
     input [11:0] xpos,
@@ -136,13 +136,12 @@ module phase_control(
         .mouse_left(mouse_left),
         .overflow_flag(overflow_flag),
         .integration_mode(is_integration_mode),
-        .plot_mode(is_plot_mode)
+        .plot_mode(is_plot_mode),
         .mouse_right(mouse_right),
         .middle(mouse_middle),
-        .new_event(new_event),
-        .overflow_flag(overflow_flag)
+        .new_event(new_event)
     );
-
+    wire [3:0] seven_segment_mode;
     // Output selection based on active phase
     assign one_oled_data = is_phase_three ? phase_three_one_oled_data :
                           (is_phase_two ? phase_two_oled_data : phase_one_oled_data);

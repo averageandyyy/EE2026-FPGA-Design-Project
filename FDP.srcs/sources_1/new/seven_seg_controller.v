@@ -27,15 +27,8 @@ module seven_seg_controller(
     input my_1_khz_clk,
     input [3:0] seven_segment_mode,
     input overflow_flag
-    input my_1_khz_clk,
-    input [3:0] seven_segment_mode,
-    input overflow_flag
     );
     
-    // Letters for display
-    parameter [7:0] A = 8'b10001000;
-    parameter [7:0] R = 8'b10101111;
-    parameter [7:0] T = 8'b10000111;
     // Letters for display
     parameter [7:0] A = 8'b10001000;
     parameter [7:0] R = 8'b10101111;

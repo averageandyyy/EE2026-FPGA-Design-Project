@@ -356,7 +356,7 @@ module phase_three_wrapper(
         (is_getting_coefficients) ? coeff_display_oled_data :
         (is_menu_selection) ? graph_oled_data :
         (is_table_selected && is_table_input_mode_outgoing) ? table_two_oled_data :
-        (is_table_selected) ? table_two_oled_data :
+        (is_table_selected) ? graph_oled_data :
         (is_integral_selected) ? integral_two_oled_data :
         16'h0000;
 

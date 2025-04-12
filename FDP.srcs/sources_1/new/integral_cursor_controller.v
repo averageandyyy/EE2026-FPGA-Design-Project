@@ -87,7 +87,7 @@ module integral_cursor_controller(
     reg [7:0] debounce_L = 0;
     reg [7:0] debounce_R = 0;
 
-    reg [8:0] count = 350;
+    reg [8:0] count = 500;
 
     // Flag to track if on the checkmark
     wire on_checkmark = (cursor_col == 3'd3);
@@ -112,7 +112,7 @@ module integral_cursor_controller(
             debounce_D <= 0;
             debounce_L <= 0;
             debounce_R <= 0;
-            count <= 350;
+            count <= 500;
         end
         else if (is_integral_input_mode) begin
             if (count == 0) begin

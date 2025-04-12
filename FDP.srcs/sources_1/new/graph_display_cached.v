@@ -40,7 +40,8 @@ module graph_display_cached(
     input signed [31:0] integration_lower_bound,
     input signed [31:0] integration_upper_bound,
     output reg [15:0] oled_data,
-    input is_integral_complete_outgoing
+    input is_integral_complete_outgoing,
+    input pan_zoom_toggle
     );
 
     
@@ -107,7 +108,8 @@ module graph_display_cached(
         .coeff_c(coeff_c),
         .coeff_d(coeff_d),
         .y_value(computed_y),
-        .computation_complete(compute_complete)
+        .computation_complete(compute_complete),
+        .is_graph(1)
     );
 
     // Connect pan_graph module for pan and zoom functionality
@@ -122,7 +124,8 @@ module graph_display_cached(
         .pan_offset_x(pan_offset_x),
         .pan_offset_y(pan_offset_y),
         .zoom_level_x(zoom_level_x),
-        .zoom_level_y(zoom_level_y)
+        .zoom_level_y(zoom_level_y),
+        .pan_zoom_toggle(pan_zoom_toggle)
     );
 
     // Main control state machine, updates cache of y values when user view changes
@@ -250,9 +253,9 @@ module graph_display_cached(
                 curr_y_val = y_cache[x_pos];
                 prev_y_val = y_cache[x_pos-1];
 
-                // if (curr_y_val > 48'sh00007FFF0000|| curr_y_val < -48'sh000080000000) begin
-                    // is_overflow = 1;
-                // end
+                if (curr_y_val > 48'sh00007FFF0000|| curr_y_val < -48'sh000080000000) begin
+                    is_overflow = 1;
+                end
 
                 // Check if the line crosses or comes close to the current y_math_pos
                 if (

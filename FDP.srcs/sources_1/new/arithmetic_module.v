@@ -43,7 +43,9 @@ module arithmetic_module(
     input [12:0] one_pixel_index,
     input [12:0] two_pixel_index,
     output [15:0] one_oled_data,
-    output [15:0] two_oled_data
+    output [15:0] two_oled_data,
+
+    output overflow_flag
     );
 
     // Internal signals
@@ -114,7 +116,8 @@ module arithmetic_module(
         .is_operand_mode(is_operand_mode),
         .result(result),
         .current_operation(),
-        .operation_done(operation_done)
+        .operation_done(operation_done),
+        .overflow_flag(overflow_flag)
     );
 
     // Keypad renderer (first OLED)

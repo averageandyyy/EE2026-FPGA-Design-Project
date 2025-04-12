@@ -46,6 +46,7 @@ module Top_Student (
     wire [12:0]JB_pixel_index;
     wire one_sending_pixels;
     wire [15:0]JB_oled_data;
+    wire [12:0] JA_rotated_pixel_index;
 
     // Second OLED display unit
     wire two_frame_begin;
@@ -93,7 +94,7 @@ module Top_Student (
         .clk_1kHz(clk_1kHz),
         .clk_6p25MHz(clk_6p25MHz),
         .one_pixel_index(JB_pixel_index),
-        .two_pixel_index(JA_pixel_index),
+        .two_pixel_index(JA_rotated_pixel_index),
         .one_oled_data(JB_oled_data),
         .two_oled_data(JA_oled_data),
         .btnU(btnU),
@@ -104,7 +105,9 @@ module Top_Student (
         .back_switch(sw[15]),
         .led(led),
         .an(an),
-        .seg(seg)
+        .seg(seg),
+        .pan_zoom_toggle(sw[14])
     );
-
+    
+    rotate_180_for_JA rotate180(JA_pixel_index, JA_rotated_pixel_index);
 endmodule

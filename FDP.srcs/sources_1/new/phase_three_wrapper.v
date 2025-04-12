@@ -51,11 +51,14 @@ module phase_three_wrapper(
     input [3:0] zpos,
     input use_mouse,
     input mouse_left,
-    input mouse_right,
     input middle,
-    input mouseonJB,
+    input mouse_right,
     input new_event,
-    output overflow_flag
+    input mouseonJB,
+    input pan_zoom_toggle,
+    output overflow_flag,
+    output integration_mode,
+    output plot_mode
     );
 
     // State signals from controller
@@ -116,7 +119,7 @@ module phase_three_wrapper(
         .ypos(ypos),
         .btnU(btnU),
         .btnD(btnD),
-        .btnC(btnC),
+        .btnC(btnC & ~pan_zoom_toggle),
         .btnL(btnL),
         .btnR(btnR),
         .back_switch(back_switch),
@@ -222,12 +225,12 @@ module phase_three_wrapper(
     graph_display_cached graph_display(
         .clk(clk_6p25MHz),
         .clk_100MHz(clk_100MHz),
-        // I disabled the buttons for now to make sure it doesnt intefere with other stuff
-        .btnU(0),
-        .btnD(0),
-        .btnL(0),
-        .btnR(0),
-        .btnC(0),
+         .btnU(btnU),
+         .btnD(btnD),
+         .btnL(btnL),
+         .btnR(btnR),
+         .btnC(btnC || back_switch),
+         .pan_zoom_toggle(pan_zoom_toggle),
         .rst(rst),
         .pixel_index(two_pixel_index),
         .coeff_a(coeff_a),
@@ -356,4 +359,7 @@ module phase_three_wrapper(
         (is_table_selected) ? table_two_oled_data :
         (is_integral_selected) ? integral_two_oled_data :
         16'h0000;
+
+    assign integration_mode = is_integral_selected;
+    assign plot_mode = is_menu_selection || is_table_selected || is_integral_selected;
 endmodule

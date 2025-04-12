@@ -46,7 +46,6 @@ module arithmetic_module(
     output [15:0] one_oled_data,
     output [15:0] two_oled_data,
 
-    // input and output for overflow
     output overflow_flag
     );
 

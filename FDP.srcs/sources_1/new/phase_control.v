@@ -32,6 +32,7 @@ module phase_control(
     input back_switch,
     input [11:0] xpos,
     input [11:0] ypos,
+    input pan_zoom_toggle,
     input use_mouse,
     input mouse_left,
     input mouse_middle,
@@ -51,15 +52,8 @@ module phase_control(
     wire is_phase_three;
     wire is_arithmetic_mode;
     wire is_getting_coefficients;
-
-    // Note:
-    // Phase 1/2: 4'b0000
-    // Phase 3: 
-    //      1. arithmetic: 4'b0001
-    //          arith overflow: 4'b0011
-    //      2. function: 4'b0010 
-    // mousemode: 4'b1111;
-    wire [3:0] seven_segment_mode;
+    wire is_integration_mode;
+    wire is_plot_mode;
 
     // OLED data from each phase
     wire [15:0] phase_one_oled_data;
@@ -67,12 +61,7 @@ module phase_control(
     wire [15:0] phase_three_one_oled_data;
     wire [15:0] phase_three_two_oled_data;
 
-    // arithmetic overflow signal
     wire overflow_flag;
-    reg overflow_signal = 0;
-    reg [8:0] count_for_overflow = 0;
-
-    // Seven segment overflow complete signal
     wire overflow_done;
 
     // Instantiate phase one wrapper
@@ -134,6 +123,7 @@ module phase_control(
         .btnL(btnL),
         .btnR(btnR),
         .is_phase_three(is_phase_three),
+        .pan_zoom_toggle(pan_zoom_toggle),
         .is_arithmetic_mode(is_arithmetic_mode),
         .is_getting_coefficients(is_getting_coefficients),
         .back_switch(~back_switch),
@@ -144,6 +134,9 @@ module phase_control(
         .is_pan_mouse(is_pan_mouse),
         .use_mouse(use_mouse),
         .mouse_left(mouse_left),
+        .overflow_flag(overflow_flag),
+        .integration_mode(is_integration_mode),
+        .plot_mode(is_plot_mode)
         .mouse_right(mouse_right),
         .middle(mouse_middle),
         .new_event(new_event),
@@ -151,27 +144,14 @@ module phase_control(
     );
 
     // Output selection based on active phase
-    always @ (posedge clk_100MHz) begin
-        one_oled_data = is_phase_three ? phase_three_one_oled_data :
-                              (is_phase_two ? phase_two_oled_data : phase_one_oled_data);
+    assign one_oled_data = is_phase_three ? phase_three_one_oled_data :
+                          (is_phase_two ? phase_two_oled_data : phase_one_oled_data);
+                          
+    assign two_oled_data = is_phase_three ? phase_three_two_oled_data : 16'h0000;
     
-        two_oled_data = is_phase_three ? phase_three_two_oled_data : 16'h0000;
-    end
-
-    // handle overflow state
-    // always @ (posedge clk_1kHz) begin
-        // if (count_for_overflow == 500) begin
-            // count_for_overflow <= 0;
-            // overflow_signal <= 0;
-        // end else begin
-            // count_for_overflow <= count_for_overflow + 1;
-        // end
-        // if (overflow_flag && count_for_overflow < 500) begin
-            // overflow_signal <= 1;
-        // end
-    // end
-
-    assign seven_segment_mode = is_phase_three ? (is_arithmetic_mode ? (4'b0001) : 4'b0010) : (use_mouse ? 4'b1111 : 4'b0000);
+    assign seven_segment_mode = is_phase_three ? 
+    (is_arithmetic_mode ? 4'b0001 : (is_integration_mode ? 4'b0011 : (is_plot_mode ? 4'b0100 : 4'b0010)))
+    : (use_mouse ? 4'b1111 : 4'b0000);
 
     // Controlling the seven segment display
     seven_seg_controller ssc(

@@ -44,8 +44,8 @@ module seven_seg_controller(
     parameter [7:0] S = 8'b10010010;
     parameter [7:0] E = 8'b10000110;
     parameter [7:0] I = 8'b11111001;
-    parameter [7:0] G = 8'b11101111;
-    parameter [7:0] P = 6'b11110011;
+    parameter [7:0] G = 8'b10010000;
+    parameter [7:0] P = 8'b10001100;
 
     // Arrowhead display
     parameter [7:0] HEAD = 8'b10111001;
@@ -223,14 +223,14 @@ module seven_seg_controller(
                         if (toggle_state) begin
                             if (back_switch) begin
                                 seg <= DASH;
-                                an <= 4'b0111;
+                                an <= 4'b1011;
                             end else begin
                                 seg <= R;
-                                an <= 4'b0111;
+                                an <= 4'b1011;
                             end
                         end else begin
                             if (back_switch) begin
-                                seg <= DASH;
+                                seg <= BLANK;
                                 an <= 4'b1011;
                             end else begin
                                 seg <= R;
@@ -241,11 +241,16 @@ module seven_seg_controller(
                 
                     2'b10: begin
                         if (toggle_state) begin
-                            seg <= T;
-                            an <= 4'b1101;
-                        end else begin
                             if (back_switch) begin
                                 seg <= DASH;
+                                an <= 4'b1101;
+                            end else begin
+                                seg <= T;
+                                an <= 4'b1101;
+                            end
+                        end else begin
+                            if (back_switch) begin
+                                seg <= BLANK;
                                 an <= 4'b1101;
                             end else begin
                                 seg <= T;
@@ -256,11 +261,16 @@ module seven_seg_controller(
                 
                     2'b11: begin  
                         if (toggle_state) begin
-                            seg <= H;
-                            an <= 4'b1110;
-                        end else begin
-                            if (~back_switch) begin
+                            if (back_switch) begin
                                 seg <= DASH;
+                                an <= 4'b1110;
+                            end else begin
+                                seg <= H;
+                                an <= 4'b1110;
+                            end
+                        end else begin
+                            if (back_switch) begin
+                                seg <= BLANK;
                                 an <= 4'b1110;
                             end else begin
                                 seg <= H;
@@ -274,11 +284,16 @@ module seven_seg_controller(
             case (mux_count)
                 2'b00: begin 
                     if (toggle_state) begin
-                        seg <= F;
-                        an <= 4'b0111;
-                    end else begin
                         if (back_switch) begin
                             seg <= HEAD;
+                            an <= 4'b0111;
+                        end else begin
+                            seg <= F;
+                            an <= 4'b0111;
+                        end
+                    end else begin
+                        if (back_switch) begin
+                            seg <= BLANK;
                             an <= 4'b0111;
                         end else begin
                             seg <= F;
@@ -289,11 +304,16 @@ module seven_seg_controller(
                 
                 2'b01: begin
                     if (toggle_state) begin
-                        seg <= U;
-                        an <= 4'b1011;
-                    end else begin
                         if (back_switch) begin
                             seg <= DASH;
+                            an <= 4'b1011;
+                        end else begin
+                            seg <= U;
+                            an <= 4'b1011;
+                        end
+                    end else begin
+                        if (back_switch) begin
+                            seg <= BLANK;
                             an <= 4'b1011;
                         end else begin
                             seg <= U;
@@ -304,11 +324,16 @@ module seven_seg_controller(
                 
                 2'b10: begin
                     if (toggle_state) begin
-                        seg <= N;
-                        an <= 4'b1101;
-                    end else begin
                         if (back_switch) begin
                             seg <= DASH;
+                            an <= 4'b1101;
+                        end else begin
+                            seg <= N;
+                            an <= 4'b1101;
+                        end
+                    end else begin
+                        if (back_switch) begin
+                            seg <= BLANK;
                             an <= 4'b1101;
                         end else begin
                             seg <= N;
@@ -319,11 +344,16 @@ module seven_seg_controller(
                 
                 2'b11: begin  
                     if (toggle_state) begin
-                        seg <= C;
-                        an <= 4'b1110;
-                    end else begin
                         if (back_switch) begin
                             seg <= DASH;
+                            an <= 4'b1110;
+                        end else begin
+                            seg <= C;
+                            an <= 4'b1110;
+                        end
+                    end else begin
+                        if (back_switch) begin
+                            seg <= BLANK;
                             an <= 4'b1110;
                         end else begin
                             seg <= C;
@@ -398,14 +428,19 @@ module seven_seg_controller(
             case (mux_count)
                     2'b00: begin 
                         if (toggle_state) begin
-                            seg <= I;
-                            an <= 4'b0111;
-                        end else begin
                             if (back_switch) begin
-                                seg <= I;
+                                seg <= HEAD;
                                 an <= 4'b0111;
                             end else begin
-                                seg <= HEAD;
+                                seg <= I;
+                                an <= 4'b0111;
+                            end
+                        end else begin
+                            if (back_switch) begin
+                                seg <= BLANK;
+                                an <= 4'b0111;
+                            end else begin
+                                seg <= I;
                                 an <= 4'b0111;
                             end
                         end
@@ -413,14 +448,19 @@ module seven_seg_controller(
                 
                     2'b01: begin
                         if (toggle_state) begin
-                            seg <= N;
-                            an <= 4'b1011;
-                        end else begin
                             if (back_switch) begin
-                                seg <= N;
+                                seg <= DASH;
                                 an <= 4'b1011;
                             end else begin
-                                seg <= DASH;
+                                seg <= N;
+                                an <= 4'b1011;
+                            end
+                        end else begin
+                            if (back_switch) begin
+                                seg <= BLANK;
+                                an <= 4'b1011;
+                            end else begin
+                                seg <= N;
                                 an <= 4'b1011;
                             end
                         end
@@ -428,14 +468,19 @@ module seven_seg_controller(
                 
                     2'b10: begin
                         if (toggle_state) begin
-                            seg <= T;
-                            an <= 4'b1101;
-                        end else begin
                             if (back_switch) begin
-                                seg <= T;
+                                seg <= DASH;
                                 an <= 4'b1101;
                             end else begin
-                                seg <= DASH;
+                                seg <= T;
+                                an <= 4'b1101;
+                            end
+                        end else begin
+                            if (back_switch) begin
+                                seg <= BLANK;
+                                an <= 4'b1101;
+                            end else begin
+                                seg <= T;
                                 an <= 4'b1101;
                             end
                         end
@@ -443,14 +488,19 @@ module seven_seg_controller(
                 
                     2'b11: begin  
                         if (toggle_state) begin
-                            seg <= G;
-                            an <= 4'b1110;
-                        end else begin
                             if (back_switch) begin
-                                seg <= G;
+                                seg <= DASH;
                                 an <= 4'b1110;
                             end else begin
-                                seg <= DASH;
+                                seg <= G;
+                                an <= 4'b1110;
+                            end
+                        end else begin
+                            if (back_switch) begin
+                                seg <= BLANK;
+                                an <= 4'b1110;
+                            end else begin
+                                seg <= G;
                                 an <= 4'b1110;
                             end
                         end
@@ -460,14 +510,19 @@ module seven_seg_controller(
             case (mux_count)
                     2'b00: begin 
                         if (toggle_state) begin
-                            seg <= P;
-                            an <= 4'b0111;
-                        end else begin
                             if (back_switch) begin
-                                seg <= P;
+                                seg <= HEAD;
                                 an <= 4'b0111;
                             end else begin
-                                seg <= HEAD;
+                                seg <= P;
+                                an <= 4'b0111;
+                            end
+                        end else begin
+                            if (back_switch) begin
+                                seg <= BLANK;
+                                an <= 4'b0111;
+                            end else begin
+                                seg <= P;
                                 an <= 4'b0111;
                             end
                         end
@@ -475,14 +530,19 @@ module seven_seg_controller(
                 
                     2'b01: begin
                         if (toggle_state) begin
-                            seg <= L;
-                            an <= 4'b1011;
-                        end else begin
                             if (back_switch) begin
-                                seg <= L;
+                                seg <= DASH;
                                 an <= 4'b1011;
                             end else begin
-                                seg <= DASH;
+                                seg <= L;
+                                an <= 4'b1011;
+                            end
+                        end else begin
+                            if (back_switch) begin
+                                seg <= BLANK;
+                                an <= 4'b1011;
+                            end else begin
+                                seg <= L;
                                 an <= 4'b1011;
                             end
                         end
@@ -490,14 +550,19 @@ module seven_seg_controller(
                 
                     2'b10: begin
                         if (toggle_state) begin
-                            seg <= O;
-                            an <= 4'b1101;
-                        end else begin
                             if (back_switch) begin
-                                seg <= O;
+                                seg <= DASH;
                                 an <= 4'b1101;
                             end else begin
-                                seg <= DASH;
+                                seg <= O;
+                                an <= 4'b1101;
+                            end
+                        end else begin
+                            if (back_switch) begin
+                                seg <= BLANK;
+                                an <= 4'b1101;
+                            end else begin
+                                seg <= O;
                                 an <= 4'b1101;
                             end
                         end
@@ -505,14 +570,19 @@ module seven_seg_controller(
                 
                     2'b11: begin  
                         if (toggle_state) begin
-                            seg <= T;
-                            an <= 4'b1110;
-                        end else begin
                             if (back_switch) begin
-                                seg <= T;
+                                seg <= DASH;
                                 an <= 4'b1110;
                             end else begin
-                                seg <= DASH;
+                                seg <= T;
+                                an <= 4'b1110;
+                            end
+                        end else begin
+                            if (back_switch) begin
+                                seg <= BLANK;
+                                an <= 4'b1110;
+                            end else begin
+                                seg <= T;
                                 an <= 4'b1110;
                             end
                         end

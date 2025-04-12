@@ -138,6 +138,7 @@ module phase_control(
         .btnR(btnR),
         .pan_zoom_toggle(pan_zoom_toggle),
         .is_phase_three(is_phase_three),
+        .pan_zoom_toggle(pan_zoom_toggle),
         .is_arithmetic_mode(is_arithmetic_mode),
         .is_getting_coefficients(is_getting_coefficients),
         .back_switch(back_switch),

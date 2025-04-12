@@ -99,6 +99,7 @@ module Top_Student (
     wire [12:0]JB_pixel_index;
     wire one_sending_pixels;
     wire [15:0]JB_oled_data;
+    wire [12:0] JA_rotated_pixel_index;
 
     // Second OLED display unit
     wire two_frame_begin;

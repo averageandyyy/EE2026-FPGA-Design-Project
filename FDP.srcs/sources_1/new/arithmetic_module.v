@@ -125,7 +125,7 @@ module arithmetic_module(
         .is_operand_mode(is_operand_mode),
         .result(result),
         .current_operation(),
-        .operation_done(operation_done),
+        .operation_done(operation_done)
         .overflow_flag(overflow_flag)
     );
 

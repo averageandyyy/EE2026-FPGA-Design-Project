@@ -91,7 +91,8 @@ module polynomial_table_table_display(
         .coeff_c(coeff_c),
         .coeff_d(coeff_d),
         .y_value(computed_y),
-        .computation_complete(computation_complete)
+        .computation_complete(computation_complete),
+        .is_graph(0)
     );
     
     // String conversion module instance

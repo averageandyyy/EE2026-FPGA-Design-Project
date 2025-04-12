@@ -37,6 +37,7 @@ module polynomial_table_module(
     input use_mouse,
     input mouse_left,
     input mouse_middle,
+    input mouse_right,
 
     // Control flag
     input is_table_mode,
@@ -97,6 +98,7 @@ module polynomial_table_module(
         .mouse_xpos(curr_x),
         .mouse_ypos(curr_y),
         .mouse_left(mouse_left),
+        .mouse_right(mouse_right),
         .mouse_middle(mouse_middle),
         .use_mouse(use_mouse),
         .clk_100MHz(clk_100MHz),

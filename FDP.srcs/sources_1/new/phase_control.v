@@ -144,6 +144,7 @@ module phase_control(
         .is_pan_mouse(is_pan_mouse),
         .use_mouse(use_mouse),
         .mouse_left(mouse_left),
+        .mouse_right(mouse_right),
         .middle(mouse_middle),
         .new_event(new_event),
         .overflow_flag(overflow_flag)

@@ -180,6 +180,7 @@ module phase_two_menu_controller(
         prev_btnC <= btnC;
         prev_btnD <= btnD; 
         mouse_left_prev <= debounced;
+        mouse_middle_prev <= debounced_middle;
         
     end
 endmodule

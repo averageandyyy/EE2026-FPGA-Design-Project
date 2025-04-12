@@ -31,6 +31,7 @@ module polynomial_table_cursor_controller(
     input [6:0] mouse_ypos,
     input mouse_left,        //used to click
     input mouse_middle,     //used only in table mode, want to switch back to the keypad
+    input mouse_right,
     input clk,
     input clk_6p25MHz,
     input clk_100MHz,
@@ -79,6 +80,42 @@ module polynomial_table_cursor_controller(
         counter   = 0;
         debounced = 1'b0;
     end
+     //debouncing for right mouse button
+                 reg [21:0] right_counter;    // Counter for debounce delay (needs enough bits)
+                 reg debounced_right;         // Stores the debounced state
+                 initial begin
+                     right_counter   = 0;
+                     debounced_right = 1'b0;
+                 end
+                 always @(posedge clk_100MHz) begin
+                         if (mouse_right == debounced_right) 
+                             right_counter <= 0;
+                         else begin
+                             right_counter <= right_counter + 1;
+                             if (right_counter >= DEBOUNCE_DELAY) debounced_right <= mouse_right;
+                         
+                         end
+                 end
+                 reg mouse_right_prev;
+                 initial begin mouse_right_prev = 1'b0; end
+     //debouncing for middle mouse button
+              reg [21:0] middle_counter;    // Counter for debounce delay (needs enough bits)
+              reg debounced_middle;         // Stores the debounced state
+              initial begin
+                  middle_counter   = 0;
+                  debounced_middle = 1'b0;
+              end
+              always @(posedge clk_100MHz) begin
+                      if (mouse_middle == debounced_middle) 
+                          middle_counter <= 0;
+                      else begin
+                          middle_counter <= middle_counter + 1;
+                          if (middle_counter >= DEBOUNCE_DELAY) debounced_middle <= mouse_middle;
+                      
+                      end
+              end
+              reg mouse_middle_prev;
+              initial begin mouse_middle_prev = 1'b0; end
     always @(posedge clk_100MHz) begin
             if (mouse_left == debounced) 
                 counter <= 0;
@@ -112,7 +149,7 @@ module polynomial_table_cursor_controller(
         if (is_table_mode) begin
 
             // Switching between table navigation mode and input mode
-            if (btnC && !prev_btnC && debounce_C == 0 || mouse_middle) begin
+            if (btnC && !prev_btnC && debounce_C == 0) begin
             //it will also switch if you press the scroll wheel btn
                 debounce_C <= 200;
 
@@ -254,7 +291,7 @@ module polynomial_table_cursor_controller(
       
       keypad_btn_pressed <= 0;
       if (debounce_C > 0) debounce_C <= debounce_C - 1;
-      if (btnC && !prev_btnC && debounce_C == 0 || mouse_middle) begin
+      if (btnC && !prev_btnC && debounce_C == 0 || (debounced && !mouse_left_prev)) begin
                   //it will also switch if you press the scroll wheel btn
                       debounce_C <= 200;
       
@@ -352,10 +389,18 @@ module polynomial_table_cursor_controller(
           end
           end //this end is for table input mode
          else begin
+            if ((use_mouse) && (mouse_ypos >= 0) && (mouse_ypos <= 12) && (debounced_right && !mouse_right_prev)) begin
+                starting_x <= starting_x + 32'h00010000; // Add 1.0 in fixed point
+            end
+            if ((use_mouse) && (mouse_ypos >= 51) && (mouse_ypos <= 63) && (debounced_right && !mouse_right_prev)) begin
+                starting_x <= starting_x - 32'h00010000; // Subtract 1.0 in fixed point
+            end
                 //fill this up later when figured how to use the scroll wheel, navigating the polynomial table
          end
          prev_btnC <= btnC;
          mouse_left_prev <= debounced;
+         mouse_middle_prev <= debounced_middle;
+         mouse_right_prev <= debounced_right;
       end //this end is for use mouse
        
     end //this end is for the always block

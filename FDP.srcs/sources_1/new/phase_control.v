@@ -51,13 +51,16 @@ module phase_control(
     wire is_phase_three;
     wire is_arithmetic_mode;
     wire is_getting_coefficients;
+    wire is_integration_mode;
+    wire is_plot_mode;
 
     // Note:
     // Phase 1/2: 4'b0000
     // Phase 3: 
     //      1. arithmetic: 4'b0001
-    //          arith overflow: 4'b0011
+    //         
     //      2. function: 4'b0010 
+    //          integration mode: 4'b0011
     // mousemode: 4'b1111;
     wire [3:0] seven_segment_mode;
 
@@ -69,8 +72,6 @@ module phase_control(
 
     // arithmetic overflow signal
     wire overflow_flag;
-    reg overflow_signal = 0;
-    reg [8:0] count_for_overflow = 0;
 
     // Seven segment overflow complete signal
     wire overflow_done;
@@ -146,7 +147,9 @@ module phase_control(
         .mouse_left(mouse_left),
         .middle(mouse_middle),
         .new_event(new_event),
-        .overflow_flag(overflow_flag)
+        .overflow_flag(overflow_flag),
+        .integration_mode(is_integral_mode),
+        .plot_mode(is_plot_mode)
     );
 
     // Output selection based on active phase
@@ -157,20 +160,9 @@ module phase_control(
         two_oled_data = is_phase_three ? phase_three_two_oled_data : 16'h0000;
     end
 
-    // handle overflow state
-    // always @ (posedge clk_1kHz) begin
-        // if (count_for_overflow == 500) begin
-            // count_for_overflow <= 0;
-            // overflow_signal <= 0;
-        // end else begin
-            // count_for_overflow <= count_for_overflow + 1;
-        // end
-        // if (overflow_flag && count_for_overflow < 500) begin
-            // overflow_signal <= 1;
-        // end
-    // end
-
-    assign seven_segment_mode = is_phase_three ? (is_arithmetic_mode ? (4'b0001) : 4'b0010) : (use_mouse ? 4'b1111 : 4'b0000);
+    assign seven_segment_mode = is_phase_three ? 
+    (is_arithmetic_mode ? 4'b0001 : (is_integration_mode ? (is_plot_mode ? 4'b0100 : 4'b0011) : 4'b0010))
+    : (use_mouse ? 4'b1111 : 4'b0000);
 
     // Controlling the seven segment display
     seven_seg_controller ssc(

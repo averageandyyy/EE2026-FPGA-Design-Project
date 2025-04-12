@@ -54,7 +54,9 @@ module phase_three_wrapper(
     input middle,
     input mouseonJB,
     input new_event,
-    output overflow_flag
+    output overflow_flag,
+    output integration_mode,
+    output plot_mode
     );
 
     // State signals from controller
@@ -352,4 +354,7 @@ module phase_three_wrapper(
         (is_table_selected) ? table_two_oled_data :
         (is_integral_selected) ? integral_two_oled_data :
         16'h0000;
+
+    assign integration_mode = is_integral_selected;
+    assign plot_mode = is_menu_selection || is_table_selected || is_integral_selected;   
 endmodule

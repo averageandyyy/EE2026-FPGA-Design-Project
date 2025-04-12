@@ -31,7 +31,7 @@
     output reg signed [31:0] result = 0,
     output reg [1:0] current_operation = 0,
     output reg [1:0] operation_done = 0,
-    output overflow_flag
+    output reg overflow_flag = 0
     );
 
     // Operation constants
@@ -50,9 +50,6 @@
     // Overflow detection flags
     reg overflow;
     reg [31:0] temp_result;
-
-    // Assignment of overflow flag
-    assign overflow_flag = overflow;
 
     always @ (posedge clk) begin
         // Reset operation_done and overflow
@@ -89,6 +86,7 @@
                                 overflow = ((result[31] == 0 && input_fp_value[31] == 0 && temp_result[31] == 1) || 
                                            (result[31] == 1 && input_fp_value[31] == 1 && temp_result[31] == 0));
                                 result <= overflow ? 0 : temp_result;
+                                overflow_flag <= overflow ? 1 : 1;
                             end
 
                             SUBTRACT: begin
@@ -97,6 +95,7 @@
                                 overflow = ((result[31] == 0 && input_fp_value[31] == 1 && temp_result[31] == 1) || 
                                            (result[31] == 1 && input_fp_value[31] == 0 && temp_result[31] == 0));
                                 result <= overflow ? 0 : temp_result;
+                                overflow_flag <= overflow ? 1 : 1;
                             end
 
                             MULTIPLY: begin
@@ -105,6 +104,7 @@
                                 // Check for overflow: if high bits are not sign extension of low 32 bits
                                 overflow = ((product[63:31] != {33{product[31]}}) && (product[63:31] != 33'h0));
                                 result <= overflow ? 0 : (product >>> 16);
+                                overflow_flag <= overflow ? 1 : 1;
                             end
 
                             DIVIDE: begin
@@ -119,6 +119,7 @@
                                                (temp_result[31] == 0 && dividend[63] == 0 && input_fp_value[31] == 1) ||
                                                (temp_result[31] == 1 && dividend[63] == 1 && input_fp_value[31] == 1));
                                     result <= overflow ? 0 : temp_result;
+                                    overflow_flag <= overflow ? 1 : 1;
                                 end
                                 else begin
                                     // Division by zero case

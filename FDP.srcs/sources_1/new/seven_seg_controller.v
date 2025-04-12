@@ -56,14 +56,10 @@ module seven_seg_controller(
     reg [19:0] counter = 0; 
     reg [1:0] mux_count = 0;
 
-    // For overflow
-    reg is_still_overflow_display = 0;
-    reg [8:0] count_for_overflow = 0;
-
     
     always @(posedge my_1_khz_clk) begin
         // reset the anodes
-        an <= 4'b0000;
+        an <= 4'b1111;
 
         // always increment counter every clock cycle
         counter <= counter + 1;
@@ -74,17 +70,6 @@ module seven_seg_controller(
 
         // Anoding
         mux_count <= mux_count + 1;
-
-        // When the arithmetic backend overflows
-        if (seven_segment_mode == STATE_ARITH_OVERFLOW) begin
-            is_still_overflow_display <= 1;
-            count_for_overflow <= 750;
-        end
-
-        // Reset overflow Flag
-        if (count_for_overflow == 0) begin
-            is_still_overflow_display <= 0;
-        end
         
         if (seven_segment_mode == STATE_1_2) begin
             case (mux_count)
@@ -148,7 +133,7 @@ module seven_seg_controller(
                     end
                 end
             endcase
-        end else if (seven_segment_mode == STATE_ARITHMETIC && !is_still_overflow_display) begin
+        end else if (seven_segment_mode == STATE_ARITHMETIC) begin
             case (mux_count)
                 2'b00: begin 
                     if (toggle_state) begin
@@ -189,7 +174,7 @@ module seven_seg_controller(
                             seg <= T;
                             an <= 4'b1101;
                         end else begin
-                            seg <= F;
+                            seg <= N;
                             an <= 4'b1101;
                         end
                     end
@@ -204,7 +189,7 @@ module seven_seg_controller(
                             seg <= H;
                             an <= 4'b1110;
                         end else begin
-                            seg <= F;
+                            seg <= BLANK;
                             an <= 4'b1110;
                         end
                     end
@@ -251,7 +236,7 @@ module seven_seg_controller(
                             seg <= N;
                             an <= 4'b1101;
                         end else begin
-                            seg <= F;
+                            seg <= N;
                             an <= 4'b1101;
                         end
                     end
@@ -266,7 +251,7 @@ module seven_seg_controller(
                             seg <= C;
                             an <= 4'b1110;
                         end else begin
-                            seg <= F;
+                            seg <= BLANK;
                             an <= 4'b1110;
                         end
                     end
@@ -334,7 +319,7 @@ module seven_seg_controller(
                     end
                 end
             endcase        
-        end else if (is_still_overflow_display) begin
+        end else if (STATE_ARITH_OVERFLOW) begin
             case (mux_count)
                 2'b00: begin 
                         seg <= E;
@@ -356,9 +341,7 @@ module seven_seg_controller(
                         an <= 4'b1110;
                 end
             endcase
-
-            count_for_overflow <= count_for_overflow - 1;
         end
     end    
-    
+
 endmodule

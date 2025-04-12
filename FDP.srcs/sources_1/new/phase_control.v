@@ -69,6 +69,11 @@ module phase_control(
 
     // arithmetic overflow signal
     wire overflow_flag;
+    reg overflow_signal = 0;
+    reg [8:0] count_for_overflow = 0;
+
+    // Seven segment overflow complete signal
+    wire overflow_done;
 
     // Instantiate phase one wrapper
     phase_one_wrapper phase_one(
@@ -143,6 +148,7 @@ module phase_control(
         .new_event(new_event),
         .overflow_flag(overflow_flag)
     );
+
     // Output selection based on active phase
     always @ (posedge clk_100MHz) begin
         one_oled_data = is_phase_three ? phase_three_one_oled_data :
@@ -151,7 +157,20 @@ module phase_control(
         two_oled_data = is_phase_three ? phase_three_two_oled_data : 16'h0000;
     end
 
-    assign seven_segment_mode = is_phase_three ? (is_arithmetic_mode ? (overflow_flag ? 4'b0011 : 4'b0001) : 4'b0010) : (use_mouse ? 4'b1111 : 4'b0000);
+    // handle overflow state
+    always @ (posedge clk_1kHz) begin
+        if (count_for_overflow == 500) begin
+            count_for_overflow <= 0;
+            overflow_signal <= 0;
+        end else begin
+            count_for_overflow <= count_for_overflow + 1;
+        end
+        if (overflow_flag && count_for_overflow < 500) begin
+            overflow_signal <= 1;
+        end
+    end
+
+    assign seven_segment_mode = is_phase_three ? (is_arithmetic_mode ? (overflow_signal ? 4'b0011 : 4'b0001) : 4'b0010) : (use_mouse ? 4'b1111 : 4'b0000);
 
     // Controlling the seven segment display
     seven_seg_controller ssc(

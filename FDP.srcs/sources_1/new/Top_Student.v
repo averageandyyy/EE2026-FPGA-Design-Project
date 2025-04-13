@@ -147,7 +147,7 @@ module Top_Student (
         .clk_1kHz(clk_1kHz),
         .clk_6p25MHz(clk_6p25MHz),
         .one_pixel_index(JB_pixel_index),
-        .two_pixel_index(JA_pixel_index),
+        .two_pixel_index(JA_rotated_pixel_index),
         .one_oled_data(JB_bg_data),
         .two_oled_data(JA_oled_data),
         .btnU(btnU),
@@ -165,6 +165,7 @@ module Top_Student (
         .mouseonJB(~sw[5]),
         .use_mouse(sw[3]),
         .is_pan_mouse(sw[5]),
+//        .pan_zoom_toggle(sw[14]),
         .mouse_left(left),
         .mouse_middle(middle),
         .mouse_right(right),
@@ -173,7 +174,7 @@ module Top_Student (
         //then 0011, 0111, 1111, scroll back down is 1111, 0111, 0011, 0001, 0000
     );
     wire [6:0] curr_x, curr_y;
-//    rotate_180_for_JA rotate180(JA_pixel_index, JA_rotated_pixel_index);
+    rotate_180_for_JA rotate180(JA_pixel_index, JA_rotated_pixel_index);
 
      on_screen_cursor unit_1 (.basys_clock(clk_6p25MHz),
              .pixel_index(JB_pixel_index),

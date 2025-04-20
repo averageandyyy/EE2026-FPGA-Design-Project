@@ -2,10 +2,10 @@
 
 ## Team Members (S2_07)
 
-*   CHENG JIA WEI ANDY
-*   CHOY WAYNE
-*   DANIEL KWAN
-*   HO WEI HAO
+*   [CHENG JIA WEI ANDY](https://github.com/averageandyyy)
+*   [CHOY WAYNE](https://github.com/WayneCh0y)
+*   [DANIEL KWAN](https://github.com/danielkwan2004)
+*   [HO WEI HAO](https://github.com/HoWeiHao)
 
 ## Project Overview
 

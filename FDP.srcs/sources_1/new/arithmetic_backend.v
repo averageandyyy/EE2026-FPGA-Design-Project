@@ -38,7 +38,7 @@
     parameter ADD = 2'd0;
     parameter SUBTRACT = 2'd1;
     parameter MULTIPLY = 2'd2;
-    parameter DIVIDE = 2'd3;
+    parameter DIVIDE = 2'd3; 
 
     // Flag for first calculation
     reg is_first_calc = 1;

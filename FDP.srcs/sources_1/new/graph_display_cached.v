@@ -44,7 +44,6 @@ module graph_display_cached(
     input pan_zoom_toggle
     );
 
-    
     // Constants
     parameter SCREEN_WIDTH = 96;
     parameter SCREEN_HEIGHT = 64;
@@ -111,7 +110,7 @@ module graph_display_cached(
         .computation_complete(compute_complete),
         .is_graph(1)
     );
-
+    
     // Connect pan_graph module for pan and zoom functionality
     pan_graph panning_unit(
         .clk(clk),

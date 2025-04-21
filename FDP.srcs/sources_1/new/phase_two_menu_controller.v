@@ -30,9 +30,20 @@ module phase_two_menu_controller(
     output reg is_arithmetic_mode,
     input is_getting_coefficients,
     input is_phase_two,
-    input back_switch
+    input back_switch,
+    input [6:0] curr_x, curr_y,
+    input mouse_left,
+    input middle,
+    input use_mouse,
+    input clk_100MHz,
+    input clk_6p25MHz
     );
-
+        //debouncing for left mouse button
+     parameter DEBOUNCE_DELAY = 2000000;
+     reg [21:0] counter;    // Counter for debounce delay (needs enough bits)
+     reg debounced;         // Stores the debounced state
+     
+     reg mouse_left_prev;
     // Previous button states for debouncing
     reg prev_btnC = 0;
     reg prev_btnU = 0;
@@ -49,11 +60,40 @@ module phase_two_menu_controller(
         cursor_row <= 0;
         is_phase_three <= 0;
         is_arithmetic_mode <= 0;
+        mouse_left_prev = 1'b0;
+        counter = 0;
+        debounced = 1'b0;
     end
 
     reg current_state = 0;
     localparam START = 0;
     localparam WAIT_TO_GO_BACK = 1;
+    always @(posedge clk_100MHz) begin
+                 if (mouse_left == debounced) 
+                     counter <= 0;
+                 else begin
+                     counter <= counter + 1;
+                     if (counter >= DEBOUNCE_DELAY) debounced <= mouse_left;
+                 end
+    end
+     //debouncing for middle mouse button
+           reg [21:0] middle_counter;    // Counter for debounce delay (needs enough bits)
+           reg debounced_middle;         // Stores the debounced state
+           initial begin
+               middle_counter   = 0;
+               debounced_middle = 1'b0;
+           end
+           always @(posedge clk_100MHz) begin
+                   if (middle == debounced_middle) 
+                       middle_counter <= 0;
+                   else begin
+                       middle_counter <= middle_counter + 1;
+                       if (middle_counter >= DEBOUNCE_DELAY) debounced_middle <= middle;
+                   
+                   end
+           end
+           reg mouse_middle_prev;
+           initial begin mouse_middle_prev = 1'b0; end
 
     always @ (posedge clock) begin
         // Decrement debounce counters if active
@@ -66,6 +106,37 @@ module phase_two_menu_controller(
             // Only listen iff phase_two
             START: begin
                 if (is_phase_two && !is_phase_three) begin
+                    if (use_mouse && curr_x >= 32 && curr_x <= 66 & curr_y >= 15 && curr_y <= 24) begin
+                        cursor_row <= 0;
+                        if ((use_mouse && debounced && !mouse_left_prev)) begin
+                            if (cursor_row) begin
+                                is_phase_three <= 1;
+                                is_arithmetic_mode <= 1;
+                            end
+                            else if (!cursor_row) begin
+                                is_phase_three <= 1;
+                            end
+                            // Transition to a state that allows phase_two to be false
+                            current_state <= WAIT_TO_GO_BACK;
+                        end
+                    end
+                        
+                    else if (use_mouse && curr_x >= 30 && curr_x <= 68 && curr_y >= 26 && curr_y <= 35) begin
+                        cursor_row <= 1;
+                        if ((use_mouse && debounced && !mouse_left_prev)) begin
+                            if (cursor_row) begin
+                                is_phase_three <= 1;
+                                is_arithmetic_mode <= 1;
+                            end
+                            else if (!cursor_row) begin
+                                is_phase_three <= 1;
+                            end
+                            // Transition to a state that allows phase_two to be false
+                            current_state <= WAIT_TO_GO_BACK;
+                        end
+
+                    end
+                        
                     // Up Down movement
                     if (btnU && !prev_btnU && debounce_U == 0) begin
                         cursor_row <= ~cursor_row;
@@ -96,7 +167,7 @@ module phase_two_menu_controller(
 
             WAIT_TO_GO_BACK: begin
                 // Go back iff at phase_three, we are either in arithmetic or obtaining coefficients
-                if (is_phase_three && back_switch && btnL && (is_arithmetic_mode || is_getting_coefficients)) begin
+                if (is_phase_three && back_switch && (btnL || (use_mouse && debounced_middle && !mouse_middle_prev))  && (is_arithmetic_mode || is_getting_coefficients)) begin
                     is_arithmetic_mode <= 0;
                     is_phase_three <= 0;
                     cursor_row <= 0;
@@ -107,6 +178,9 @@ module phase_two_menu_controller(
 
         prev_btnU <= btnU;
         prev_btnC <= btnC;
-        prev_btnD <= btnD;
+        prev_btnD <= btnD; 
+        mouse_left_prev <= debounced;
+        mouse_middle_prev <= debounced_middle;
+        
     end
 endmodule

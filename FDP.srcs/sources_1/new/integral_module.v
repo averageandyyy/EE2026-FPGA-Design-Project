@@ -24,7 +24,11 @@ module integral_module(
     // Clock inputs
     input clk_6p25MHz,
     input clk_1kHz,
-
+    input clk_100MHz,
+    input [11:0] ypos, xpos,
+    input mouse_left,
+    input use_mouse,
+    input middle,
     // Button inputs
     input btnC, btnU, btnD, btnL, btnR,
 
@@ -117,6 +121,13 @@ module integral_module(
     // Cursor controller
     integral_cursor_controller cursor_ctrl(
         .clk(clk_1kHz),
+        .clk_6p25MHz(clk_6p25MHz),
+        .clk_100MHz(clk_100MHz),
+        .xpos(xpos),
+        .ypos(ypos),
+        .mouse_left(mouse_left),
+        .use_mouse(use_mouse),
+        .middle(middle),
         .reset(reset || !is_integral_mode),
         .btnC(is_integral_mode ? btnC : 1'b0),
         .btnU(is_integral_mode ? btnU : 1'b0),

@@ -35,20 +35,26 @@ module phase_three_wrapper(
     input clk_100MHz,
     input clk_1kHz,
     input clk_6p25MHz,
+    input rst,
     input [12:0] one_pixel_index,
     input [12:0] two_pixel_index,
     output [15:0] one_oled_data,
     output [15:0] two_oled_data,
     input btnU, btnD, btnC, btnL, btnR,
     input is_phase_three,
+    input is_pan_mouse,
     input is_arithmetic_mode,
     output is_getting_coefficients,
     input back_switch,
     input [11:0] xpos,
     input [11:0] ypos,
+    input [3:0] zpos,
     input use_mouse,
     input mouse_left,
-    input mouse_middle,
+    input middle,
+    input mouse_right,
+    input new_event,
+    input mouseonJB,
     input pan_zoom_toggle,
     output overflow_flag,
     output integration_mode,
@@ -104,6 +110,13 @@ module phase_three_wrapper(
     // Controllers and modules
     phase_three_controller controller(
         .clock(clk_1kHz),
+        .use_mouse(use_mouse),
+        .clk_6p25MHz(clk_6p25MHz),
+        .mouse_left(mouse_left),
+        .middle(middle),
+        .clk_100MHz(clk_100MHz),
+        .xpos(xpos),
+        .ypos(ypos),
         .btnU(btnU),
         .btnD(btnD),
         .btnC(btnC & ~pan_zoom_toggle),
@@ -124,7 +137,8 @@ module phase_three_wrapper(
         .coeff_d(coeff_d),
         .input_complete(input_complete),
         .fp_value(fp_value),
-        .keypad_active(keypad_active)
+        .keypad_active(keypad_active),
+        .mouseonJB(1)
     );
 
     // Unified input builder for coefficients
@@ -148,6 +162,12 @@ module phase_three_wrapper(
     // Coefficient input cursor controller (reused from integral), interfaces with the input builder
     integral_cursor_controller coeff_cursor_ctrl(
         .clk(clk_1kHz),
+        .use_mouse(use_mouse),
+        .clk_6p25MHz(clk_6p25MHz),
+        .clk_100MHz(clk_100MHz),
+        .xpos(xpos),
+        .ypos(ypos),
+        .mouse_left(mouse_left),
         .reset(!is_getting_coefficients || !is_phase_three),
         .btnC((is_getting_coefficients && keypad_active) ? btnC : 1'b0),
         .btnU((is_getting_coefficients && keypad_active) ? btnU : 1'b0),
@@ -190,6 +210,11 @@ module phase_three_wrapper(
     // Phase three menu display (choosing between TABLE AND INTG)
     phase_three_menu_display menu_display(
         .clock(clk_6p25MHz),
+        .clk_100MHz(clk_100MHz), 
+        .mouse_left(mouse_left),
+        .use_mouse(use_mouse),
+        .xpos(xpos),
+        .ypos(ypos),
         .pixel_index(one_pixel_index),
         .cursor_row(cursor_row),
         .btnC(btnC),
@@ -199,13 +224,14 @@ module phase_three_wrapper(
     // Graph display for showing function
     graph_display_cached graph_display(
         .clk(clk_6p25MHz),
-         .clk_100MHz(clk_100MHz),
+        .clk_100MHz(clk_100MHz),
          .btnU(btnU),
          .btnD(btnD),
          .btnL(btnL),
          .btnR(btnR),
          .btnC(btnC || back_switch),
          .pan_zoom_toggle(pan_zoom_toggle),
+        .rst(rst),
         .pixel_index(two_pixel_index),
         .coeff_a(coeff_a),
         .coeff_b(coeff_b),
@@ -214,10 +240,13 @@ module phase_three_wrapper(
         .curr_x(xpos),
         .curr_y(ypos),
         .zoom_level(4'h5), // Default zoom level
+        .zpos(zpos),
+        .is_pan_mouse(is_pan_mouse),
+        .use_mouse(use_mouse),
         .mouse_left(mouse_left),
         .mouse_right(1'b0),
-        .mouse_middle(mouse_middle),
-        .new_event(1'b0),
+        .mouse_middle(middle),
+        .new_event(new_event),
         .colour(16'hF800), // Red line for graph
         .is_graphing_mode(is_menu_selection || is_table_selected || is_integral_selected),
         .is_integrate(is_integral_selected),
@@ -241,7 +270,8 @@ module phase_three_wrapper(
         .ypos(ypos),
         .use_mouse(use_mouse),
         .mouse_left(mouse_left),
-        .mouse_middle(mouse_middle),
+        .mouse_right(mouse_right),
+        .mouse_middle(middle),
         .is_table_mode(is_table_selected),
         .coeff_a(coeff_a),
         .coeff_b(coeff_b),
@@ -251,7 +281,9 @@ module phase_three_wrapper(
         .two_pixel_index(two_pixel_index),
         .one_oled_data(table_one_oled_data),
         .two_oled_data(table_two_oled_data),
-
+        .new_event(new_event),
+        .rst(rst),
+        .zpos(zpos),
         .is_table_input_mode_outgoing(is_table_input_mode_outgoing)
     );
 
@@ -259,6 +291,11 @@ module phase_three_wrapper(
     integral_module integral_module(
         .clk_6p25MHz(clk_6p25MHz),
         .clk_1kHz(clk_1kHz),
+        .clk_100MHz(clk_100MHz),
+        .use_mouse(use_mouse),
+        .xpos(xpos),
+        .ypos(ypos),
+        .mouse_left(mouse_left),
         .btnC(btnC),
         .btnU(btnU),
         .btnD(btnD),
@@ -283,6 +320,7 @@ module phase_three_wrapper(
     // Arithmetic module (the simplest module lol)
     arithmetic_module arithmetic_module(
         .clk_6p25MHz(clk_6p25MHz),
+        .clk_100MHz(clk_100MHz),
         .clk_1kHz(clk_1kHz),
         .btnC(btnC),
         .btnU(btnU),
@@ -295,7 +333,7 @@ module phase_three_wrapper(
         .ypos(ypos),
         .use_mouse(use_mouse),
         .mouse_left(mouse_left),
-        .mouse_middle(mouse_middle),
+        .middle(middle),
         .one_pixel_index(one_pixel_index),
         .two_pixel_index(two_pixel_index),
         .one_oled_data(arithmetic_one_oled_data),
@@ -311,7 +349,7 @@ module phase_three_wrapper(
         (is_table_selected) ? table_one_oled_data :
         (is_integral_selected) ? integral_one_oled_data :
         16'h0000;
-
+ 
     // Output multiplexing for the second OLED
     assign two_oled_data = 
         (is_phase_three && is_arithmetic_mode) ? arithmetic_two_oled_data :

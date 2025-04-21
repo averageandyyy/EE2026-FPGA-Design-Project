@@ -62,5 +62,7 @@ module mouse_module (
     .ps2_clk   (ps2_clk),
     .ps2_data  (ps2_data)
   );
+  
+  
 
 endmodule

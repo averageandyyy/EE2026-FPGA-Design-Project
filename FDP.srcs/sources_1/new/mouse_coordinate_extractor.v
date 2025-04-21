@@ -21,7 +21,7 @@
 
 
 module mouse_coordinate_extractor(
-    input         basys_clock,
+    input         basys_clock, //6p25MHz clock
     input  [11:0] xpos,    // 12-bit mouse x position
     input  [11:0] ypos,    // 12-bit mouse y position
     output reg [6:0] mouse_x,  // 7-bit mouse x (0-95)
